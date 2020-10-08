@@ -75,6 +75,21 @@
     "Variant Call Format (VCF) parser for Python")
    (license #f)))
 
+(define-public python-rpy2-2.9
+  (package
+    (inherit python-rpy2)
+    (name "python-rpy2")
+    (version "2.9.6b0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "rpy2" version))
+       (sha256
+        (base32
+         "1vqgw42a51l162gyg8qbx1xakxbj29riyb6azzv89f260w865k0d"))))
+        (arguments
+         `(#:tests? #f))))
+
 (define-public python2-rpy2
   (package
     (name "python2-rpy2")
