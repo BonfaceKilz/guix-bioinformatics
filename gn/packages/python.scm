@@ -719,7 +719,7 @@ pixels.")
 (define-public python2-parallel ; guix fix number of things
   (package
     (name "python2-parallel")
-    (version "1.6.4")
+    (version "1.6.6")
     (source
      (origin
        (method url-fetch)
@@ -728,7 +728,7 @@ pixels.")
              ))
        (sha256
         (base32
-         "1bw3j0zn7bj56636vp1vx4m91p2mlp661gn2nfhpbph3prgxzv82"))))
+         "15fhpr6kv4j45f9i55mwi5smzskm0pfwwagya7wq3wwlfaz9pj5c"))))
     (native-inputs
      `(("unzip" ,unzip)))
 
