@@ -731,34 +731,6 @@ primitives such as lines and ellipses, rather than manipulation of individual
 pixels.")
     (license license:gpl2+)))
 
-(define-public python2-parallel ; guix fix number of things
-  (package
-    (name "python2-parallel")
-    (version "1.6.6")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (string-append
-             "http://www.parallelpython.com/downloads/pp/pp-" version ".zip"
-             ))
-       (sha256
-        (base32
-         "15fhpr6kv4j45f9i55mwi5smzskm0pfwwagya7wq3wwlfaz9pj5c"))))
-    (native-inputs
-     `(("unzip" ,unzip)))
-
-    (build-system python-build-system)
-    ;; (native-inputs
-    ;; `(("python-setuptools" ,python-setuptools)))
-    (arguments
-     `(#:python ,python-2
-       #:tests? #f
-       ))   ; no 'setup.py test' really!
-    (home-page #f)
-    (synopsis "Parallel python lib")
-    (description #f)
-    (license #f)))
-
 (define-public python2-numarray ; guix: obsolete lib
   (package
     (name "python2-numarray")
