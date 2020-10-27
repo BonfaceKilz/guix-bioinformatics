@@ -1729,3 +1729,17 @@ sorted order.")
    (description
     "A framework for managing and maintaining multi-language pre-commit hooks.")
    (license license:expat)))
+
+;; Latest version. Upstream once v2.x.x becomes a stable release candidate
+(define-public python-mistune-2.0.0a5
+  (package
+    (inherit python-mistune)
+    (name "python-mistune-2.0.0a5")
+    (version "2.0.0a5")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "mistune" version))
+       (sha256
+        (base32
+         "1vc0rd50wbny0qdjjc7z14xvjdsfcmzavx3njxpxr2dvhx3b6j79"))))))
