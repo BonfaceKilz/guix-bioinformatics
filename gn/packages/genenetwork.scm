@@ -464,6 +464,7 @@ Graphical Fragment Assembly} files and related formats.")
            ("python-requests" ,python-requests)
            ("python-simplejson" ,python-simplejson)
            ("python-pyyaml" ,python-pyyaml)
+           ("python-mistune-2.0.0a5" ,python-mistune-2.0.0a5)
            ;; TODO: Get rid of Python R bindings
            ("python-rpy2" ,python-rpy2-2.9)
            ("python-xlsxwriter" ,python-xlsxwriter))))
