@@ -467,6 +467,7 @@ Graphical Fragment Assembly} files and related formats.")
            ("python-mistune-2.0.0a5" ,python-mistune-2.0.0a5)
            ;; TODO: Get rid of Python R bindings
            ("python-rpy2" ,python-rpy2-2.9)
+           ("python-beautifulsoup4" ,python-beautifulsoup4)
            ("python-xlsxwriter" ,python-xlsxwriter))))
       (arguments
        (let ((python (specification->package "python-wrapper"))
