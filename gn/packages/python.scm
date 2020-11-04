@@ -1112,7 +1112,7 @@ server.")
     (propagated-inputs
      `(("python-cachecontrol" ,python-cachecontrol-0.11)
        ("python-lockfile" ,python-lockfile)
-       ("python-mistune" ,python-mistune-2.0.0a5)
+       ("python-mistune" ,python-mistune)
        ("python-rdflib" ,python-rdflib)
        ("python-rdflib-jsonld" ,python-rdflib-jsonld)
        ("python-requests" ,python-requests)
