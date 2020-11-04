@@ -1265,6 +1265,7 @@ runApp(launch.browser=0, port=4206)~%\n"
          ("python-pyyaml" ,python-pyyaml)
          ("python-pycurl" ,python-pycurl)
          ("python-pyshex" ,python-pyshex)
+         ("python-redis" ,python-redis)
          ("python-ruaml.yaml" ,python38-ruaml.yaml-0.15.76)
          ("clustalw" ,clustalw)
          ("python-schema-salad" ,python-schema-salad)
