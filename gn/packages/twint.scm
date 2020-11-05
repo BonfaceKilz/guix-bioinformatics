@@ -66,21 +66,21 @@
     (name "python-fake-useragent")
     (version "0.1.11")
     (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "fake-useragent" version))
-        (sha256
-          (base32
-            "0dfz3bpmjmaxlhda6hfgsac7afb65pljibi8zkp9gc0ffn5rj161"))))
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "fake-useragent" version))
+       (sha256
+        (base32
+         "0dfz3bpmjmaxlhda6hfgsac7afb65pljibi8zkp9gc0ffn5rj161"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f))
     (home-page
-      "https://github.com/hellysmile/fake-useragent")
+     "https://github.com/hellysmile/fake-useragent")
     (synopsis
-      "Up to date simple useragent faker with real world database")
+     "Up to date simple useragent faker with real world database")
     (description
-      "Up to date simple useragent faker with real world database")
+     "Up to date simple useragent faker with real world database")
     (license #f)))
 
 (define-public python-cchardet
@@ -88,20 +88,20 @@
     (name "python-cchardet")
     (version "2.1.6")
     (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "cchardet" version))
-        (sha256
-          (base32
-            "1cs6y59qhbal8fgbyjk2lpjykh8kfjhq16clfssylsddb4hgnsmp"))))
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "cchardet" version))
+       (sha256
+        (base32
+         "1cs6y59qhbal8fgbyjk2lpjykh8kfjhq16clfssylsddb4hgnsmp"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f))
     (home-page "https://github.com/PyYoshi/cChardet")
     (synopsis
-      "cChardet is high speed universal character encoding detector.")
+     "cChardet is high speed universal character encoding detector.")
     (description
-      "cChardet is high speed universal character encoding detector.")
+     "cChardet is high speed universal character encoding detector.")
     (license #f)))
 
 ;; TODO: Upstream
@@ -145,12 +145,12 @@
      `(#:tests? #f))
     (propagated-inputs
      `(("python-typing-extensions" ,python-typing-extensions)
-         ,@(package-propagated-inputs python-aiohttp)))))
+       ,@(package-propagated-inputs python-aiohttp)))))
 
 ;; TODO: Upstream
 (define-public python-aiohttp-socks-0.5.5
   (package
-   (inherit python-aiohttp-socks)
+    (inherit python-aiohttp-socks)
     (name "python-aiohttp-socks-0.5.5")
     (version "0.5.5")
     (source
@@ -171,19 +171,19 @@
 
 (define-public python-yarl-1.6.2
   (package
-   (inherit python-yarl)
+    (inherit python-yarl)
     (name "python-yarl-1.6.2")
     (version "1.6.2")
     (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "yarl" version))
-      (sha256
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "yarl" version))
+       (sha256
         (base32
-          "1dk6nyhkbhmlfqxislb9a8hqdi3s8jyip3krk6c8c92pkasljny4"))))
+         "1dk6nyhkbhmlfqxislb9a8hqdi3s8jyip3krk6c8c92pkasljny4"))))
     (propagated-inputs
      `(("python-typing-extensions" ,python-typing-extensions)
-         ,@(package-propagated-inputs python-yarl)))))
+       ,@(package-propagated-inputs python-yarl)))))
 
 (define-public python-twint
   (package
@@ -208,21 +208,21 @@
              (substitute* "setup.py"
                (("'dataclasses',") "")))))))
     (propagated-inputs
-      `(("python-pycares" ,python-pycares)
-        ("python-aiohttp-socks" ,python-aiohttp-socks-0.5.5)
-        ("python-beautifulsoup4" ,python-beautifulsoup4)
-        ("python-cchardet" ,python-cchardet)
-        ("python-elasticsearch" ,python-elasticsearch)
-        ("python-fake-useragent" ,python-fake-useragent)
-        ("python-geopy" ,python-geopy)
-        ("python-yarl" ,python-yarl-1.6.2)
-        ("python-googletransx" ,python-googletransx)
-        ("python-pandas" ,python-pandas)
-        ("python-schedule" ,python-schedule)))
+     `(("python-pycares" ,python-pycares)
+       ("python-aiohttp-socks" ,python-aiohttp-socks-0.5.5)
+       ("python-beautifulsoup4" ,python-beautifulsoup4)
+       ("python-cchardet" ,python-cchardet)
+       ("python-elasticsearch" ,python-elasticsearch)
+       ("python-fake-useragent" ,python-fake-useragent)
+       ("python-geopy" ,python-geopy)
+       ("python-yarl" ,python-yarl-1.6.2)
+       ("python-googletransx" ,python-googletransx)
+       ("python-pandas" ,python-pandas)
+       ("python-schedule" ,python-schedule)))
     (home-page
-      "https://github.com/twintproject/twint")
+     "https://github.com/twintproject/twint")
     (synopsis
-      "An advanced Twitter scraping & OSINT tool.")
+     "An advanced Twitter scraping & OSINT tool.")
     (description
-      "An advanced Twitter scraping & OSINT tool.")
+     "An advanced Twitter scraping & OSINT tool.")
     (license license:expat)))
