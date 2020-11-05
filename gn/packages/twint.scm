@@ -2,6 +2,7 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages)
   #:use-module (guix build-system python)
+  #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (gnu packages check)
@@ -145,6 +146,44 @@
     (propagated-inputs
      `(("python-typing-extensions" ,python-typing-extensions)
          ,@(package-propagated-inputs python-aiohttp)))))
+
+;; TODO: Upstream
+(define-public python-aiohttp-socks-0.5.5
+  (package
+   (inherit python-aiohttp-socks)
+    (name "python-aiohttp-socks-0.5.5")
+    (version "0.5.5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/romis2012/aiohttp-socks")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0ivl4x12pscmpyn7z14h0lr8shsjc244pbvfafi1fmp1ddfzgw1l"))))
+    (arguments
+     `(#:tests? #f))
+    (propagated-inputs
+     `(("python-aiohttp" ,(specification->package "python-aiohttp@3.7.2"))
+       ("python-socks" ,python-socks)))))
+
+(define-public python-yarl-1.6.2
+  (package
+   (inherit python-yarl)
+    (name "python-yarl-1.6.2")
+    (version "1.6.2")
+    (source
+    (origin
+      (method url-fetch)
+      (uri (pypi-uri "yarl" version))
+      (sha256
+        (base32
+          "1dk6nyhkbhmlfqxislb9a8hqdi3s8jyip3krk6c8c92pkasljny4"))))
+    (propagated-inputs
+     `(("python-typing-extensions" ,python-typing-extensions)
+         ,@(package-propagated-inputs python-yarl)))))
 
 (define-public python-twint
   (package
