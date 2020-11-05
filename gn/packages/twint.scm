@@ -103,6 +103,31 @@
       "cChardet is high speed universal character encoding detector.")
     (license #f)))
 
+;; TODO: Upstream
+(define-public python-socks
+  (package
+    (name "python-socks")
+    (version "1.1.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "python-socks" version))
+       (sha256
+        (base32
+         "1w5gdlz6jaflzmzf8d6s81k4qwzb0q8xq2s76bj04sv11nm2lkiv"))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-async-timeout" ,python-async-timeout)
+       ("python-trio" ,python-trio)
+       ("python-curio" ,python-curio)))
+    (home-page
+     "https://github.com/romis2012/python-socks")
+    (synopsis
+     "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python")
+    (description
+     "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python")
+    (license #f)))
+
 (define-public python-twint
   (package
     (name "python-twint")
