@@ -128,6 +128,24 @@
      "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python")
     (license #f)))
 
+;; TODO: Upstream
+(define-public python-aiohttp-3.7.2
+  (package
+    (inherit python-aiohttp)
+    (version "3.7.2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "aiohttp" version))
+       (sha256
+        (base32
+         "0w30pq8x4sf9bhr29nrb4qxhm75mpz2a51nkalrd9rj1k3simnn6"))))
+    (arguments
+     `(#:tests? #f))
+    (propagated-inputs
+     `(("python-typing-extensions" ,python-typing-extensions)
+         ,@(package-propagated-inputs python-aiohttp)))))
+
 (define-public python-twint
   (package
     (name "python-twint")
