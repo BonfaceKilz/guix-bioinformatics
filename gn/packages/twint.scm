@@ -190,28 +190,34 @@
     (name "python-twint")
     (version "2.1.20")
     (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "twint" version))
-        (sha256
-          (base32
-            "0pcnn7p114agwk41vayp7wbc61yx7bwa1k7lz7gsa7p3jwcngdxk"))))
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/twintproject/twint")
+             (commit "a45a8ac719d5710e7da92f77d9801b351e505c1f")))
+       (sha256
+        (base32
+         "1bixwrwh1v7vpv0y6skgkml8zm82w00qwkvd6q79pkdj3hczha75"))))
     (build-system python-build-system)
     (arguments
-     `(#:tests? #f))
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'remove-deps
+           (lambda _
+             (substitute* "setup.py"
+               (("'dataclasses',") "")))))))
     (propagated-inputs
-      `(("python-aiodns" ,python-aiodns)
-        ("python-pycares" ,python-pycares)
-        ("python-aiohttp" ,python-aiohttp)
-        ("python-aiohttp-socks" ,python-aiohttp-socks)
+      `(("python-pycares" ,python-pycares)
+        ("python-aiohttp-socks" ,python-aiohttp-socks-0.5.5)
         ("python-beautifulsoup4" ,python-beautifulsoup4)
         ("python-cchardet" ,python-cchardet)
         ("python-elasticsearch" ,python-elasticsearch)
         ("python-fake-useragent" ,python-fake-useragent)
         ("python-geopy" ,python-geopy)
+        ("python-yarl" ,python-yarl-1.6.2)
         ("python-googletransx" ,python-googletransx)
         ("python-pandas" ,python-pandas)
-        ("python-pysocks" ,python-pysocks)
         ("python-schedule" ,python-schedule)))
     (home-page
       "https://github.com/twintproject/twint")
