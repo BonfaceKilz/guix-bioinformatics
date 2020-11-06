@@ -206,7 +206,23 @@
          (add-after 'unpack 'remove-deps
            (lambda _
              (substitute* "setup.py"
-               (("'dataclasses',") "")))))))
+               (("'dataclasses',") ""))))
+         (add-after 'remove-deps 'cast-variables-properly
+           (lambda _
+             ;; TODO: Upstream this fix
+             (begin
+               (substitute* "twint/format.py"
+                 ((", t.replies_count)")
+                  ", str(t.replies_count))"))
+               (substitute* "twint/format.py"
+                 ((", t.retweets_count)")
+                  ", str(t.retweets_count))"))
+               (substitute* "twint/format.py"
+                 ((", t.quote_url)")
+                  ", str(t.quote_url))"))
+               (substitute* "twint/format.py"
+                 ((", t.likes_count)")
+                  ", str(t.likes_count))"))))))))
     (propagated-inputs
      `(("python-pycares" ,python-pycares)
        ("python-aiohttp-socks" ,python-aiohttp-socks-0.5.5)
