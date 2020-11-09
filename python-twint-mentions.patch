@@ -1,0 +1,16 @@
+diff --git a/twint/format.py b/twint/format.py
+index 334b43a..3eeb8c2 100644
+--- a/twint/format.py
++++ b/twint/format.py
+@@ -29,7 +29,10 @@ def Tweet(config, t):
+         output = output.replace("{quote_url}", t.quote_url)
+         output = output.replace("{near}", t.near)
+         output = output.replace("{geo}", t.geo)
+-        output = output.replace("{mentions}", ",".join(t.mentions))
++        output = output.replace("{mentions}",
++                                ",".join(map(lambda x: x.get("screen_name",
++                                                             None),
++                                            t.mentions)))
+         output = output.replace("{translate}", t.translate)
+         output = output.replace("{trans_src}", t.trans_src)
+         output = output.replace("{trans_dest}", t.trans_dest)

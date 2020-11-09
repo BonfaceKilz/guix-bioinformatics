@@ -197,7 +197,9 @@
              (commit "a45a8ac719d5710e7da92f77d9801b351e505c1f")))
        (sha256
         (base32
-         "1bixwrwh1v7vpv0y6skgkml8zm82w00qwkvd6q79pkdj3hczha75"))))
+         "1bixwrwh1v7vpv0y6skgkml8zm82w00qwkvd6q79pkdj3hczha75"))
+       (patches (search-patches "python-twint-userlist.patch"
+                                "python-twint-mentions.patch"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f
@@ -207,7 +209,7 @@
            (lambda _
              (substitute* "setup.py"
                (("'dataclasses',") ""))))
-         (add-after 'remove-deps 'cast-variables-properly
+         (add-after 'unpack 'twint-hot-fixes
            (lambda _
              ;; TODO: Upstream this fix
              (begin
