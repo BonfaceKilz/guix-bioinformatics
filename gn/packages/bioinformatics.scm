@@ -15,6 +15,7 @@
   #:use-module (guix build-system waf)
   #:use-module (gnu packages)
   #:use-module (gn packages python)
+  #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
@@ -1269,6 +1270,7 @@ runApp(launch.browser=0, port=4206)~%\n"
          ("python-ruaml.yaml" ,python38-ruaml.yaml-0.15.76)
          ("clustalw" ,clustalw)
          ("python-schema-salad" ,python-schema-salad)
+         ("python-twint" ,python-twint)
          ;; and for the service
          ("python" ,python)
          ("gunicorn" ,gunicorn)))
