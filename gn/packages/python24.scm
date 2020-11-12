@@ -168,29 +168,12 @@ pre-defined variants."
 
 (define-public python24-pp
   (package
+    (inherit python-parallel)
     (name "python24-pp")
-    (version "1.6.1")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (string-append
-               "https://www.parallelpython.com/downloads/pp/pp-" version ".zip"))
-        (sha256
-         (base32
-          "0qkxcyclz3vgwpl6xvsrg76q59dj0wwy8qx15567bafv659ypyb1"))))
-    (build-system python-build-system)
     (arguments
      `(#:python ,python-2.4
        #:use-setuptools? #f
-       #:tests? #f)) ; no tests
-    (native-inputs
-     `(("unzip" ,unzip)))
-    (home-page "https://www.parallelpython.com/")
-    (synopsis "Parallel and distributed programming for Python")
-    (description "PP is a python module which provides mechanism for parallel
-execution of python code on SMP (systems with multiple processors or cores) and
-clusters (computers connected via network).")
-    (license license:bsd-3)))
+       #:tests? #f)) ; no tests))
 
 (define GN1-thirdparty-sources
   (origin
@@ -337,55 +320,6 @@ clusters (computers connected via network).")
          (add-after 'unpack 'change-directory
            (lambda _
              (chdir "thirdparty/pp-1.5.7") #t)))))
-    (home-page "")
-    (synopsis "")
-    (description "")
-    (license license:bsd-3)))
-
-(define-public python24-numarray-GN1
-  (package
-    (name "python24-numarray-GN1")
-    (version "1.5.2")
-    (source GN1-thirdparty-sources)
-    (build-system python-build-system)
-    (arguments
-     `(#:python ,python-2.4
-       #:use-setuptools? #f
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'build
-           (lambda _
-             (invoke "python" "setup.py" "config" "build"
-                     "--gencode" "--use_lapack")))
-         (add-after 'unpack 'find-lapack-and-openblas
-           (lambda* (#:key inputs #:allow-other-keys)
-             (let ((lapack (assoc-ref inputs "lapack"))
-                   (blas   (assoc-ref inputs "openblas")))
-               (substitute* "cfg_packages.py"
-                 (("lapack_libs = .*'m']")
-                  "lapack_libs = ['lapack', 'openblas', 'm']\n")
-                 (("lapack_dirs = .*")
-                  (string-append "lapack_dirs = ['"
-                                 lapack "/lib', '" blas "/lib']\n"))
-                 (("lapack_include_dirs = .*")
-                  (string-append "lapack_include_dirs = ['"
-                                 lapack "/include', '" blas "/include']\n")))
-               #t)))
-         (add-after 'unpack 'change-directory
-           (lambda _
-             (chdir "thirdparty/numarray-1.5.2")
-             (for-each make-file-writable (find-files "."))
-             #t))
-         (replace 'install
-                  (lambda* (#:key outputs #:allow-other-keys)
-                    (let ((out (assoc-ref outputs "out")))
-                      (invoke "python" "setup.py" "config"
-                              "install" "--use_lapack"
-                              (string-append "--prefix=" out))))))
-       #:tests? #f))   ; no test target
-    (inputs
-     `(("lapack" ,lapack)
-       ("openblas" ,openblas)))
     (home-page "")
     (synopsis "")
     (description "")
