@@ -173,7 +173,7 @@ pre-defined variants."
     (arguments
      `(#:python ,python-2.4
        #:use-setuptools? #f
-       #:tests? #f)) ; no tests))
+       #:tests? #f))))  ; no tests
 
 (define GN1-thirdparty-sources
   (origin
