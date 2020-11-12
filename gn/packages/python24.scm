@@ -166,10 +166,10 @@ pre-defined variants."
        `(("python24-setuptools" ,python24-setuptools)
          ,@(package-native-inputs base))))))
 
-(define-public python24-pp
+(define-public python24-parallel
   (package
     (inherit python-parallel)
-    (name "python24-pp")
+    (name "python24-parallel")
     (arguments
      `(#:python ,python-2.4
        #:use-setuptools? #f

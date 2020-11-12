@@ -80,7 +80,7 @@
                    python24-mysqlclient ; MySQLdb
                    python24-numarray
                    python24-piddle
-                   python24-pp
+                   python24-parallel
                    python24-pyx
                    python24-pyxlwriter
                    python24-qtlreaper
