@@ -1743,3 +1743,26 @@ sorted order.")
        (sha256
         (base32
          "1vc0rd50wbny0qdjjc7z14xvjdsfcmzavx3njxpxr2dvhx3b6j79"))))))
+
+(define-public python-engineio
+  (package
+    (name "python-engineio")
+    (version "3.13.2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "python-engineio" version))
+       (sha256
+        (base32
+         "0jzhrq9n8mvndl42zv448jiak89dg8wcdvi7ynkvdn82lxm3rcrn"))))
+    (build-system python-build-system)
+    ;; No tests
+    (arguments
+     `(#:tests? #f))
+    (propagated-inputs
+     `(("python-six" ,python-six)))
+    (home-page
+     "http://github.com/miguelgrinberg/python-engineio/")
+    (synopsis "Engine.IO server")
+    (description "Engine.IO server")
+    (license license:expat)))
