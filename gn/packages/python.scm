@@ -1766,3 +1766,27 @@ sorted order.")
     (synopsis "Engine.IO server")
     (description "Engine.IO server")
     (license license:expat)))
+
+(define-public python-socketio
+  (package
+    (name "python-socketio")
+    (version "4.6.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "python-socketio" version))
+       (sha256
+        (base32
+         "0npjklf76flavqlsijvz07h5ndvzwj1s5jjvla757i19q2xqz39m"))))
+    (build-system python-build-system)
+    ;; No tests
+    (arguments
+     `(#:tests? #f))
+    (propagated-inputs
+     `(("python-engineio" ,python-engineio)
+       ("python-six" ,python-six)))
+    (home-page
+     "http://github.com/miguelgrinberg/python-socketio/")
+    (synopsis "Socket.IO server")
+    (description "Socket.IO server")
+    (license license:expat)))
