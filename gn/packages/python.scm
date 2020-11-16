@@ -1790,3 +1790,29 @@ sorted order.")
     (synopsis "Socket.IO server")
     (description "Socket.IO server")
     (license license:expat)))
+
+(define-public python-flask-socketio
+  (package
+    (name "python-flask-socketio")
+    (version "4.3.1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "Flask-SocketIO" version))
+       (sha256
+        (base32
+         "0qmhqpnwzbyhvld8vj4q0v3rv7981k1cjk2vy3jg9l8ha1vdbh9n"))))
+    (build-system python-build-system)
+    ;; No tests
+    (arguments
+     `(#:tests? #f))
+    (propagated-inputs
+     `(("python-flask" ,python-flask)
+       ("python-socketio" ,python-socketio)))
+    (home-page
+     "http://github.com/miguelgrinberg/Flask-SocketIO/")
+    (synopsis
+     "Socket.IO integration for Flask applications")
+    (description
+     "Socket.IO integration for Flask applications")
+    (license license:expat)))
