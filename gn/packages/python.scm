@@ -1808,6 +1808,9 @@ sorted order.")
      `(#:tests? #f))
     (propagated-inputs
      `(("python-flask" ,python-flask)
+       ("python-dnspython" ,python-dnspython)
+       ("python-eventlet" ,python-eventlet)
+       ("python-monotonic" ,python-monotonic)
        ("python-socketio" ,python-socketio)))
     (home-page
      "http://github.com/miguelgrinberg/Flask-SocketIO/")
