@@ -471,7 +471,8 @@ Graphical Fragment Assembly} files and related formats.")
            ;; TODO: Get rid of Python R bindings
            ("python-rpy2" ,python-rpy2-2.9)
            ("python-beautifulsoup4" ,python-beautifulsoup4)
-           ("python-flask-socketio" ,python-flask-socketio)
+           ;; Disable for now. Build fails on Penguin2
+           ;; ("python-flask-socketio" ,python-flask-socketio)
            ("python-xlsxwriter" ,python-xlsxwriter))))
       (arguments
        (let ((python (specification->package "python-wrapper"))
