@@ -269,7 +269,6 @@ Graphical Fragment Assembly} files and related formats.")
        ("python" ,python-2) ;; probably superfluous
        ("coreutils" ,coreutils)
        ("git" ,git)
-       ("vim" ,vim)
        ("which" ,which)
        ("grep" ,grep)
        ("r" ,r)
