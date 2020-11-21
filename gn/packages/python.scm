@@ -1100,14 +1100,14 @@ server.")
 (define-public python-schema-salad
   (package
     (name "python-schema-salad")
-    (version "7.0.20200612160654")
+    (version "7.0.20200811075006")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "schema-salad" version))
         (sha256
          (base32
-          "15ma3lb6fkfc6sj75hnmmg0jj8q3pc5yrlyx15lpdd4dcp2jc39s"))))
+          "0wanbwmqb189x1m0vacnhpivfsr8rwbqknngivzxxs8j46yj80bg"))))
     (build-system python-build-system)
     (propagated-inputs
      `(("python-cachecontrol" ,python-cachecontrol-0.11)
@@ -1116,8 +1116,8 @@ server.")
        ("python-rdflib" ,python-rdflib)
        ("python-rdflib-jsonld" ,python-rdflib-jsonld)
        ("python-requests" ,python-requests)
-       ;; This needs to be fixed before upstreaming
-       ("python-ruamel.yaml" ,python38-ruaml.yaml-0.15.76)
+       ;; This needs to be fixed before upstreaming - fixed?
+       ("python-ruamel.yaml" ,python-ruamel.yaml)
        ("python-setuptools" ,python-setuptools)
        ("python-typing-extensions" ,python-typing-extensions)))
     (native-inputs
@@ -1528,7 +1528,7 @@ handles recursion and lists.")
     (description "This package provides a SPARQL Slurper for rdflib.")
     (license license:asl2.0)))
 
-(define-public python38-ruaml.yaml-0.15.76
+(define-public python38-ruaml.yaml-0.15.76 ;; no longer in use 
   (package
     (inherit python-ruamel.yaml)
     (name "python-ruamel.yaml")
