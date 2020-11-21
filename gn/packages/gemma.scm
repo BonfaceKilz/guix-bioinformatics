@@ -100,7 +100,7 @@
     (license license:bsd-3))))
 
 
-(define-public gemma-gn2 ; guix candidate - generic openblas version
+(define-public gemma-gn2 ; Version used in GeneNetwork. Guix candidate - generic openblas version
   (let ((commit "97547ee82e0bd1cc2210612415b0ceb135dbba6d"))
   (package
     (name "gemma-gn2")
@@ -175,6 +175,63 @@ genome-wide association studies (GWAS).")
        ; #:tests? #f
        #:parallel-tests? #f))
    ))
+
+(define-public gemma-gn2-dev ; Dev version for GeneNetwork. Not a Guix candidate
+  (let ((commit "d53a04edc476d820de7a611cacc8b105115aa3cc"))
+  (package
+    (name "gemma-gn2-dev")
+    (version (string-append "0.98.2-" (string-take commit 7)))
+    (source (origin
+             (method git-fetch)
+             (uri (git-reference
+                   (url "https://github.com/genenetwork/GEMMA")
+                   (commit commit)))
+             (file-name (string-append name "-" version "-checkout"))
+             (sha256
+              (base32
+               "0xm4cjfzrcb1wc8lw9p1727spica8rlzwnvjkp7ackn1g7zmzhw0"))))
+    ; guix environment -C guix --ad-hoc gcc-toolchain gdb gsl openblas zlib bash ld-wrapper perl vim which
+    (inputs `(
+              ("gsl" ,gsl)
+              ("shunit2" ,shunit2)
+              ("openblas" ,openblas)
+              ("zlib" ,zlib)
+              ))
+    (native-inputs ; for running tests
+     `(("perl" ,perl)
+       ("which" ,which)
+       ))
+
+    (build-system gnu-build-system)
+    (arguments
+     `(#:phases
+        (modify-phases %standard-phases
+         (delete 'configure)
+         (add-before 'build 'bin-mkdir
+                     (lambda _
+                       (mkdir-p "bin")
+                       ))
+         (replace 'build
+                  (lambda* (#:key inputs #:allow-other-keys)
+                    (invoke "make" "debug" "-j" (number->string (parallel-job-count)))))
+         (replace 'check
+                  (lambda* (#:key inputs #:allow-other-keys)
+                    (invoke "make" "fast-check" )))
+         (replace 'install
+                  (lambda* (#:key outputs #:allow-other-keys)
+                           (let ((out (assoc-ref outputs "out")))
+                             (install-file "bin/gemma" (string-append out "/bin"))))))
+       ; #:tests? #f
+       #:parallel-tests? #f))
+    (home-page "http://www.xzlab.org/software.html")
+    (synopsis "Tool for genome-wide efficient mixed model association")
+    (description "Genome-wide Efficient Mixed Model Association (GEMMA)
+provides a standard linear mixed model resolver with application in
+genome-wide association studies (GWAS).")
+
+    (license license:gpl3))))
+
+
 
 (define-public gemma-wrapper
   (package
@@ -255,6 +312,7 @@ genome-wide association studies (GWAS).")
     (synopsis "GEMMA development environment imports build tools, gemma-wrapper and faster-lmm-d")
     (description "Gemma-development")
     (license license:gpl3))))
+
 
 (define-public faster-lmm-d-dev ; incomplete, just creates build environment
   (let ((commit "68e22043ce0ca348cbc4f3bdd015e036ba9ac5f2"))

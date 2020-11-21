@@ -58,9 +58,57 @@ Install slurm with
       ClusterName=(null) NodeName=selinunte CPUs=4 Boards=1 SocketsPerBoard=1 CoresPerSocket=2 ThreadsPerCore=2 RealMemory=7890 TmpDisk=29909
 #+END_SRC
 
+
+* Common Workflow Language (CWL)
+
+Install the common workflow language tool cwltool from this repo with
+
+#+BEGIN_SRC bash
+
+    guix pull
+    export PATH=$HOME/.config/guix/current/bin/guix:$PATH
+    ~/guix-bioinformatics$ env GUIX_PACKAGE_PATH=.:../guix-past/modules/ ~/.config/guix/current/bin/guix package -i cwl-runner -p ~/opt/CWL
+
+The following package will be installed:
+   cwl-runner 1.0
+
+The following derivations will be built:
+   /gnu/store/ld59374zr45rbqanh7ccfi2wa4d5x4yl-cwl-runner-1.0.drv
+   /gnu/store/86j15mxj5zp3k3sjimhqhb6zsj19azsf-python-schema-salad-7.0.20200811075006.drv
+   /gnu/store/0q2ls0is3253r4gx6hs7kmvlcz412lh1-schema-salad-7.0.20200811075006.tar.gz.drv
+   /gnu/store/myj1365ph687ynahjhg6zqslrmd6zpjq-cwltool-3.0.20201117141248.drv
+
+source ~/opt/CWL/etc/profile
+cwltool --version
+  /gnu/store/50mncjcgc8vmq5dfrh0pb82avbzy8c4r-cwltool-3.0.20201117141248/bin/.cwltool-real 3.0
+#+END_SRC
+
+To run CWL definitions you can install tools in a Guix environment (avoiding
+Docker). Say you need mafft in a workflow
+
+#+begin_src sh
+    ~/guix-bioinformatics$ env GUIX_PACKAGE_PATH=.:../guix-past/modules/ ~/.config/guix/current/bin/guix environment \
+       guix --ad-hoc cwl-runner mafft
+#+end_src
+
+in the new shell you should be able to find both CWL and MAFFT:
+
+#+begin_src sh
+ls $GUIX_ENVIRONMENT/bin/cwl*
+/gnu/store/bhfc5rk29s38w9kgcl4zmcdlh369y9f9-profile/bin/cwl-runner
+/gnu/store/bhfc5rk29s38w9kgcl4zmcdlh369y9f9-profile/bin/cwltool
+ls $GUIX_ENVIRONMENT/bin/mafft
+/gnu/store/bhfc5rk29s38w9kgcl4zmcdlh369y9f9-profile/bin/mafft
+#+end_src
+
+The paths can be loaded into the shell with
+
+: source $GUIX_ENVIRONMENT/etc/profile
+
 * Module system
 
-Install the module environment with
+For those who think they need modules: install the module environment
+with
 
 #+BEGIN_SRC bash
     guix pull
@@ -71,17 +119,7 @@ Install the module environment with
       DATE=2012-12-21
 #+END_SRC
 
-* Common Workflow Language (CWL)
-
-Install the common workflow language tool cwltool with
-
-#+BEGIN_SRC bash
-    guix pull
-    guix package -i python2-cwltool
-
-    cwtool --version
-      1.0.20150916041152
-#+END_SRC
+Note that GNU Guix supercedes module functionality!
 
 * Development tips
 
