@@ -1,31 +1,16 @@
 (define-module (gn packages python)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages)
-  #:use-module (gnu packages attr)
-  #:use-module (gnu packages base)
-  #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages check)
   #:use-module (gnu packages compression)
-  #:use-module (gnu packages databases)
   #:use-module (gnu packages fontutils)
-  #:use-module (gnu packages gcc)
   #:use-module (gnu packages ghostscript)
-  #:use-module (gnu packages glib)
-  #:use-module (gnu packages gnupg)
   #:use-module (gnu packages graphviz)
-  #:use-module (gnu packages gtk)
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages image)
-  #:use-module (gnu packages imagemagick)
   #:use-module (gnu packages libffi)
   #:use-module (gnu packages linux)
-  #:use-module (gnu packages maths)
-  #:use-module (gnu packages multiprecision)
-  #:use-module (gnu packages networking)
-  #:use-module (gnu packages ncurses)
   #:use-module (gnu packages pcre)
-  #:use-module (gnu packages perl)
-  #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-compression)
   #:use-module (gnu packages python-crypto)
@@ -37,20 +22,12 @@
   #:use-module (gnu packages serialization)
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages tcl)
-  #:use-module (gnu packages tex)
-  #:use-module (gnu packages texinfo)
   #:use-module (gnu packages time)
-  #:use-module (gnu packages tls)
-  #:use-module (gnu packages web)
-  #:use-module (gnu packages xml)
-  #:use-module (gnu packages xorg)
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix utils)
-  #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
-  #:use-module (guix build-system trivial)
   #:use-module (srfi srfi-1))
 
 (define-public python-pyvcf
@@ -171,56 +148,6 @@ functions.")
 
 (define-public python2-plotly-3.2.1
   (package-with-python2 python-plotly-3.2.1))
-
-(define-public python-bagit; guix candidate
-  (package
-    (name "python-bagit")
-    (version "1.7.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "bagit" version))
-        (sha256
-         (base32
-          "1m6y04qmig0b5hzb35lnaw3d2yfydb7alyr1579yblvgs3da6j7j"))))
-    (build-system python-build-system)
-    (inputs
-     `(("python-setuptools-scm" ,python-setuptools-scm)
-       ("python-coverage" ,python-coverage)
-       ("python-mock" ,python-mock)))
-    (arguments `(#:tests? #f)) ;; No tests.
-    (home-page "https://pypi.python.org/pypi/bagit")
-    (synopsis "Create and validate BagIt packages")
-    (description
-      "Create and validate BagIt packages")
-    (license license:gpl2)))
-
-(define-public python-prov ; guix candidate
-(package
-  (name "python-prov")
-  (version "1.5.3")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "prov" version))
-      (sha256
-        (base32
-          "1a9h406laclxalmdny37m0yyw7y17n359akclbahimdggq853jd0"))))
-  (build-system python-build-system)
-  (inputs
-       `(("python-rdflib" ,python-rdflib)
-       ("python-lxml" ,python-lxml)
-       ("python-networkx" ,python-networkx)
-       ("python-dateutil" ,python-dateutil)
-       ("python-pydot" ,python-pydot)
-       ("graphviz" ,graphviz) ; for testing
-       ))
-  (home-page "https://github.com/trungdong/prov")
-  (synopsis
-    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
-  (description
-    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
-  (license license:expat)))
 
 (define-public python-subprocess32 ; guix candidate
   (package
@@ -397,30 +324,6 @@ Python 3 support.")
 
 (define-public python2-avro
   (package-with-python2 python-avro))
-
-(define-public python-shellescape ; guix ready
-  (package
-    (name "python-shellescape")
-    (version "3.4.1")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "shellescape" version))
-        (sha256
-         (base32
-          "0n5ky1b2vw2y0d4xl3qybyp2rk0gq5frjs8nr8ak6mgj2fyb4676"))))
-    (build-system python-build-system)
-    (native-inputs
-     `(("python-setuptools" ,python-setuptools)))
-    (home-page "https://github.com/chrissimpkins/shellescape")
-    (synopsis
-      "Shell escape a string to safely use it as a token in a shell command (backport of Python shlex.quote for Python versions 2.x & < 3.3)")
-    (description
-      "Shell escape a string to safely use it as a token in a shell command (backport of Python shlex.quote for Python versions 2.x & < 3.3)")
-    (license license:expat)))
-
-(define-public python2-shellescape
-  (package-with-python2 python-shellescape))
 
 
 ; env IPFS_PATH=/export/ipfs/ ipfs add -r htmlgen/
@@ -829,49 +732,6 @@ the older versions.")
   (license license:expat)
 )))
 
-(define-public python-mypy-extensions
-(package
-  (name "python-mypy-extensions")
-  (version "0.4.1")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "mypy_extensions" version))
-      (sha256
-        (base32
-          "04h8brrbbx151dfa2cvvlnxgmb5wa00mhd2z7nd20s8kyibfkq1p"))))
-  (build-system python-build-system)
-  (inputs
-    `(("python-version" ,python-version)))
-  (home-page "http://www.mypy-lang.org/")
-  (synopsis
-    "Experimental type system extensions for programs checked with the mypy typechecker.")
-  (description
-    "Experimental type system extensions for programs checked with the mypy typechecker.")
-  (license #f))
-)
-
-
-(define-public python-arcp
-(package
-  (name "python-arcp")
-  (version "0.2.0")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "arcp" version))
-      (sha256
-        (base32
-          "0h8sn0mlb6vb8wqqnqc4pxdklrkyx3p72afdhm7b9kyalrqzd7dd"))))
-  (build-system python-build-system)
-  (home-page "http://arcp.readthedocs.io/")
-  (synopsis
-    "arcp (Archive and Package) URI parser and generator")
-  (description
-    "arcp (Archive and Package) URI parser and generator")
-  (license license:asl2.0))
-)
-
 (define-public python2-pp
   (package
     (name "python2-pp")
@@ -1032,19 +892,6 @@ spreadsheets without the need for COM objects.")
 (define-public python2-admiral
   (package-with-python2 python-admiral))
 
-(define-public python-cachecontrol-0.11
-  (package
-    (inherit python-cachecontrol)
-    (name "python-cachecontrol")
-    (version "0.11.7")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "CacheControl" version))
-        (sha256
-         (base32
-          "07jsfhlbcwgqg6ayz8nznzaqg5rmxqblbzxz1qvg5wc44pcjjy4g"))))))
-
 (define-public python-pbr-1.6.0
   (package
     (inherit python-pbr)
@@ -1095,44 +942,6 @@ spreadsheets without the need for COM objects.")
 Arvados.  It also includes higher-level functions to help you write Crunch
 scripts, and command-line tools to store and retrieve data in the Keep storage
 server.")
-    (license license:asl2.0)))
-
-(define-public python-schema-salad
-  (package
-    (name "python-schema-salad")
-    (version "7.0.20200811075006")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "schema-salad" version))
-        (sha256
-         (base32
-          "0wanbwmqb189x1m0vacnhpivfsr8rwbqknngivzxxs8j46yj80bg"))))
-    (build-system python-build-system)
-    (propagated-inputs
-     `(("python-cachecontrol" ,python-cachecontrol-0.11)
-       ("python-lockfile" ,python-lockfile)
-       ("python-mistune" ,python-mistune)
-       ("python-rdflib" ,python-rdflib)
-       ("python-rdflib-jsonld" ,python-rdflib-jsonld)
-       ("python-requests" ,python-requests)
-       ;; This needs to be fixed before upstreaming - fixed?
-       ("python-ruamel.yaml" ,python-ruamel.yaml)
-       ("python-setuptools" ,python-setuptools)
-       ("python-typing-extensions" ,python-typing-extensions)))
-    (native-inputs
-     `(("python-pytest" ,python-pytest-4)
-       ("python-pytest-runner" ,python-pytest-runner)))
-    (home-page "https://github.com/common-workflow-language/schema_salad")
-    (synopsis "Schema Annotations for Linked Avro Data (SALAD)")
-    (description
-     "Salad is a schema language for describing JSON or YAML structured linked
-data documents.  Salad schema describes rules for preprocessing, structural
-validation, and hyperlink checking for documents described by a Salad schema.
-Salad supports rich data modeling with inheritance, template specialization,
-object identifiers, object references, documentation generation, code
-generation, and transformation to RDF.  Salad provides a bridge between document
-and record oriented data modeling and the Semantic Web.")
     (license license:asl2.0)))
 
 (define-public python-pyshex
