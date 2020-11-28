@@ -101,10 +101,10 @@
 
 
 (define-public gemma-gn2 ; Version used in GeneNetwork. Guix candidate - generic openblas version
-  (let ((commit "97547ee82e0bd1cc2210612415b0ceb135dbba6d"))
+  (let ((commit "f623b4775d47b2c2697a4925bd044412a7db49d3"))
   (package
     (name "gemma-gn2")
-    (version (string-append "0.98.2-" (string-take commit 7)))
+    (version (string-append "0.98.3-" (string-take commit 7)))
     (source (origin
              (method git-fetch)
              (uri (git-reference
@@ -113,7 +113,7 @@
              (file-name (string-append name "-" version "-checkout"))
              (sha256
               (base32
-               "0p6pw4gm5fqr4yb9vklgj5abvqazmp1kk9cg3l2n8qsrj1p7j657"))))
+               "1p8a7kkfn1mmrg017aziy544aha8i9h6wd1x2dk3w2794wl33qb7"))))
     ; guix environment -C guix --ad-hoc gcc-toolchain gdb gsl openblas zlib bash ld-wrapper perl vim which
     (inputs `(
               ("gsl" ,gsl)
@@ -177,10 +177,10 @@ genome-wide association studies (GWAS).")
    ))
 
 (define-public gemma-gn2-dev ; Dev version for GeneNetwork. Not a Guix candidate
-  (let ((commit "d53a04edc476d820de7a611cacc8b105115aa3cc"))
+  (let ((commit "f623b4775d47b2c2697a4925bd044412a7db49d3"))
   (package
     (name "gemma-gn2-dev")
-    (version (string-append "0.98.2-" (string-take commit 7)))
+    (version (string-append "0.98.3-" (string-take commit 7)))
     (source (origin
              (method git-fetch)
              (uri (git-reference

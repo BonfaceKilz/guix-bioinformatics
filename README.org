@@ -61,6 +61,8 @@ Install slurm with
 
 * Common Workflow Language (CWL)
 
+/Note that CWL moved into Guix master!/
+
 Install the common workflow language tool cwltool from this repo with
 
 #+BEGIN_SRC bash

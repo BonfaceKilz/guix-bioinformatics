@@ -45,7 +45,6 @@
   #:use-module (gnu packages bootstrap)
   #:use-module (gnu packages version-control)
   #:use-module (gn packages bioinformatics)
-  #:use-module (gn packages gemma)
   #:use-module (gn packages javascript)
   #:use-module (gn packages phewas)
   #:use-module (gn packages python)
