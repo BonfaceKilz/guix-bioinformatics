@@ -199,28 +199,6 @@ functions.")
 (define-public python2-flask-sqlalchemy
   (package-with-python2 python-flask-sqlalchemy))
 
-(define-public python-xlsxwriter ; guix ready
-(package
-  (name "python-xlsxwriter")
-  (version "0.8.4")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "XlsxWriter" version))
-      (sha256
-        (base32
-          "0hv6bknnj9mlvvkdnlzycs0s97vrakmyh91ddb7ynjaqp8gl434z"))))
-  (build-system python-build-system)
-  (inputs
-    `(("python-setuptools" ,python-setuptools)))
-  (home-page
-    "https://github.com/jmcnamara/XlsxWriter")
-  (synopsis
-    "A Python module for creating Excel XLSX files.")
-  (description
-    "A Python module for creating Excel XLSX files.")
-  (license license:bsd-3)))
-
 (define-public python2-xlsxwriter
   (package-with-python2 python-xlsxwriter))
 
