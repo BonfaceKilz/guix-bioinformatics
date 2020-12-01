@@ -495,9 +495,38 @@ Graphical Fragment Assembly} files and related formats.")
                      (("grep") (which "grep"))
                      (("rm") (which "rm"))
                      (("which") (which "which")))
-                   #t))))
-           ))
-       ))))
+                   #t))
+               (add-after 'install 'generate-dependency-file
+                 (lambda* (#:key inputs outputs #:allow-other-keys)
+                   (call-with-output-file
+                       (string-append
+                        (assoc-ref outputs "out")
+                        "/lib/python3.8/site-packages"
+                        "/wqflask/DEPENDENCIES.md")
+                     (lambda (port)
+                       (format
+                        port "
+#### System Inputs (generated from ~a package ~a)
+|Name | Description |
+|-----|-------------|
+~a
+"
+                        ,(package-name this-package)
+                        ,(package-version this-package)
+                        ,(apply
+                          string-append
+                          (map
+                           (lambda (input)
+                             (let* ((pkg (cadr input))
+                                    (name (package-name pkg))
+                                    (version (package-version pkg))
+                                    (home-page (package-home-page pkg))
+                                    (description (package-synopsis pkg)))
+                               (string-append
+                                "| **[" name "](" home-page ")** v"
+                                version"| "
+                                description " |\n")))
+                           (package-propagated-inputs this-package))))))))))))))))
 
 ;; ./pre-inst-env guix download http://files.genenetwork.org/raw_database/db_webqtl_s.zip
 ;; 0sscjh0wml2lx0mb43vf4chg9gpbfi7abpjxb34n3kyny9ll557x
