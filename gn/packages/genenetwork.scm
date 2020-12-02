@@ -506,13 +506,18 @@ Graphical Fragment Assembly} files and related formats.")
                      (lambda (port)
                        (format
                         port "
-#### System Inputs (generated from ~a package ~a)
+#### System Inputs (generated from ~a package defined in ~a)
 |Name | Description |
 |-----|-------------|
 ~a
 "
                         ,(package-name this-package)
-                        ,(package-version this-package)
+                        (string-append
+                         "[genenetwork.scm]"
+                         "(http://git.genenetwork.org/"
+                         "guix-bioinformatics/guix-bioinformatics"
+                         "/src/branch/master/gn/packages/"
+                         "genenetwork.scm)")
                         ,(apply
                           string-append
                           (map
