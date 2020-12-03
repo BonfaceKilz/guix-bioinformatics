@@ -10,6 +10,9 @@
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
+  #:use-module (guix graph)
+  #:use-module (guix scripts graph)
+  #:use-module (guix store)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bioconductor)
@@ -496,6 +499,28 @@ Graphical Fragment Assembly} files and related formats.")
                      (("rm") (which "rm"))
                      (("which") (which "which")))
                    #t))
+               (add-after 'install 'generate-graph
+                 (lambda* (#:key inputs outputs #:allow-other-keys)
+                   (begin
+                     (call-with-output-file
+                           (string-append
+                            (assoc-ref outputs "out")
+                            "/lib/python3.8/site-packages"
+                            "/wqflask/dependency-graph.html")
+                         (lambda (port)
+                           (format
+                            port "~a"
+                            ,(call-with-output-string
+                              (lambda (p)
+                                (with-output-to-port p
+                                  (lambda ()
+                                    (run-with-store
+                                        (open-connection)
+                                      (export-graph
+                                       (list this-package)
+                                       p
+                                       #:node-type %package-node-type
+                                       #:backend %d3js-backend))))))))))))
                (add-after 'install 'generate-dependency-file
                  (lambda* (#:key inputs outputs #:allow-other-keys)
                    (call-with-output-file
