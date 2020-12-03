@@ -5,9 +5,7 @@
 
             slurm-configuration
             slurm-configuration?
-            slurmd-service-type
-            slurmdbd-service-type
-            slurmctld-service-type))
+            slurm-service-type))
 
 (use-modules (gnu)
              (guix records)
@@ -177,9 +175,9 @@
   (slurm-conf-file      slurm-configuration-slurm-conf-file
                         (default "/etc/slurm/slurm.conf"))
   (slurmd-log-file      slurm-configuration-slurmd-log-file
-                        (default "/var/log/slurm/slurmd.log"))
+                        (default #f))               ; #f for syslog
   (slurmd-pid-file      slurm-configuration-slurmd-pid-file
-                        (default "/var/run/slurm/slurmd.pid"))
+                        (default "/var/run/slurmd.pid"))
 
   (slurmd-spooldir      slurm-configuration-slurmd-spooldir
                         (default "/var/spool/slurmd"))
@@ -187,16 +185,16 @@
   (run-slurmctld?       slurm-configuration-run-slurmctld
                         (default #f))
   (slurmctld-log-file   slurm-configuration-slurmctld-log-file
-                        (default "/var/log/slurm/slurmctld.log"))
+                        (default #f))               ; #f for syslog
   (slurmctld-pid-file   slurm-configuration-slurmctld-pid-file
-                        (default "/var/run/slurm/slurmctld.pid"))
+                        (default "/var/run/slurmctld.pid"))
 
   (run-slurmdbd?        slurm-configuration-run-slurmdbd
                         (default #f))
   (slurmdbd-conf-file   slurm-configuration-slurmdbd-conf-file
                         (default "/etc/slurm/slurmdbd.conf"))
   (slurmdbd-pid-file    slurm-configuration-slurmdbd-pid-file
-                        (default "/var/run/slurm/slurmdbd.pid")))
+                        (default "/var/run/slurmdbd.pid")))
 
 
 (define (slurm-activation config)
@@ -204,16 +202,22 @@
   (with-imported-modules '((guix build utils))
     #~(begin
         (use-modules (guix build utils))
-        (define %user (getpw "slurm"))
-        (let ((homedir     (passwd:dir %user))
-              (spooldir    #$(slurm-configuration-slurmd-spooldir config))
-              (logdir      (dirname #$(slurm-configuration-slurmd-log-file config)))
-              (piddir      (dirname #$(slurm-configuration-slurmd-pid-file config))))
-          (for-each (lambda (dir)
-                      (unless (file-exists? dir)
-                        (mkdir-p dir))
-                      (chown dir (passwd:uid %user) (passwd:gid %user)))
-                    (list homedir spooldir piddir logdir)))
+        (let* ((%user       (getpw "slurm"))
+               (spooldir    #$(slurm-configuration-slurmd-spooldir config))
+               (logdir      (dirname (or #$(slurm-configuration-slurmd-log-file config)
+                                         #$(slurm-configuration-slurmctld-log-file config)
+                                         "/var/log/slurmd.log")))
+               (piddir      (dirname #$(slurm-configuration-slurmd-pid-file config))))
+          (unless (file-exists? spooldir)
+            (mkdir-p spooldir))
+          (chown spooldir (passwd:uid %user) (passwd:gid %user))
+          (when logdir
+            (unless (file-exists? logdir)
+              (mkdir-p logdir))
+            (when (> (string-length logdir) (string-length "/var/log"))
+              (chown logdir (passwd:uid %user) (passwd:gid %user))))
+          (unless (file-exists? piddir)
+            (mkdir-p piddir)))
         ;; /etc/slurm/slurm.conf needs to exist.
         (file-exists? #$(slurm-configuration-slurm-conf-file config)))))
 
@@ -227,7 +231,7 @@
          (requirement '(loopback munge))
          (start #~(make-forkexec-constructor
                     (list #$(file-append package "/sbin/slurmd")
-                          "-L" #$slurmd-log-file
+                          ;"-L" #$slurmd-log-file
                           "-f" #$slurm-conf-file)
                     #:pid-file #$slurmd-pid-file))
          (stop #~(make-kill-destructor)))))))
@@ -242,7 +246,7 @@
          (requirement '(loopback munge))
          (start #~(make-forkexec-constructor
                     (list #$(file-append package "/sbin/slurmctld")
-                          "-L" #$slurmctld-log-file
+                          ;"-L" #$slurmctld-log-file
                           "-f" #$slurm-conf-file)
                     #:pid-file #$slurmctld-pid-file))
          (stop #~(make-kill-destructor))
@@ -250,8 +254,10 @@
 
 (define (slurmdbd-activation config)
   "Test the Slurmdbd configration exists."
-  (file-exists?
-    (slurm-configuration-slurmdbd-conf-file config)))
+  (when (slurm-configuration-run-slurmdbd config)
+    (file-exists?
+      (slurm-configuration-slurmdbd-conf-file config)))
+  #t)
 
 (define slurmdbd-shepherd-service
   (match-lambda
@@ -269,67 +275,29 @@
 
 (define (slurm-services-to-run config)
   (append (slurmd-shepherd-service config)
-          (if (slurm-configuration-run-slurmctld? config)
+          (if (slurm-configuration-run-slurmctld config)
             (slurmctld-shepherd-service config)
             '())
-          (if (slurm-configuration-run-slurmdbd? config)
+          (if (slurm-configuration-run-slurmdbd config)
             (slurmdbd-shepherd-service config)
             '())))
 
-(define (slurm-activations-to-run config)
-  (append (slurm-activation config)
-          (if (slurm-configuration-run-slurmctld? config)
-            (slurmctld-activation config)
-            '())
-          (if (slurm-configuration-run-slurmdbd? config)
-            (slurmdbd-activation config)
-            '())))
-
-(define slurmd-service-type
+(define slurm-service-type
   (service-type
-    (name 'slurmd)
+    (name 'slurm)
     (extensions
       (list
         (service-extension shepherd-root-service-type
-                           ;(cons slurmd-shepherd-service
-                           ;      slurmdbd-shepherd-service))
-                           slurmd-shepherd-service)
-                           ;slurm-services-to-run)
+                           slurm-services-to-run)
         (service-extension activation-service-type
-                           ;(append slurm-activation
-                           ;      slurmdbd-activation))
                            slurm-activation)
-                           ;slurm-activations-to-run)
+        (service-extension activation-service-type
+                           slurmdbd-activation)
         (service-extension account-service-type
                            (const %slurm-accounts))
         (service-extension profile-service-type
                            (compose list slurm-configuration-package))))
     (default-value (slurm-configuration))
     (description
-     "Run @url{https://slurm.schedmd.com/slurm.html,Slurm}, a workflow manager service.")))
-
-(define slurmdbd-service-type
-  (service-type
-    (name 'slurmdbd)
-    (extensions
-      (list
-        (service-extension shepherd-root-service-type
-                           slurmdbd-shepherd-service)
-        (service-extension activation-service-type
-                           slurmdbd-activation)))
-    (default-value (slurm-configuration))
-    (description
-      ;; TODO: Fix for slurmdbd or integrate with slurm(d).
-     "Run @url{https://slurm.schedmd.com/slurm.html,Slurm}, a workflow manager service.")))
-
-(define slurmctld-service-type
-  (service-type
-    (name 'slurmctld)
-    (extensions
-      (list
-        (service-extension shepherd-root-service-type
-                           slurmctld-shepherd-service)))
-    (default-value (slurm-configuration))
-    (description
-      ;; TODO: Fix for slurmctld or integrate with slurm(d).
-     "Run @url{https://slurm.schedmd.com/slurm.html,Slurm}, a workflow manager service.")))
+     "Run @url{https://slurm.schedmd.com/slurm.html,Slurm}, a workflow manager
+service.  Optionally also run @code{slurmctld} and @code{slurmdbd}.")))

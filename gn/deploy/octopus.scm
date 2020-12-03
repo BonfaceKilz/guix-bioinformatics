@@ -2,42 +2,53 @@
 
 (use-modules (gnu)
              (gn services science)
-             (gn packages parallel))
+             (gn packages parallel)     ; for slurm-18.08
+             (srfi srfi-26))
 (use-service-modules networking ssh web)
-(use-package-modules certs tmux screen vim)
+(use-package-modules shells)
+
+(define %efraimf-ssh-pubkey
+  (plain-file "id_rsa.pub"
+              "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUCDY8ZKFF/ln0yzDt3CNmKz3cT4wzNv9bzCKvOBXcL0O7JtPWwqgLlZgmMHfzhzgReAkHcrt+Gdsyduzm/s9Y8c6QpyfaH6uoDwjfoOs6GrAjZaOXmAdncf+9HZEAy/IrygQ1YFRu6BvYogsdhhtN+O6IXBuvQQDRzldHs53Y53DK06Nrs19vAPwELXcDxcx1FvO+/L9nT8RHkI1Z0ucgTS+F/BWXl8+mh89r4j+4IRpZXOuCD0DrW5rgEE1EygF2dVdWZQESi23gU5Mt6vnmysXzwixB7j6I+xTih8LH4pz7hewEx6754e/cs9Gm7ZtfXKfXUt6+GtsBSBF3ULKl efraimf@octopus01"))
 
 (define %slurm.conf
   (plain-file "slurm.conf"
               (string-append
-"ClusterName=linux
-ControlMachine=octopus
+"# Defaults are commented out, otherwise noted at the end of the line
+# Values are from example in the man page or from Debian
+ClusterName=linux       # no default, suggests lowercase
+#ControlMachine=octopus  # defunct, use SlurmctldHost
+SlurmctldHost=octopus   # no default, falls back to next SlurmctldHost in list
 
-SlurmUser=slurm
-#SlurmdUser=root
-SlurmctldPort=6817
-SlurmdPort=6818
-AuthType=auth/munge
-StateSaveLocation=/var/spool/slurmd/ctld
-SlurmdSpoolDir=/var/spool/slurmd
-SwitchType=switch/none
-MpiDefault=none
-SlurmctldPidFile=/var/run/slurm/slurmctld.pid
-SlurmdPidFile=/var/run/slurm/slurmd.pid
-ProctrackType=proctrack/pgid
-ReturnToService=1
+SlurmUser=slurm         # default root, not recommended
+#SlurmctldPort=6817
+#SlurmdPort=6818
+#AuthType=auth/munge
+StateSaveLocation=/var/spool/slurmd/ctld    # default /var/spool
+#SlurmdSpoolDir=/var/spool/slurmd
+#SwitchType=switch/none
+#MpiDefault=none
+#SlurmctldPidFile=/var/run/slurmctld.pid
+#SlurmdPidFile=/var/run/slurmd.pid
+ProctrackType=proctrack/pgid    # default proctrack/cgroup
+ReturnToService=1       # default 0
 
+DebugFlags=NO_CONF_HASH # default empty
 # TIMERS
-InactiveLimit=0
-MinJobAge=300
-KillWait=30
+SlurmctldTimeout=300    # default 120
+#SlurmdTimeout=300
+#InactiveLimit=0
+#MinJobAge=300
+#KillWait=30
+#WaitTime=0
 #
 
 # LOGGING
-SlurmctldDebug=3
-SlurmctldLogFile=/var/log/slurm/slurmctld.log
-SlurmdDebug=3
-SlurmdLogFile=/var/log/slurm/slurmd.log
-JobCompType=jobcomp/none
+#SlurmctldDebug=3
+SlurmctldLogFile=/var/log/slurmctld.log     # default none, syslog
+#SlurmdDebug=3
+SlurmdLogFile=/var/log/slurmd.log           # default none, syslog
+#JobCompType=jobcomp/none
 
 # COMPUTE NODES
 NodeName=octopus CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=1024
@@ -49,22 +60,22 @@ PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP")))
 "###
 # Slurm cgroup support configuration file
 ###
-CgroupAutomount=yes
-ConstrainCores=yes
+CgroupAutomount=yes     # default no
+ConstrainCores=yes      # default no
 #")))
 
 (define %slurmdbd.conf
   (plain-file "slurmdbd.conf"
               (string-append
-"AuthType=auth/munge
-AuthInfo=/var/run/munge/munge.socket.2
-DbdHost=localhost
-StorageHost=localhost
-StorageType=accounting_storage/none
-StorageUser=slurm
-PidFile=/var/run/slurm/slurmdbd.pid
-LogFile=/var/log/slurm/slurmdbd.log
-SlurmUser=slurm")))
+"#AuthType=auth/munge
+#AuthInfo=/var/run/munge/munge.socket.2
+DbdHost=localhost       # must be specified
+StorageHost=localhost   # unclear, must be specified?
+StorageType=accounting_storage/none     # must be specified
+StorageUser=slurm       # unclear
+#PidFile=/var/run/slurmdbd.pid
+LogFile=/var/log/slurmdbd.log       # default none, syslog
+SlurmUser=slurm         # default root, not recommended")))
 
 (operating-system
   (host-name "octopus")
@@ -106,25 +117,37 @@ SlurmUser=slurm")))
 
   (users (cons*
            (user-account
+             (name "wrk")
+             (comment "Pjotr Prins")
+             (uid 502)
+             (group "users")
+             (supplementary-groups '("wheel" "kvm")))
+           (user-account
              (name "efraimf")
              (comment "Efraim Flashner")
              (uid 1000)
              (group "users")
              (supplementary-groups '("wheel" "kvm")))
            (user-account
-             (name "wrk")
-             (comment "Pjotr Prins")
-             (uid 502)
+             (name "erikg")
+             (comment "Erik Garrison")
+             (uid 1001)
              (group "users")
-             (supplementary-groups '("wheel" "kvm")))
+             (shell (file-append zsh "/bin/zsh")))
+           (user-account
+             (name "hchen")
+             (comment "Hao Chen")
+             (uid 1002)
+             (group "users"))
            %base-user-accounts))
 
 
-  (packages (cons*
-              nss-certs
-              screen
-              tmux
-              vim
+  (packages (append
+              (map (cut specification->package <>)
+                     '("nss-certs"
+                       "screen" "tmux"
+                       "vim"
+                       "htop"))
               %base-packages))
 
   (services
@@ -140,19 +163,15 @@ SlurmUser=slurm")))
               (service openssh-service-type
                        (openssh-configuration
                          (authorized-keys
-                           `(("efraimf" ,(local-file "/home/efraimf/.ssh/id_rsa.pub"))))))
+                           `(("efraimf" ,%efraimf-ssh-pubkey)))))
 
               (service munge-service-type)
-              (service slurmd-service-type
-                       (slurm-configuration
-                         (package slurm-18.08)))
-              (service slurmdbd-service-type
+              (service slurm-service-type
                        (slurm-configuration
                          (package slurm-18.08)
-                         (run-slurmdbd? #t)))
-              (service slurmctld-service-type
-                       (slurm-configuration
-                         (package slurm-18.08)
+                         (slurmd-log-file "/var/log/slurmd.log")
+                         (slurmctld-log-file "/var/log/slurmctld.log")
+                         (run-slurmdbd? #t)
                          (run-slurmctld? #t)))
 
               ;; Some slurm configuration files
