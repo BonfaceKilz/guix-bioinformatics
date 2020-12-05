@@ -501,26 +501,25 @@ Graphical Fragment Assembly} files and related formats.")
                    #t))
                (add-after 'install 'generate-graph
                  (lambda* (#:key inputs outputs #:allow-other-keys)
-                   (begin
-                     (call-with-output-file
-                           (string-append
-                            (assoc-ref outputs "out")
-                            "/lib/python3.8/site-packages"
-                            "/wqflask/dependency-graph.html")
-                         (lambda (port)
-                           (format
-                            port "~a"
-                            ,(call-with-output-string
-                              (lambda (p)
-                                (with-output-to-port p
-                                  (lambda ()
-                                    (run-with-store
-                                        (open-connection)
-                                      (export-graph
-                                       (list this-package)
-                                       p
-                                       #:node-type %package-node-type
-                                       #:backend %d3js-backend))))))))))))
+                   (call-with-output-file
+                       (string-append
+                        (assoc-ref outputs "out")
+                        "/lib/python3.8/site-packages"
+                        "/wqflask/dependency-graph.html")
+                     (lambda (port)
+                       (format
+                        port "~a"
+                        ,(call-with-output-string
+                           (lambda (p)
+                             (with-output-to-port p
+                               (lambda ()
+                                 (run-with-store
+                                     (open-connection)
+                                   (export-graph
+                                    (list this-package)
+                                    p
+                                    #:node-type %package-node-type
+                                    #:backend %d3js-backend)))))))))))
                (add-after 'install 'generate-dependency-file
                  (lambda* (#:key inputs outputs #:allow-other-keys)
                    (call-with-output-file
