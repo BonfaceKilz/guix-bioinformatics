@@ -2,10 +2,9 @@
 
 (use-modules (gnu)
              (gn services science)
-             (gn packages parallel)     ; for slurm-18.08
              (srfi srfi-26))
 (use-service-modules networking ssh web)
-(use-package-modules shells)
+(use-package-modules parallel shells)
 
 (define %efraimf-ssh-pubkey
   (plain-file "id_rsa.pub"
