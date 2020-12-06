@@ -432,6 +432,8 @@ Graphical Fragment Assembly} files and related formats.")
                 (sha256
                  (base32
                   "1402g129ghfh0xwfxjj1i7gbib2yl9rahf55caj7b1psy24ys87x"))))
+      (native-inputs
+       `(("graphviz" ,graphviz)))
       (propagated-inputs
        (let ((inputs (package-propagated-inputs genenetwork2)))
          `(,@(fold
@@ -520,6 +522,38 @@ Graphical Fragment Assembly} files and related formats.")
                                     p
                                     #:node-type %package-node-type
                                     #:backend %d3js-backend)))))))))))
+               (add-after 'install 'generate-dag-svg-file
+                 (lambda* (#:key inputs outputs #:allow-other-keys)
+                   (let* ((output-dir
+                           (string-append
+                            (assoc-ref outputs "out")
+                            "/lib/python3.8/site-packages/wqflask/"))
+                          (dot-file
+                           (string-append
+                            output-dir
+                            "dependency-graph.dot"))
+                          (svg-file
+                           (string-append
+                            output-dir
+                            "dependency-graph.svg")))
+                     (begin
+                       (call-with-output-file
+                           dot-file
+                         (lambda (port)
+                           (format
+                            port "~a"
+                            ,(call-with-output-string
+                               (lambda (p)
+                                 (with-output-to-port p
+                                   (lambda ()
+                                     (run-with-store
+                                         (open-connection)
+                                       (export-graph
+                                        (list this-package)
+                                        p
+                                        #:node-type %package-node-type
+                                        #:backend %graphviz-backend)))))))))
+                       (invoke "dot" "-Tsvg" "-o" svg-file dot-file)))))
                (add-after 'install 'generate-dependency-file
                  (lambda* (#:key inputs outputs #:allow-other-keys)
                    (call-with-output-file
