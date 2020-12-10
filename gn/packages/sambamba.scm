@@ -10,13 +10,59 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages bioinformatics) ; for samtools in sambamba
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages curl)
+  #:use-module (gnu packages dlang)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages python)
   #:use-module (gnu packages ruby)
-  #:use-module (gnu packages dlang)
+  #:use-module (gnu packages tls)
   #:use-module (gn packages shell)
   #:use-module (srfi srfi-1))
+
+
+(define-public htslib
+  (package
+    (name "htslib")
+    (version "1.11-codecs")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/samtools/htslib/releases/download/"
+                    version "/htslib-" version ".tar.bz2"))
+              (sha256
+               (base32
+                "1mrq4mihzx37yqhj3sfz6da6mw49niia808bzsw2gkkgmadxvyng"))))
+    (build-system gnu-build-system)
+    ;; Let htslib translate "gs://" and "s3://" to regular https links with
+    ;; "--enable-gcs" and "--enable-s3". For these options to work, we also
+    ;; need to set "--enable-libcurl".
+    (arguments
+     `(#:configure-flags '("--enable-gcs"
+                           "--enable-libcurl"
+                           "--enable-s3"
+                           "--enable-lzma"
+                           "--enable-bz2")))
+    (inputs
+     `(("curl" ,curl)
+       ("openssl" ,openssl)
+       ("xz" ,xz)          ; for liblzma codec
+       ("bzip2" ,bzip2)))  ; for libz2 codec
+    ;; This is referred to in the pkg-config file as a required library.
+    (propagated-inputs
+     `(("zlib" ,zlib)))
+    (native-inputs
+     `(("perl" ,perl)))
+    (home-page "https://www.htslib.org")
+    (synopsis "C library for reading/writing high-throughput sequencing data")
+    (description
+     "HTSlib is a C library for reading/writing high-throughput sequencing
+data.  It also provides the @command{bgzip}, @command{htsfile}, and
+@command{tabix} utilities.")
+    ;; Files under cram/ are released under the modified BSD license;
+    ;; the rest is released under the Expat license
+    (license (list license:expat license:bsd-3))))
+
 
 (define-public sambamba
   (let ((commit "7cff06533b539a99b4e0db681fb573214d63aae2"))
