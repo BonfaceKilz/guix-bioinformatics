@@ -113,8 +113,7 @@
              (file-name (string-append name "-" version "-checkout"))
              (sha256
               (base32
-               "1p8a7kkfn1mmrg017aziy544aha8i9h6wd1x2dk3w2794wl33qb7"))))
-    ; guix environment -C guix --ad-hoc gcc-toolchain gdb gsl openblas zlib bash ld-wrapper perl vim which
+               "07hayi4hk34ldyqykn0aalpyd5vkdf06mn06ir4z80717arhpfs3"))))
     (inputs `(
               ("gsl" ,gsl)
               ("shunit2" ,shunit2)
@@ -141,7 +140,7 @@
                              (install-file "bin/gemma" (string-append out "/bin"))))))
        ; #:tests? #f
        #:parallel-tests? #f))
-    (home-page "http://www.xzlab.org/software.html")
+    (home-page "https://github.com/genetics-statistics/GEMMA")
     (synopsis "Tool for genome-wide efficient mixed model association")
     (description "Genome-wide Efficient Mixed Model Association (GEMMA)
 provides a standard linear mixed model resolver with application in
