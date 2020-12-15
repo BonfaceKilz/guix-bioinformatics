@@ -36,17 +36,27 @@
              "-DENABLE_STATIC=NO"
              "-DENABLE_VERBOSE_ASCIIDOC=YES"
              "-DENABLE_TCMALLOC=NO"
+             ;"-DLIB_SUBDIR=lib" ; no 64 suffix
              ;; Some directories need to be changed
-             "-DRUN_SUBDIR=/var/run/lizardfs"
-             "-DDATA_SUBDIR=/var/lib/lizardfs"
+             ;"-DRUN_SUBDIR=/var/run/lizardfs"
+             ;"-DDATA_SUBDIR=/var/lib/lizardfs"
+             ;"-DETC_SUBDIR=/etc/lizardfs"
              "-DENABLE_UTILS=YES")
        #:tests? #f  ; Tests fail to build.
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'dont-use-lib64
+         (add-after 'unpack 'configure-through-cmakelists.txt
            (lambda _
+             ;; For some reason some configure flags don't work.
              (substitute* "CMakeLists.txt"
-               (("\"64\"") "\"\""))
+               (("\"64\"") "\"\"")
+               (("var/run/mfs") "/var/run/lizardfs")
+               (("var/lib/mfs") "/var/lib/lizardfs")
+               (("etc/mfs") "/etc/lizardfs"))
+             ;; Then adjust the install directories back.
+             (substitute* "src/data/CMakeLists.txt"
+               (("\\$\\{ETC_SUBDIR\\}") "etc/lizardfs")
+               (("\\$\\{DATA_SUBDIR\\}") "var/lib/lizardfs"))
              #t))
          (add-after 'unpack 'use-system-libraries
            (lambda* (#:key inputs #:allow-other-keys)

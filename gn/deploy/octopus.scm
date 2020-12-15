@@ -1,13 +1,14 @@
 (define-module (gn deploy octopus))
 
 (use-modules (gnu)
+             (gn services file-systems)
              (gn services science)
              (srfi srfi-26))
 (use-service-modules networking ssh web)
 (use-package-modules parallel shells)
 
 (define %efraimf-ssh-pubkey
-  (plain-file "id_rsa.pub"
+  (plain-file "efraim-id_rsa.pub"
               "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUCDY8ZKFF/ln0yzDt3CNmKz3cT4wzNv9bzCKvOBXcL0O7JtPWwqgLlZgmMHfzhzgReAkHcrt+Gdsyduzm/s9Y8c6QpyfaH6uoDwjfoOs6GrAjZaOXmAdncf+9HZEAy/IrygQ1YFRu6BvYogsdhhtN+O6IXBuvQQDRzldHs53Y53DK06Nrs19vAPwELXcDxcx1FvO+/L9nT8RHkI1Z0ucgTS+F/BWXl8+mh89r4j+4IRpZXOuCD0DrW5rgEE1EygF2dVdWZQESi23gU5Mt6vnmysXzwixB7j6I+xTih8LH4pz7hewEx6754e/cs9Gm7ZtfXKfXUt6+GtsBSBF3ULKl efraimf@octopus01"))
 
 
@@ -36,13 +37,17 @@
               ;  (flags '(no-exec no-dev no-atime))
               ;  (options "rw,nodiratime,largeio,inode64")
               ;  (create-mount-point? #t))
-              ;(file-system
-              ;  (device "octopus01:/home")
-              ;  (mount-point "/home")
-              ;  (type "nfs")
-              ;  (mount? #f)    ; is this necessary?
-              ;  (check? #f))
-              )
+              (file-system
+                (device "octopus01:/export")
+                (mount-point "/export")
+                (type "nfs")
+                (mount? #f)    ; VM can't find octopus01
+                (check? #f))(file-system
+                (device "octopus01:/home")
+                (mount-point "/home")
+                (type "nfs")
+                (mount? #f)    ; VM can't find octopus01
+                (check? #f)))
               %base-file-systems))
 
   (swap-devices '("/dev/sda2"))
@@ -114,13 +119,37 @@
                          (cgroup-extra-content
                            (string-append
                              "CgroupAutomount=yes     # default no\n"
-                             "ConstrainCores=yes      # default no"))
+                             "ConstrainCores=yes      # default no\n"
+                             "MaxRAMPercent=95        # default 100"))
                          (slurmdbd-extra-content
                            (string-append
-                             "LogFile=/var/log/slurmdbd.log       # default none, syslog"))
+                             "LogFile=/var/log/slurmdbd.log   # default none, syslog"))
                          (run-slurmdbd? #t)
                          (run-slurmctld? #t)))
 
+              (service lizardfs-service-type
+                       (lizardfs-configuration
+                         (mfsmetalogger-config
+                           (lizardfs-mfsmetalogger-config-file
+                             (master-host "octopus")))
+                         (mfschunkserver-config
+                           (lizardfs-mfschunkserver-config-file
+                             (master-host "octopus")))
+                         (mfshdd-config
+                           (lizardfs-mfshdd-config-file
+                             (disks-to-use (list "/mnt"))))
+                         (mfsmaster-config
+                           (lizardfs-mfsmaster-config-file
+                             (personality "master")
+                             (master-host "octopus")))
+                         (mfsexports-config
+                           (plain-file "mfsexports.cfg"
+                                       "* / rw\n"))
+                         (run-mfsmetalogger-service? #t)
+                         ))
+
               (service dhcp-client-service-type)
               (service openntpd-service-type))
-            %base-services)))
+            %base-services))
+
+  (name-service-switch %mdns-host-lookup-nss))
