@@ -365,10 +365,10 @@ Javascript library, adding sorting, paging and filtering abilities to plain HTML
 tables with minimal effort.")
     (license license:expat)))
 
-(define-public javascript-datatables-scroller
+(define-public javascript-datatables-scroller-style
   (package
-    (name "javascript-datatables-scroller")
-    (version "2.0.1") ; Oct 1, 2019
+    (name "javascript-datatables-scroller-style")
+    (version "2.0.3") ; Dec 12 , 2020
     (source
       (origin
         (method git-fetch)
@@ -377,7 +377,36 @@ tables with minimal effort.")
                (commit version)))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1rw7ab72nfqvj6vl854kad72gkf5c0zi03mm4arcfvzn1b0x76n8"))))
+         (base32 "17lhgd8c6fxgh1b9rgln9pqljma2gz0whrjsixfd6jmiqn9gpqzk"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/DataTablesExtensions/scrollerStyle/"))
+                (source (assoc-ref %build-inputs "source")))
+           (copy-recursively source targetdir)))))
+    (propagated-inputs `(("javascript-datatables" ,javascript-datatables)))
+    (home-page "https://datatables.net/extensions/scroller/scrollerStyles")
+    (synopsis "This package contains distribution files required to style Scroller extension for DataTables.")
+    (description "Scroller is a virtual rendering plug-in for DataTables which allows large datasets to be drawn on screen very quickly. Virtual rendering means is that only the visible portion of the table is drawn, while the scrolling container gives the visual impression that the whole table is visible, allowing excellent browser performance.")
+    (license license:expat)))
+
+(define-public javascript-datatables-scroller
+  (package
+    (name "javascript-datatables-scroller")
+    (version "2.0.3") ; Dec 12,2020
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+              (url "https://github.com/DataTables/Dist-DataTables-Scroller.git")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "18pgy1zi6m2c4ycgylrszj2a8x9h2n8n7ymkwddcpk1ryq4n2l6q"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -388,9 +417,11 @@ tables with minimal effort.")
                 (targetdir (string-append out "/share/genenetwork2/javascript/DataTablesExtensions/scroller"))
                 (source (assoc-ref %build-inputs "source")))
            (copy-recursively source targetdir)))))
-    (propagated-inputs `(("javascript-datatables" ,javascript-datatables)))
+    (propagated-inputs `(("javascript-datatables" ,javascript-datatables)
+			 ("javascript-datatables-scroller-style", javascript-datatables-scroller-style)
+			 ))
     (home-page "https://datatables.net/extensions/scroller/")
-    (synopsis "This package contains distribution files required to style Scroller extension for DataTables.")
+    (synopsis "This package contains distribution files for the Scroller extension for DataTables. Only the core software for this library is contained in this package - to be correctly styled, a styling package for Scroller must also be included.")
     (description "Scroller is a virtual rendering plug-in for DataTables which allows large datasets to be drawn on screen very quickly. Virtual rendering means is that only the visible portion of the table is drawn, while the scrolling container gives the visual impression that the whole table is visible, allowing excellent browser performance.")
     (license license:expat)))
 
