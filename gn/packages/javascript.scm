@@ -892,7 +892,7 @@ client-side, and is perfect for web apps that generates files on the client.")
 (define-public javascript-underscore
   (package
     (name "javascript-underscore")
-    (version "1.9.1") ; June 1, 2018
+    (version "1.12.0") ; Nov 24, 2020
     (source
      (origin
        (method git-fetch)
@@ -902,7 +902,7 @@ client-side, and is perfect for web apps that generates files on the client.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "1f75wrln5kv5ihkbb9zwhyjqd9imwil801abhv36w09dkkabpjy5"))))
+         "1scvwaiziqfpi106z2bf5s9czd8mn8p8scgiyckrgjhaxw40acdh"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
