@@ -199,7 +199,8 @@
         (base32
          "1bixwrwh1v7vpv0y6skgkml8zm82w00qwkvd6q79pkdj3hczha75"))
        (patches (search-patches "python-twint-userlist.patch"
-                                "python-twint-mentions.patch"))))
+                                "python-twint-mentions.patch"
+                                "python-twint-token.patch"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f

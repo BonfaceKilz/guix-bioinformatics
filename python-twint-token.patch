@@ -1,0 +1,11 @@
+diff --git a/twint/token.py b/twint/token.py
+index 0eeb0dc..63b637a 100644
+--- a/twint/token.py
++++ b/twint/token.py
+@@ -20,0 +21,6 @@ class Token:
++        self._session.headers.update(
++            {'User-Agent':
++             ('Mozilla/5.0 '
++              '(Windows NT 10.0;'
++              ' Win64; x64; rv:78.0)'
++              ' Gecko/20100101 Firefox/78.0')})
