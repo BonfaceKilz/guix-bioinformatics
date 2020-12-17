@@ -8,6 +8,7 @@
   #:use-module (gnu packages boost)
   #:use-module (gnu packages check)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages dbm)
   #:use-module (gnu packages documentation)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages logging)
@@ -32,7 +33,7 @@
     (arguments
      `(#:configure-flags
        (list "-DENABLE_CLIENT_LIB=YES"
-             ;"-DENABLE_TESTS=YES"
+             "-DENABLE_TESTS=YES"
              "-DENABLE_STATIC=NO"
              "-DENABLE_VERBOSE_ASCIIDOC=YES"
              "-DENABLE_TCMALLOC=NO"
@@ -42,7 +43,9 @@
              ;"-DDATA_SUBDIR=/var/lib/lizardfs"
              ;"-DETC_SUBDIR=/etc/lizardfs"
              "-DENABLE_UTILS=YES")
-       #:tests? #f  ; Tests fail to build.
+       ;; Tests involve setting up a lizardfs instance and run as root.
+       ;; We will make do with just building the tests.
+       #:tests? #f
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'configure-through-cmakelists.txt
@@ -53,15 +56,15 @@
                (("var/run/mfs") "/var/run/lizardfs")
                (("var/lib/mfs") "/var/lib/lizardfs")
                (("etc/mfs") "/etc/lizardfs"))
-             ;; Then adjust the install directories back.
+             ;; Then adjust the install instructions.
              (substitute* "src/data/CMakeLists.txt"
-               (("\\$\\{ETC_SUBDIR\\}") "etc/lizardfs")
-               (("\\$\\{DATA_SUBDIR\\}") "var/lib/lizardfs"))
+               (("^install.*") ""))
              #t))
          (add-after 'unpack 'use-system-libraries
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((gtest  (assoc-ref inputs "googletest"))
                    (spdlog (assoc-ref inputs "spdlog")))
+               ;; Don't attempt to download any sources.
                (substitute* "cmake/Libraries.cmake"
                  (("ENABLE_TESTS") "DOWNLOAD_GTEST")
                  (("# Find GoogleTest" all)
@@ -75,9 +78,11 @@
                                  "endif()\n"
                                  "find_package(spdlog CONFIG REQUIRED)"))
                  (("include_directories(external/spdlog-0.14.0/include)") ""))
-               ;; Don't include gtest vendor directory
+
+               ;; Configure the location of the googletest sources.
+               (copy-recursively gtest "external/googletest")
                (substitute* "external/CMakeLists.txt"
-                 (("add_subdirectory.*") ""))
+                 (("add_subdirectory.*") "add_subdirectory(googletest)\n"))
 
                ;; Compatability with spdlog1.2.0+
                ;; https://github.com/lizardfs/lizardfs/issues/774
@@ -96,9 +101,30 @@
                (substitute* "src/chunkserver/iostat.h"
                  (("sys/stat.h>") "sys/stat.h>\n#include <sys/sysmacros.h>"))
 
-               #t))))))
+               #t)))
+         (add-after 'install 'install-extras
+           ;; This got broken by changing the directories above.
+           (lambda* (#:key outputs #:allow-other-keys)
+             (with-directory-excursion "../source"
+             (let* ((out  (assoc-ref outputs "out"))
+                    (etc  (string-append out "/etc"))
+                    (var  (string-append out "/var/lib/lizardfs"))
+                    (data "src/data"))
+               (mkdir-p (string-append etc "/bash_completion.d"))
+               (mkdir-p var)
+               (copy-file (string-append data "/lizardfs.completion")
+                          (string-append etc "/bash_completion.d/lizardfs"))
+               (copy-file (string-append data "/metadata.mfs")
+                          (string-append var "/metadata.mfs.empty"))
+               (for-each
+                 (lambda (file)
+                   (copy-file file
+                              (string-append etc "/" (basename file) ".dist")))
+                 (find-files data "\\.cfg(\\.in)?$"))
+               #t)))))))
     (inputs
-     `(("boost" ,boost)
+     `(("bdb" ,bdb)
+       ("boost" ,boost)
        ("fuse" ,fuse)
        ("linux-pam" ,linux-pam)
        ("python" ,python-2)
@@ -106,7 +132,7 @@
        ("zlib" ,zlib)))
     (native-inputs
      `(("asciidoc" ,asciidoc)
-       ("googletest" ,googletest-1.8)
+       ("googletest" ,(package-source googletest-1.7))
        ("pkg-config" ,pkg-config)))
     (home-page "https://lizardfs.com/")
     (synopsis "Distributed, scalable, fault-tolerant, highly available file system")
@@ -122,3 +148,19 @@ added servers, as it continuously takes care of balancing disk usage across all
 connected nodes.")
     (license (list license:asl2.0   ; external/crcutil
                    license:gpl3))))
+
+(define-public googletest-1.7
+  ;; Source only package
+  (hidden-package
+    (package
+      (inherit googletest)
+      (version "1.7.0")
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/google/googletest")
+                       (commit (string-append "release-" version))))
+                (file-name (git-file-name "googletest" version))
+                (sha256
+                 (base32
+                  "1yqnzrr7bgnnnwq02c5gy559mmb52pap7m1h7zd6w58dj9yvg72n")))))))
