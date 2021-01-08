@@ -85,7 +85,7 @@ PythonPath \"sys.path+['/run/current-system/profile/lib/python2.4', '/run/curren
 # same as 'listen' above
 NameVirtualHost *:8042
 <VirtualHost *:8042>
-  DocumentRoot "genenetwork1 "/web/webqtl
+  DocumentRoot "genenetwork1 "/web/
   Alias /images "genenetwork1 "/web/images/
   Alias /javascript "genenetwork1 "/web/javascript/
   Alias /css "genenetwork1 "/web/css/
