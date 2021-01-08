@@ -86,6 +86,24 @@ PythonPath \"sys.path+['/run/current-system/profile/lib/python2.4', '/run/curren
 NameVirtualHost *:8042
 <VirtualHost *:8042>
   DocumentRoot "genenetwork1 "/web/webqtl
+  Alias /images "genenetwork1 "/web/images/
+  Alias /javascript "genenetwork1 "/web/javascript/
+  Alias /css "genenetwork1 "/web/css/
+  <Directory "genenetwork1 "/web/images>
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
+  <Directory "genenetwork1 "/web/javascript>
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
+  <Directory "genenetwork1 "/web/css>
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
 </VirtualHost>
 <Directory " genenetwork1 "/web/webqtl>
   PythonOption session FileSession
