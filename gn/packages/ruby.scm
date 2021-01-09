@@ -394,3 +394,29 @@ a history.")
    (home-page
     "http://github.com/elasticsearch/elasticsearch-ruby")
    (license #f)))
+
+
+(define-public ruby-redis
+  (package
+   (name "ruby-redis")
+   (version "4.2.5")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "redis" version))
+     (sha256
+      (base32
+       "15x2sr6h094rjbvg8pkq6m3lcd5abpyx93aifvfdz3wv6x55xa48"))))
+   (build-system ruby-build-system)
+   (arguments
+    `(#:tests? #f)) ;; no bundler/cucumber
+   (synopsis
+    "    A Ruby client that tries to match Redis' API one-to-one, while still
+    providing an idiomatic interface.
+")
+   (description
+    "    A Ruby client that tries to match Redis' API one-to-one, while still
+    providing an idiomatic interface.
+")
+   (home-page "https://github.com/redis/redis-rb")
+   (license license:expat)))
