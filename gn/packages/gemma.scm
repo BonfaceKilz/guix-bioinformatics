@@ -102,7 +102,7 @@
 
 ;; See also the recent gemma.scm in the GEMMA repo!
 (define-public gemma-gn2 ; guix candidate - currently uses generic
-                         ; openblas version
+                         ; openblas version and genenetwork github repo
 
   (let ((commit "47221d6e9891bf9b20ce6e1e909856ccb0ae575f"))
   (package
@@ -111,7 +111,7 @@
     (source (origin
              (method git-fetch)
              (uri (git-reference
-                   (url "https://github.com/genenetwork/GEMMA")
+                   (url "https://github.com/genenetwork/GEMMA") 
                    (commit commit)))
              (file-name (string-append name "-" version "-checkout"))
              (sha256
