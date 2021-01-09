@@ -100,7 +100,10 @@
     (license license:bsd-3))))
 
 
-(define-public gemma-gn2 ; Version used in GeneNetwork. Guix candidate - generic openblas version
+;; See also the recent gemma.scm in the GEMMA repo!
+(define-public gemma-gn2 ; guix candidate - currently uses generic
+                         ; openblas version
+
   (let ((commit "47221d6e9891bf9b20ce6e1e909856ccb0ae575f"))
   (package
     (name "gemma-gn2")
