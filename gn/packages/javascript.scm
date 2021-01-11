@@ -425,6 +425,68 @@ tables with minimal effort.")
     (description "Scroller is a virtual rendering plug-in for DataTables which allows large datasets to be drawn on screen very quickly. Virtual rendering means is that only the visible portion of the table is drawn, while the scrolling container gives the visual impression that the whole table is visible, allowing excellent browser performance.")
     (license license:expat)))
 
+(define-public javascript-xterm
+  (package
+    (name "javascript-xterm")
+    (version "4.9.0") ; Jan 08 2021
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/xterm@" version
+                           "/lib/xterm.min.js"))
+       (file-name (string-append "xterm.min" version ".js"))
+       (sha256
+        (base32
+         "18smra546ws5fhnfdhj9m6yhvfjqdwx44jyb19q3az780ifwj2lz"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir
+                 (string-append out "/share/genenetwork2/javascript/xterm"))
+                (source (assoc-ref %build-inputs "source")))
+           (mkdir-p targetdir)
+           (copy-file source (string-append targetdir "/xterm.min.js"))))))
+    (native-inputs `(("source" ,source)))
+    (home-page "https://xtermjs.org/")
+    (synopsis "Javascript library that allows apps to bring fully-featured terminals in browsers.")
+    (description
+     "Xterm.js is a front-end component written in TypeScript that lets applications bring fully-featured terminals to their users in the browser. It's used by popular projects such as VS Code, Hyper and Theia.")
+    (license license:expat)))
+
+(define-public javascript-xterm-style
+  (package
+    (inherit javascript-xterm)
+    (name "javascript-xterm-style")
+    (version "4.9.0") ; Jan 08 2021
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/xterm@" version
+                           "/css/xterm.min.css"))
+       (file-name (string-append "xterm.min" version ".css"))
+       (sha256
+        (base32
+         "0nc7ysmfngzy1q1x4sasgnd5x91pqc00lgkajynz2gdan1rwsfk3"))))
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir
+                 (string-append out "/share/genenetwork2/javascript/xterm"))
+                (source (assoc-ref %build-inputs "source")))
+           (mkdir-p targetdir)
+           (copy-file source (string-append targetdir "/xterm.min.css"))))))
+    (native-inputs `(("source" ,source)))
+    (synopsis "Style sheets for xtermjs")
+    (description "Style sheets for xtermjs")
+    (license license:expat)))
+
 (define-public javascript-datatables-buttons
   (package
     (name "javascript-datatables-buttons")
