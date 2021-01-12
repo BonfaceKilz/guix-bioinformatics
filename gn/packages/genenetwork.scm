@@ -772,6 +772,13 @@ written in C")
                  (symlink "/gnshare/gn/web/genotypes" "web/genotypes")
                  (substitute* "web/webqtl/base/webqtlConfig.py"
                    (("http://www.genenetwork.org") "http://gn1-test.genenetwork.org"))
+                 ;; Inside the gn1 container, there's some conflict when
+                 ;; importing the user module, therefore, as a hack, rename
+                 ;; user to useralt
+                 (mkdir "web/webqtl/useralt")
+                 (copy-recursively "web/webqtl/user" "web/webqtl/useralt")
+                 (substitute* '("web/webqtl/main.py")
+                   (("from user import") "from useralt import"))
                  #t)))
            (add-after 'unpack 'use-local-links
              (lambda _
