@@ -106,7 +106,6 @@ NameVirtualHost *:8042
   </Directory>
 </VirtualHost>
 <Directory " genenetwork1 "/web/webqtl>
-  PythonOption session FileSession
   #what is the difference between these two?
   AddHandler mod_python .py
   #SetHandler python-program
@@ -115,6 +114,7 @@ NameVirtualHost *:8042
   #PythonHandler mod_python.publisher
   #PythonHandler mod_python.cgihandler
   # only while debugging:
+  PythonOption mod_python.session.session_type MemorySession
   PythonDebug On
 </Directory>
 # only while debugging:
