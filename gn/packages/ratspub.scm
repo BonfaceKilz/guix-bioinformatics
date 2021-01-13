@@ -20,7 +20,7 @@
 (define-public ratspub
   (package
     (name "ratspub")
-    (version "0.4.3")
+    (version "0.4.5")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -35,7 +35,7 @@
                        #t))
               (sha256
                (base32
-                "03v1nk58yhi7rsy6b23hlc1xd5i6lvqla25r9l4b1jcmzraaci8l"))))
+                "1y89rkqdxcnl2jjsy1wfp9p8qkgh6nzqs1r37wyhc8y7r3dva7kf"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f  ; no test suite
@@ -43,6 +43,9 @@
        (modify-phases %standard-phases
          (delete 'configure)
          (delete 'build)
+         (add-after 'unpack 'make-files-writable
+           (lambda _
+             (for-each make-file-writable (find-files "."))))
          (add-after 'unpack 'patch-datadir
            (lambda _
              (substitute* "server.py"
@@ -129,7 +132,7 @@
        ("tensorflow" ,tensorflow)))
     (native-inputs
      `(("bootstrap" ,web-bootstrap)
-       ("cytoscape" ,javascript-cytoscape)
+       ("cytoscape" ,javascript-cytoscape-3.17)
        ;("cytoscape-svg" ,js-cytoscape-svg-0.3.1)   ; TODO
        ("cytoscape-svg" ,js-cytoscape-svg-vendor-0.3.1)
        ("font-awesome" ,web-font-awesome)
