@@ -95,30 +95,31 @@ a focus on simplicity and productivity.")
     (home-page "https://ruby-lang.org")
     (license license:ruby)))
 
-(define-public bio-vcf ; guix ready with tests
+(define-public bio-vcf  ; guix ready, minus tests not passing
   (package
-   (name "bio-vcf")
-   (version "0.9.2")
-   (source
-    (origin
-     (method url-fetch)
-     (uri (rubygems-uri "bio-vcf" version))
-     (sha256
-      (base32
-       "1007bn0w8l11q867lxsyqnk0vgvv12skvk9gyglv7g44knr5vh4j"))))
-   (build-system ruby-build-system)
-   (arguments
-    `(#:tests? #f ; There are no tests.
-   ))
-   (synopsis
-    "Smart lazy multi-threaded parser for VCF format with useful
-filtering and output rewriting (JSON, RDF etc.)")
-   (description
-    "Smart lazy multi-threaded parser for VCF format with useful
-filtering and output rewriting (JSON, RDF etc.)")
-   (home-page
-    "http://github.com/pjotrp/bioruby-vcf")
-   (license expat)))
+    (name "bio-vcf")
+    (version "0.9.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "bio-vcf" version))
+        (sha256
+         (base32
+          "1xpll1pnpr5jxjdyydfw79ydz6l6lfhy6fg2gys8s3my9vwaf3ld"))))
+    (build-system ruby-build-system)
+    (native-inputs
+     `(("ruby-cucumber" ,ruby-cucumber)
+       ("ruby-rake" ,ruby-rake)))
+    (synopsis "Smart VCF parser DSL")
+    (description
+     "Bio-vcf provides a @acronym{DSL, domain specific language} for processing
+the VCF format.  Record named fields can be queried with regular expressions.
+Bio-vcf is a new generation VCF parser, filter and converter.  Bio-vcf is not
+only very fast for genome-wide (WGS) data, it also comes with a filtering,
+evaluation and rewrite language and can output any type of textual data,
+including VCF header and contents in RDF and JSON.")
+    (home-page "http://github.com/vcflib/bio-vcf")
+    (license license:expat)))
 
 (define-public bio-table ; guix ready with tests
   (package
