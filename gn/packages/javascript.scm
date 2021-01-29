@@ -1758,20 +1758,20 @@ Popper will automatically put the tooltip in the right place near the button.")
 Popper will automatically put the tooltip in the right place near the button.")
     (license license:expat)))
 
-(define-public javascript-zxcvbn-async
+(define-public javascript-zxcvbn
   (package
-   (name "javascript-zxcvbn-async")
-   (version "1.1.0")
+   (name "javascript-zxcvbn")
+   (version "4.4.2")
    (source
     (origin
      (method url-fetch)
      (uri (string-append
            "https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/"
            version
-           "/zxcvbn-async.min.js"))
+           "/zxcvbn.js"))
      (file-name (string-append name ".js"))
      (sha256
-      (base32 "1igmapz0gb458mdf634ywmfg8m5xixsx6qc38hqw90alk30lsmk2"))))
+      (base32 "0jhpzvgr3aly7m5wmcz759ssx6kgm3rrh2ax5psrgws5s8azqxv6"))))
    (build-system trivial-build-system)
    (arguments
     `(#:modules ((guix build utils))
@@ -1780,9 +1780,9 @@ Popper will automatically put the tooltip in the right place near the button.")
         (use-modules (guix build utils))
         (let* ((source (assoc-ref %build-inputs "source"))
                (out (assoc-ref %outputs "out"))
-               (targetdir (string-append out "/share/genenetwork2/javascript/zxcvbn-async")))
+               (targetdir (string-append out "/share/genenetwork2/javascript/zxcvbn")))
           (mkdir-p targetdir)
-          (copy-file source (string-append targetdir "/zxcvbn-async.min.js"))
+          (copy-file source (string-append targetdir "/zxcvbn.js"))
           ))))
    (native-inputs `(("source" ,source)))
    (home-page "https://www.usenix.org/conference/usenixsecurity16/technical-sessions/presentation/wheeler")
