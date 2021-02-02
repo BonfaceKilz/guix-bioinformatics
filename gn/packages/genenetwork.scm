@@ -361,7 +361,7 @@ Graphical Fragment Assembly} files and related formats.")
        ("javascript-zxcvbn" ,javascript-zxcvbn)
        ("javascript-jquery-ui" ,javascript-jquery-ui)
        ("javascript-jquery-cookie" ,javascript-jquery-cookie)
-       ))
+       ("javascript-font-awesome" ,javascript-font-awesome)))
     (inputs
      `(("javascript-colorbox" ,(package-source javascript-colorbox))))
     (build-system python-build-system)

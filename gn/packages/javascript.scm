@@ -1853,3 +1853,39 @@ Popper will automatically put the tooltip in the right place near the button.")
    (synopsis "A simple, lightweight jQuery plugin for reading, writing and deleting cookies.")
    (description "A simple, lightweight jQuery plugin for reading, writing and deleting cookies. No longer maintained, superseded by JS Cookie: https://github.com/js-cookie/js-cookie")
    (license license:expat)))
+
+
+;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32916 on why font-awesome
+;; cannot be upstreamed
+(define-public javascript-font-awesome
+  (package
+    (name "javascript-font-awesome")
+    (version "5.15.2")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/FortAwesome/Font-Awesome")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1jin0qlf5lv4l9gj8qc1pp34mxyvyj6gma4qnjqiah1bzcfn635l"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/fontawesome"))
+                (source (assoc-ref %build-inputs "source"))
+		(js-dir (string-append source "/js"))
+                (css-dir (string-append source "/css")))
+           (copy-recursively css-dir (string-append targetdir "/css"))
+	   (copy-recursively js-dir (string-append targetdir "/js"))))))
+    (native-inputs `(("source" ,source)))
+    (home-page "https://fontawesome.com/")
+    (synopsis "Font that contains a rich iconset")
+    (description "Font Awesome is a full suite of pictographic icons for easy scalable
+vector graphics.")
+    (license license:silofl1.1)))
