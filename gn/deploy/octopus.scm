@@ -4,7 +4,7 @@
              (gn services file-systems)
              (gn services science)
              (srfi srfi-26))
-(use-service-modules networking ssh web)
+(use-service-modules networking ssh sysctl web)
 (use-package-modules parallel shells)
 
 (define %efraimf-ssh-pubkey
@@ -96,6 +96,11 @@
                          (authorized-keys
                            `(("efraimf" ,%efraimf-ssh-pubkey)))))
 
+              (service sysctl-service-type
+                       (sysctl-configuration
+                         (settings '(("vm.overcommit_memory" . "2")
+                                     ("vm.overcommit_ratio" . "90")))))
+
               (service munge-service-type)
               (service slurm-service-type
                        (slurm-configuration
@@ -110,9 +115,10 @@
                          (slurm-extra-content
                            (string-append
                              "StateSaveLocation=/var/spool/slurmd/ctld    # default /var/spool\n"
-                             "ProctrackType=proctrack/pgid    # default proctrack/cgroup\n"
                              "ReturnToService=1               # default 0\n"
                              "DebugFlags=NO_CONF_HASH         # default empty\n"
+                             "SelectType=select/cons_res      # default select/linear\n"
+                             "SelectTypeParameters=CR_CPU     # default 0\n"
                              "# COMPUTE NODES\n"
                              "NodeName=octopus CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=1024\n"
                              "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP"))

@@ -48,11 +48,11 @@
   (with-imported-modules '((guix build utils))
     #~(begin
         (define %user (getpw "munge"))
-        (let* ((homedir     (passwd:dir %user))
-               (key         #$(munge-configuration-key config))
-               (etc-dir     (dirname key))
-               (run-dir     (dirname #$(munge-configuration-pid-file config)))
-               (log-dir     (dirname #$(munge-configuration-log-file config))))
+        (let* ((homedir (passwd:dir %user))
+               (key     #$(munge-configuration-key config))
+               (etc-dir (dirname key))
+               (run-dir (dirname #$(munge-configuration-pid-file config)))
+               (log-dir (dirname #$(munge-configuration-log-file config))))
           (for-each (lambda (dir)
                       (unless (file-exists? dir)
                         (mkdir-p dir))
@@ -176,7 +176,7 @@
   (slurm-conf-file      slurm-configuration-slurm-conf-file
                         (default "/etc/slurm/slurm.conf"))
   (SlurmdLogFile        slurm-configuration-slurmd-log-file
-                        (default #f))               ; #f for syslog
+                        (default #f))           ; #f for syslog
   (SlurmdPidFile        slurm-configuration-slurmd-pidfile
                         (default "/var/run/slurmd.pid"))
 
@@ -186,7 +186,7 @@
   (run-slurmctld?       slurm-configuration-run-slurmctld
                         (default #f))
   (SlurmctldLogFile     slurm-configuration-slurmctld-log-file
-                        (default #f))               ; #f for syslog
+                        (default #f))           ; #f for syslog
   (SlurmctldPidFile     slurm-configuration-slurmctld-pidfile
                         (default "/var/run/slurmctld.pid"))
 
@@ -233,12 +233,12 @@
                     #$(slurm-configuration-slurmd-spooldir config))
             (format port "SlurmdPidFile=~a\n"
                     #$(slurm-configuration-slurmd-pidfile config))
-            (if #$(slurm-configuration-slurmd-log-file config)
+            (when #$(slurm-configuration-slurmd-log-file config)
               (format port "SlurmdLogFile=~a\n"
                       #$(slurm-configuration-slurmd-log-file config)))
             (format port "SlurmctldPidFile=~a\n"
                     #$(slurm-configuration-slurmctld-pidfile config))
-            (if #$(slurm-configuration-slurmctld-log-file config)
+            (when #$(slurm-configuration-slurmctld-log-file config)
               (format port "SlurmctldLogFile=~a\n"
                       #$(slurm-configuration-slurmctld-log-file config)))
             (format port "SlurmUser=~a\n"
