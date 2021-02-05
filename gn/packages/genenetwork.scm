@@ -41,6 +41,7 @@
   #:use-module (gnu packages wget)
   #:use-module (gnu packages xml)
   #:use-module (past packages python)
+  #:use-module (past packages web)
   #:use-module (gn packages bioinformatics)
   #:use-module (gn packages twint)
   #:use-module (gn packages databases)
@@ -708,9 +709,21 @@ written in C")
       (native-inputs
        `(("ghostscript" ,ghostscript)
          ("graphviz" ,graphviz)
-         ("python24" ,python-2.4)
-         ("python-piddle" ,python24-piddle)
          ("wget" ,wget)))
+      (propagated-inputs
+       `(("python" ,python-2.4)
+         ("httpd-with-mod-python" ,httpd22-with-mod-python)
+         ("python-htmlgen-GN1" ,python24-htmlgen-GN1)
+         ("python-json-GN1" ,python24-json-GN1)
+         ("python-mysqlclient" ,python24-mysqlclient)
+         ("python-numarray" ,python24-numarray)
+         ("python-piddle" ,python24-piddle)
+         ("python-pp-GN1" ,python24-pp-GN1)
+         ("python-pyx" ,python24-pyx)
+         ("python-pyxlwriter" ,python24-pyxlwriter)
+         ("python-qtlreaper" ,python24-qtlreaper)
+         ("python-rpy2" ,python24-rpy2)
+         ("python-svg-GN1" ,python24-svg-GN1)))
       (arguments
        `(#:tests? #f ; no tests
          #:phases

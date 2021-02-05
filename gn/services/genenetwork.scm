@@ -19,21 +19,7 @@
   (file-systems %base-file-systems)
   ;; No firmware for VMs
   (firmware '())
-
-  (packages (cons* python-2.4
-                   python24-htmlgen-GN1
-                   python24-json-GN1
-                   python24-mysqlclient ; MySQLdb
-                   python24-numarray
-                   python24-piddle
-                   python24-pp-GN1  ; not python24-parallel, we need an older version
-                   python24-pyx
-                   python24-pyxlwriter
-                   python24-qtlreaper
-                   python24-rpy2
-                   python24-svg-GN1
-                   %base-packages))
-
+  (packages (cons* %base-packages))
   (services (list (service special-files-service-type
                            ;; The genotypes folder doesn't have it's shebangs patched.
                            `(("/usr/bin/python" ,(file-append python-2.4 "/bin/python"))))
