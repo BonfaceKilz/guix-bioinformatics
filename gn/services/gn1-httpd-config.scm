@@ -63,14 +63,16 @@
          ("rewrite_module" "modules/mod_rewrite.so"))))
 
 (define GN1-httpd-config
+  ;; (let ((gn1-source genenetwork1)) 
+  (let ((gn1-source "/home/gn1/production/gnshare/gn")) 
   (httpd-config-file
     (server-name "gn1-new.genenetwork.org")
     ;; Defaults to httpd, should be same as 'package' above to launch service.
     (server-root httpd22-with-mod-python)
     (user "gn1")
     (group "users")
-    (pid-file "/tmp/guix-gn1/httpd-genenetwork1.pid")
-    (error-log "/tmp/guix-gn1/httpd-genenetwork1-error-log")
+    (pid-file "/tmp/guix-gn1/httpd-gn1-source.pid")
+    (error-log "/tmp/guix-gn1/httpd-gn1-source-error-log")
     (listen '("8042"))
     (modules (cons*
                (httpd-module
@@ -80,37 +82,37 @@
     (extra-config (list "\
 TypesConfig " httpd22-with-mod-python "/etc/httpd/mime.types
 DefaultType application/octet-stream
-# DocumentRoot MUST NOT be in the PythonPath. Because genenetwork1 must be in PythonPath we leave the document-root keyword above unset.
-PythonPath \"sys.path+['/run/current-system/profile/lib/python2.4', '/run/current-system/profile/lib/python2.4/site-packages', '" genenetwork1 "/web/webqtl']\"
+# DocumentRoot MUST NOT be in the PythonPath. Because gn1-source must be in PythonPath we leave the document-root keyword above unset.
+PythonPath \"sys.path+['/run/current-system/profile/lib/python2.4', '/run/current-system/profile/lib/python2.4/site-packages', '" gn1-source "/web/webqtl']\"
 # same as 'listen' above
 NameVirtualHost *:8042
 <VirtualHost *:8042>
-  DocumentRoot "genenetwork1 "/web/
-  Alias /images "genenetwork1 "/web/images/
-  Alias /javascript "genenetwork1 "/web/javascript/
-  Alias /css "genenetwork1 "/web/css/
-  <Directory "genenetwork1 "/web/images>
+  DocumentRoot "gn1-source "/web/
+  Alias /images "gn1-source "/web/images/
+  Alias /javascript "gn1-source "/web/javascript/
+  Alias /css "gn1-source "/web/css/
+  <Directory "gn1-source "/web/images>
     AllowOverride None
     Order allow,deny
     Allow from all
   </Directory>
-  <Directory "genenetwork1 "/web/javascript>
+  <Directory "gn1-source "/web/javascript>
     AllowOverride None
     Order allow,deny
     Allow from all
   </Directory>
-  <Directory "genenetwork1 "/web/css>
+  <Directory "gn1-source "/web/css>
     AllowOverride None
     Order allow,deny
     Allow from all
   </Directory>
 </VirtualHost>
-<Directory " genenetwork1 "/web/webqtl>
+<Directory " gn1-source "/web/webqtl>
   #what is the difference between these two?
   AddHandler mod_python .py
   #SetHandler python-program
   #publisher has more debug information
-  PythonHandler " genenetwork1 "/web/webqtl/main.py
+  PythonHandler " gn1-source "/web/webqtl/main.py
   #PythonHandler mod_python.publisher
   #PythonHandler mod_python.cgihandler
   # only while debugging:
@@ -121,4 +123,4 @@ NameVirtualHost *:8042
 <Location /mpinfo>
   SetHandler python-program
   PythonHandler mod_python.testhandler
-</Location>"))))
+</Location>")))))
