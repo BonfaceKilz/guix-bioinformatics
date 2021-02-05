@@ -178,8 +178,7 @@ pre-defined variants."
 (define GN1-thirdparty-sources
   (origin
     (method url-fetch/tarbomb)
-    ;; ipfs get QmTPwYT2pehdxdG1TiHEzVzLgbeuhJ4utXShuz3twA84AB
-    (uri "file:///gnu/store/p33a2sh3x2nhiiphdw9nly80njg6p8fi-thirdparty.tgz")
+    (uri "http://ipfs.genenetwork.org/ipfs/QmTPwYT2pehdxdG1TiHEzVzLgbeuhJ4utXShuz3twA84AB/thirdparty.tgz")
     (file-name "GN1-thirdparty")
     (sha256
      (base32
