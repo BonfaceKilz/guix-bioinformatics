@@ -64,11 +64,11 @@
 
 (define GN1-httpd-config
   (httpd-config-file
-    (server-name "gn1-test.genenetwork.org")
+    (server-name "gn1-new.genenetwork.org")
     ;; Defaults to httpd, should be same as 'package' above to launch service.
     (server-root httpd22-with-mod-python)
-    (user "nobody")
-    (group "root")
+    (user "gn1")
+    (group "users")
     (pid-file "/tmp/guix-gn1/httpd-genenetwork1.pid")
     (error-log "/tmp/guix-gn1/httpd-genenetwork1-error-log")
     (listen '("8042"))

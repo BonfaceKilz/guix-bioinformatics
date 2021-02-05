@@ -12,6 +12,7 @@
   #:use-module (gnu packages monitoring)
   #:use-module (gnu packages openstack)
   #:use-module (gnu packages protobuf)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)

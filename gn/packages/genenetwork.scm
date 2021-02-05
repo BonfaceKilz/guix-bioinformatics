@@ -764,7 +764,7 @@ written in C")
                    ;; Where GN1 is located: (GNROOT)
                    (("/gnshare/gn") out)
                    ;; Where the database is located: (sql_host)
-                   (("tux01") "localhost"))
+                   (("tux01.uthsc.edu") "127.0.0.1"))
                    (substitute* '("web/webqtl/maintainance/QTL_Reaper_cal_lrs.py")
                      (("128\\.169\\.5\\.59") "localhost"))
                  ;; This directory (TMPDIR) is expected to be writable by apache.
