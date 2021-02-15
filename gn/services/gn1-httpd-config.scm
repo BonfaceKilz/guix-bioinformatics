@@ -62,12 +62,11 @@
          ("alias_module" "modules/mod_alias.so")
          ("rewrite_module" "modules/mod_rewrite.so"))))
 
-; (define GN1-httpd-config (#:key (user "gn1"))
 (define GN1-httpd-config
   (let* ((gn1-user "gn1")
 	 (gn1-source (string-append "/home/" gn1-user "/production/gnshare/gn"))
-	 (gn1-server "gn1-pjotr.genenetwork.org")
-	 (gn1-port "9043"))
+	 (gn1-server "gn1.genenetwork.org")
+	 (gn1-port "9042"))
   (httpd-config-file
     (server-name gn1-server)
     ;; Defaults to httpd, should be same as 'package' above to launch service.
