@@ -66,7 +66,7 @@
   (let* ((gn1-user "gn1")
 	 (gn1-source (string-append "/home/" gn1-user "/production/gnshare/gn"))
 	 (gn1-server "gn1.genenetwork.org")
-	 (gn1-port "9042"))
+	 (gn1-port "8042"))
   (httpd-config-file
     (server-name gn1-server)
     ;; Defaults to httpd, should be same as 'package' above to launch service.
