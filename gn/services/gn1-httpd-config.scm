@@ -62,18 +62,21 @@
          ("alias_module" "modules/mod_alias.so")
          ("rewrite_module" "modules/mod_rewrite.so"))))
 
+; (define GN1-httpd-config (#:key (user "gn1"))
 (define GN1-httpd-config
-  ;; (let ((gn1-source genenetwork1)) 
-  (let ((gn1-source "/home/gn1/production/gnshare/gn")) 
+  (let* ((gn1-user "gn1")
+	 (gn1-source (string-append "/home/" gn1-user "/production/gnshare/gn"))
+	 (gn1-server "gn1-pjotr.genenetwork.org")
+	 (gn1-port "9043"))
   (httpd-config-file
-    (server-name "gn1-new.genenetwork.org")
+    (server-name gn1-server)
     ;; Defaults to httpd, should be same as 'package' above to launch service.
     (server-root httpd22-with-mod-python)
-    (user "gn1")
+    (user gn1-user)
     (group "users")
-    (pid-file "/tmp/guix-gn1/httpd-gn1-source.pid")
-    (error-log "/tmp/guix-gn1/httpd-gn1-source-error-log")
-    (listen '("8042"))
+    (pid-file (string-append "/tmp/guix-gn1/httpd-gn1-source-" gn1-port ".pid"))
+    (error-log (string-append "/tmp/guix-gn1/httpd-gn1-source-error-" gn1-port ".log"))
+    (listen `(,gn1-port))
     (modules (cons*
                (httpd-module
                  (name "python_module")
@@ -85,8 +88,8 @@ DefaultType application/octet-stream
 # DocumentRoot MUST NOT be in the PythonPath. Because gn1-source must be in PythonPath we leave the document-root keyword above unset.
 PythonPath \"sys.path+['/run/current-system/profile/lib/python2.4', '/run/current-system/profile/lib/python2.4/site-packages', '" gn1-source "/web/webqtl']\"
 # same as 'listen' above
-NameVirtualHost *:8042
-<VirtualHost *:8042>
+NameVirtualHost *:" gn1-port "
+<VirtualHost *:" gn1-port ">
   DocumentRoot "gn1-source "/web/
   Alias /images "gn1-source "/web/images/
   Alias /javascript "gn1-source "/web/javascript/
