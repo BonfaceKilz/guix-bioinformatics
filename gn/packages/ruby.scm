@@ -126,40 +126,6 @@ output")
     "http://github.com/pjotrp/bioruby-table")
    (license expat)))
 
-(define-public ruby-net-http-digest-auth
-  (package
-    (name "ruby-net-http-digest-auth")
-    (version "1.4")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (rubygems-uri "net-http-digest_auth" version))
-       (sha256
-        (base32
-         "14801gr34g0rmqz9pv4rkfa3crfdbyfk6r48vpg5a5407v0sixqi"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:tests? #f))
-    (synopsis
-     "An implementation of RFC 2617 - Digest Access Authentication.  At this time
-the gem does not drop in to Net::HTTP and can be used for with other HTTP
-clients.
-
-In order to use net-http-digest_auth you'll need to perform some request
-wrangling on your own.  See the class documentation at Net::HTTP::DigestAuth
-for an example.")
-    (description
-     "An implementation of RFC 2617 - Digest Access Authentication.  At this time
-the gem does not drop in to Net::HTTP and can be used for with other HTTP
-clients.
-
-In order to use net-http-digest_auth you'll need to perform some request
-wrangling on your own.  See the class documentation at Net::HTTP::DigestAuth
-for an example.")
-    (home-page
-     "http://github.com/drbrain/net-http-digest_auth")
-    (license #f)))
-
 (define-public ruby-ntlm-http
   (package
     (name "ruby-ntlm-http")
@@ -245,28 +211,6 @@ a history.")
   (home-page
    "http://docs.seattlerb.org/mechanize/")
   (license expat)))
-
-
-(define-public ruby-bio-logger ; guix maybe ready
-(package
-  (name "ruby-bio-logger")
-  (version "1.0.1")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (rubygems-uri "bio-logger" version))
-      (sha256
-        (base32
-          "02pylfy8nkdqzyzplvnhn1crzmfkj1zmi3qjhrj2f2imlxvycd28"))))
-  (build-system ruby-build-system)
-  (propagated-inputs `(("ruby-log4r" ,ruby-log4r)))
-  (arguments
-   `(#:tests? #f)) ;; no bundler
-  (synopsis "Log4r wrapper for BioRuby")
-  (description "Log4r wrapper for BioRuby")
-  (home-page
-    "https://github.com/pjotrp/bioruby-logger-plugin")
-  (license #f)))
 
 (define-public ruby-faraday
 (package
@@ -375,32 +319,94 @@ a history.")
 
 (define-public ruby-redis
   (package
-   (name "ruby-redis")
-   (version "4.2.5")
-   (source
-    (origin
-     (method url-fetch)
-     (uri (rubygems-uri "redis" version))
-     (sha256
-      (base32
-       "15x2sr6h094rjbvg8pkq6m3lcd5abpyx93aifvfdz3wv6x55xa48"))))
-   (build-system ruby-build-system)
-   (arguments
-    `(#:tests? #f)) ;; no bundler/cucumber
-   (synopsis
-    "    A Ruby client that tries to match Redis' API one-to-one, while still
-    providing an idiomatic interface.
-")
-   (description
-    "    A Ruby client that tries to match Redis' API one-to-one, while still
-    providing an idiomatic interface.
-")
-   (home-page "https://github.com/redis/redis-rb")
-   (license license:expat)))
+    (name "ruby-redis")
+    (version "4.2.5")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "redis" version))
+        (sha256
+         (base32
+          "15x2sr6h094rjbvg8pkq6m3lcd5abpyx93aifvfdz3wv6x55xa48"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; Tests require a running redis server.
+    (synopsis "Ruby client for Redis' API")
+    (description
+     "This package provides a Ruby client that tries to match Redis' API
+one-to-one, while still providing an idiomatic interface.")
+    (home-page "https://github.com/redis/redis-rb")
+    (license license:expat)))
 
 
 
+;;;
 
+(define-public discourse
+  (package
+    (name "discourse")
+    (version "2.6.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/discourse/discourse")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1j1sinbxrdvidvn52z0qg668p7zd2ir5qdm43n4zdncmps6s4bnd"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (delete 'replace-git-ls-files)
+         (add-before 'build 'delete-gemfile-lock
+           (lambda _
+             (delete-file "Gemfile.lock")
+             #t))
+         (add-after 'unpack 'adjust-version-dependencies
+           ;; This may not work, but it's worth a shot for now
+           (lambda _
+             (substitute* "Gemfile"
+               (("6.0.3.3") "5.2.2.1")  ; different rails version
+               (("active_model_serializers.*") "active_model_serializers'\n")
+               )
+             #t))
+         (replace 'build
+           (lambda _
+             (setenv "HOME" (getcwd))
+             (invoke "bundle" "exec" "rake" "autospec")))
+         )
+       ))
+    ;;TODO: What should be moved to native-inputs?
+    (inputs
+     `(
+       ("ruby-actionmailer" ,ruby-actionmailer)
+       ("ruby-actionview-precompiler" ,ruby-actionview-precompiler)
+       ("ruby-active-model-serializers" ,ruby-active-model-serializers)
+       ("ruby-activemodel" ,ruby-activemodel)
+       ("ruby-activerecord" ,ruby-activerecord)
+       ("ruby-bootsnap" ,ruby-bootsnap)
+       ("ruby-mini-mime" ,ruby-mini-mime)
+       ("ruby-mini-suffix" ,ruby-mini-suffix)
+       ("ruby-onebox" ,ruby-onebox)
+       ("ruby-railties" ,ruby-railties)
+       ("ruby-rake" ,ruby-rake)
+       ("ruby-redis" ,ruby-redis)
+       ("ruby-redis-namespace" ,ruby-redis-namespace)
+       ("ruby-seed-fu" ,ruby-seed-fu)
+       ("ruby-sprockets-rails" ,ruby-sprockets-rails)
+       ))
+    (native-inputs
+     `(
+       ))
+    (synopsis "Platform for community discussion")
+    (description "Discourse is the 100% open source discussion platform built
+for the next decade of the Internet.  Use it as a mailing list, discussion
+forum, long-form chat room, and more!")
+    (home-page "https://www.discourse.org/")
+    (license license:gpl2)))
 
 (define-public ruby-seed-fu
   (package
@@ -445,6 +451,7 @@ hopefully the most robust seed data system around.")
     (home-page "https://github.com/discourse/mini_mime")
     (license license:expat)))
 
+;; TODO: deal with bundled libraries
 (define-public ruby-mini-suffix
   (package
     (name "ruby-mini-suffix")
@@ -494,11 +501,6 @@ hopefully the most robust seed data system around.")
     (version "1.8.1")
     (source
       (origin
-        ;(method url-fetch)
-        ;(uri (rubygems-uri "redis-namespace" version))
-        ;(sha256
-        ; (base32
-        ;  "0k65fr7f8ciq7d9nwc5ziw1d32zsxilgmqdlj3359rz5jgb0f5y8"))))
         (method git-fetch)
         (uri (git-reference
                (url "https://github.com/resque/redis-namespace")
@@ -606,7 +608,8 @@ of @code{ActiveModelSerializers}.")
           "1d2lywfzj4h117b67cwl76a6zl7q1vmgajzn51w5ifvdpc5rssli"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:phases
+     `(#:tests? #f  ; TODO: enable
+       #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'adjust-dependency-version-contstriants
            (lambda _
@@ -617,6 +620,9 @@ of @code{ActiveModelSerializers}.")
                (("kaminari.*") "kaminari'\n")
                (("minitest.*") "minitest'\n")
                ((".*json_schema.*") "") ; can't seem to find it during the 'check phase
+               )
+             (substitute* "Gemfile"
+               (("rubocop.*") "rubocop'\n")
                )
              #t)))))
     (propagated-inputs
@@ -630,16 +636,17 @@ of @code{ActiveModelSerializers}.")
        ("ruby-codeclimate-test-reporter" ,ruby-codeclimate-test-reporter)
        ("ruby-grape" ,ruby-grape)
        ("ruby-json-schema" ,ruby-json-schema)
-       ;("ruby-kaminari" ,ruby-kaminari-0.16)
        ("ruby-kaminari" ,ruby-kaminari)
        ("ruby-m" ,ruby-m)
-       ;("ruby-minitest" ,ruby-minitest-5.10)
        ("ruby-minitest" ,ruby-minitest)
+       ("ruby-pry" ,ruby-pry)
        ("ruby-rails" ,ruby-rails)
+       ("ruby-rubocop" ,ruby-rubocop)
        ("ruby-simplecov" ,ruby-simplecov)
        ("ruby-sqlite3" ,ruby-sqlite3-1.3)
        ("ruby-timecop" ,ruby-timecop)
        ("ruby-will-paginate" ,ruby-will-paginate)
+       ("ruby-yard" ,ruby-yard)
        ))
     (synopsis "Generate JSON in an object-oriented manner")
     (description
@@ -661,7 +668,14 @@ object-oriented and convention-driven manner.")
           "1lj5x8jrs9whgynfksvlnlds4crdi6dm9bb3vh654s8vpqxbjcbn"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:tests? #f))    ; TODO
+     `(#:tests? #f  ; Tests require ancient version of ruby-twitter.
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-version-requirements
+           (lambda _
+             (substitute* "onebox.gemspec"
+               (("twitter.*") "twitter'\n"))
+             #t)))))
     (propagated-inputs
      `(("ruby-addressable" ,ruby-addressable)
        ("ruby-htmlentities" ,ruby-htmlentities)
@@ -670,11 +684,13 @@ object-oriented and convention-driven manner.")
        ("ruby-nokogiri" ,ruby-nokogiri)
        ("ruby-sanitize" ,ruby-sanitize)))
     (native-inputs
-     `(
+     `(("ruby-fakeweb" ,ruby-fakeweb)
+       ("ruby-mocha" ,ruby-mocha)
+       ("ruby-pry" ,ruby-pry)
        ("ruby-rake" ,ruby-rake)
        ("ruby-rspec" ,ruby-rspec)
-       ;("ruby-fakeweb" ,ruby-fakeweb)
-       ))
+       ("ruby-rubocop-discourse" ,ruby-rubocop-discourse)
+       ("ruby-twitter" ,ruby-twitter)))
     (synopsis "Generate embeddable HTML previews from URLs")
     (description "This package provides a gem for generating embeddable HTML
 previews from URLs.")
@@ -1061,7 +1077,7 @@ latest ember versions.")
           "0hckijk9aa628nx66vr7axfsk7zfdkskaxj1mdzikk019q3h54fr"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:tests? #f  ; TODO: Upgrade ruby-rubocop >= 1.1.0
+     `(#:tests? #f  ; Don't know how to build task 'test'
        #:phases
        (modify-phases %standard-phases
          (add-before 'check 'pre-check
@@ -1156,34 +1172,6 @@ latest ember versions.")
     (description
       "Test your JavaScript without any framework dependencies, in any environment, and with a nice descriptive syntax.")
     (home-page "http://jasmine.github.io/")
-    (license license:expat)))
-
-(define-public ruby-rubocop-rspec
-  (package
-    (name "ruby-rubocop-rspec")
-    (version "2.2.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "rubocop-rspec" version))
-        (sha256
-         (base32
-          "0jj6h9ynmacvi2v62dc50qxwrrlvm1hmiblpxc0w2kypik1255ds"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:tests? #f))    ; no rakefile found
-    (propagated-inputs
-     `(("ruby-rubocop" ,ruby-rubocop)
-       ("ruby-rubocop-ast" ,ruby-rubocop-ast)))
-    (synopsis
-      "    Code style checking for RSpec files.
-    A plugin for the RuboCop code style enforcing & linting tool.
-")
-    (description
-      "    Code style checking for RSpec files.
-    A plugin for the RuboCop code style enforcing & linting tool.
-")
-    (home-page "https://github.com/rubocop-hq/rubocop-rspec")
     (license license:expat)))
 
 (define-public ruby-rubocop-discourse
@@ -2536,27 +2524,26 @@ Inspired by Erlang, Clojure, Go, JavaScript, actors, and classic concurrency pat
           "15jnbpl7b08im4g42ambc850w01lmc49k1z4438ipj83xsj5x32w"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:phases
+     `(#:tests? #f  ; needs pygments
+       #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'patch-source
            (lambda _
-             ;(delete-file "Gemfile.lock")
              (substitute* "Gemfile.lock"
                (("\\(.*\\)") ""))
              #t)))))
     (propagated-inputs
-     `(
-       ;("ruby-method-source" ,ruby-method-source)
-       ;("ruby-rake" ,ruby-rake)
-       ))
+     `(("ruby-method-source" ,ruby-method-source)
+       ("ruby-rake" ,ruby-rake)))
     (native-inputs
-     `(
-       ("ruby-activesupport" ,ruby-activesupport)
+     `(("ruby-activesupport" ,ruby-activesupport)
        ("ruby-allocation-stats" ,ruby-allocation-stats)
+       ("ruby-appraisal" ,ruby-appraisal)
        ("ruby-benchmark-ips" ,ruby-benchmark-ips)
        ("ruby-coveralls" ,ruby-coveralls)
        ("ruby-rdiscount" ,ruby-rdiscount)
-       ))
+       ("ruby-rocco" ,ruby-rocco)
+       ("ruby-simplecov" ,ruby-simplecov)))
     (synopsis
       "Run test/unit tests by line number. Metal!")
     (description
@@ -2607,26 +2594,847 @@ Inspired by Erlang, Clojure, Go, JavaScript, actors, and classic concurrency pat
           "16srf8cr8ynlafyh6ls654b9a3bqgai8n3y86zzv9mcpvlk6k27g"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         ;(add-after 'unpack 'use-system-discount
-         ;  (lambda _
-         ;    (substitute* "Rakefile"
-         ;      (("FileList\\['ext.*")
-         ;       "FileList['ext/*.rb', 'ext/rdiscount.c', \"ext/ruby-#{RUBYDIGEST}\"] do\n"))
-         ;    (substitute* "ext/extconf.rb"
-         ;      (("(dir_config\\('rdiscount'\\))" dirconfig)
-         ;       (string-append dirconfig "\n\nhave_library('markdown')\n")))
-         ;    #t))
-         )))
-    (inputs
-     `(
-       ("markdown" ,(@ (gnu packages markup) markdown))
-       ))
+     `(#:tests? #f))    ; TODO: figure this out later
     (synopsis
       "Fast Implementation of Gruber's Markdown in C")
     (description
       "Fast Implementation of Gruber's Markdown in C")
     (home-page "http://dafoster.net/projects/rdiscount/")
+    (license license:bsd-3)))
+
+(define-public ruby-fakeweb
+  (package
+    (name "ruby-fakeweb")
+    (version "1.3.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "fakeweb" version))
+        (sha256
+         (base32
+          "1a09z9nb369bvwpghncgd5y4f95lh28w0q258srh02h22fz9dj8y"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; File does not exist: samuel/net_http
+    (native-inputs
+     `(
+       ;("ruby-jeweler" ,ruby-jeweler)
+       ("ruby-mocha" ,ruby-mocha)
+       ;("ruby-rcov" ,ruby-rcov)
+       ("ruby-sdoc" ,ruby-sdoc)
+       ))
+    (synopsis
+      "FakeWeb is a helper for faking web requests in Ruby. It works at a global level, without modifying code or writing extensive stubs.")
+    (description
+      "FakeWeb is a helper for faking web requests in Ruby.  It works at a global level, without modifying code or writing extensive stubs.")
+    (home-page "http://github.com/chrisk/fakeweb")
     (license #f)))
+
+(define-public ruby-simple-oauth
+  (package
+    (name "ruby-simple-oauth")
+    (version "0.3.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "simple_oauth" version))
+        (sha256
+         (base32
+          "0dw9ii6m7wckml100xhjc6vxpjcry174lbi9jz5v7ibjr3i94y8l"))))
+    (build-system ruby-build-system)
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-yardstick" ,ruby-yardstick)
+       ))
+    (synopsis "Build and verify OAuth headers")
+    (description
+      "Simply builds and verifies OAuth headers")
+    (home-page "https://github.com/laserlemon/simple_oauth")
+    (license license:expat)))
+
+(define-public ruby-naught
+  (package
+    (name "ruby-naught")
+    (version "1.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "naught" version))
+        (sha256
+         (base32
+          "1wwjx35zgbc0nplp8a866iafk4zsrbhwwz4pav5gydr2wm26nksg"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"))
+    (native-inputs
+     `(("ruby-coveralls" ,ruby-coveralls)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-simplecov" ,ruby-simplecov)))
+    (synopsis "Toolkit for building Null Objects")
+    (description "Naught is a toolkit for building Null Objects.")
+    (home-page "https://github.com/avdi/naught")
+    (license license:expat)))
+
+(define-public ruby-memoizable
+  (package
+    (name "ruby-memoizable")
+    (version "0.4.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "memoizable" version))
+        (sha256
+         (base32
+          "0v42bvghsvfpzybfazl14qhkrjvx0xlmxz0wwqc960ga1wld5x5c"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-thread-safe" ,ruby-thread-safe)))
+    (native-inputs
+     `(("ruby-coveralls" ,ruby-coveralls)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-simplecov" ,ruby-simplecov)))
+    (synopsis "Memoize method return values")
+    (description "Memoize method return values")
+    (home-page "https://github.com/dkubb/memoizable")
+    (license license:expat)))
+
+(define-public ruby-ffi-compiler
+  (package
+    (name "ruby-ffi-compiler")
+    (version "1.0.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "ffi-compiler" version))
+        (sha256
+         (base32
+          "0c2caqm9wqnbidcb8dj4wd3s902z15qmgxplwyfyqbwa0ydki7q1"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; LoadError: cannot load such file -- rubygems/tasks
+    (propagated-inputs
+     `(("ruby-ffi" ,ruby-ffi)
+       ("ruby-rake" ,ruby-rake)))
+    (synopsis "Ruby FFI library")
+    (description "Ruby FFI library")
+    (home-page "http://wiki.github.com/ffi/ffi")
+    (license license:asl2.0)))
+
+(define-public ruby-http-parser
+  (package
+    (name "ruby-http-parser")
+    (version "1.2.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "http-parser" version))
+        (sha256
+         (base32
+          "18qqvckvqjffh88hfib6c8pl9qwk9gp89w89hl3f2s1x8hgyqka1"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-before 'build 'pre-build
+           (lambda _
+             (invoke "rake" "compile"))))))
+    (propagated-inputs
+     `(("ruby-ffi-compiler" ,ruby-ffi-compiler)))
+    (native-inputs
+     `(("ruby-rspec" ,ruby-rspec)))
+    (synopsis "Http parser for Ruby")
+    (description
+      "    A super fast http parser for ruby.
+    Cross platform and multiple ruby implementation support thanks to ffi.
+")
+    (home-page "https://github.com/cotag/http-parser")
+    (license license:expat)))
+
+(define-public ruby-http-form-data
+  (package
+    (name "ruby-http-form-data")
+    (version "2.3.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "http-form_data" version))
+        (sha256
+         (base32
+          "1wx591jdhy84901pklh1n9sgh74gnvq1qyqxwchni1yrc49ynknc"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"))
+    (native-inputs
+     `(("ruby-coveralls" ,ruby-coveralls)
+       ("ruby-guard" ,ruby-guard)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-simplecov" ,ruby-simplecov)))
+    (synopsis
+      "Utility-belt to build form data request bodies. Provides support for `application/x-www-form-urlencoded` and `multipart/form-data` types.")
+    (description
+      "Utility-belt to build form data request bodies.  Provides support for `application/x-www-form-urlencoded` and `multipart/form-data` types.")
+    (home-page "https://github.com/httprb/form_data.rb")
+    (license license:expat)))
+
+(define-public ruby-http
+  (package
+    (name "ruby-http")
+    (version "4.4.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "http" version))
+        (sha256
+         (base32
+          "0z8vmvnkrllkpzsxi94284di9r63g9v561a16an35izwak8g245y"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"
+       ;; A bunch of tests require network access. Should we borrow Debain's patches?
+       #:tests? #f))
+    (propagated-inputs
+     `(("ruby-addressable" ,ruby-addressable)
+       ("ruby-http-cookie" ,ruby-http-cookie)
+       ("ruby-http-form-data" ,ruby-http-form-data)
+       ("ruby-http-parser" ,ruby-http-parser)))
+    (native-inputs
+     `(("ruby-certificate-authority" ,ruby-certificate-authority)
+       ("ruby-coveralls" ,ruby-coveralls)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rspec-its" ,ruby-rspec-its)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-simplecov" ,ruby-simplecov)
+       ("ruby-yardstick" ,ruby-yardstick)))
+    (synopsis "Client library for making requests from Ruby")
+    (description "This package provides a client library for making requests
+from Ruby.  It uses a simple method chaining system for building requests,
+similar to Python's Requests.")
+    (home-page "https://github.com/httprb/http")
+    (license license:expat)))
+
+(define-public ruby-equalizer
+  (package
+    (name "ruby-equalizer")
+    (version "0.0.11")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "equalizer" version))
+        (sha256
+         (base32
+          "1kjmx3fygx8njxfrwcmn7clfhjhb6bvv3scy2lyyi0wqyi3brra4"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; Prevent cycle with ruby-devtools.
+    (synopsis
+      "Module to define equality, equivalence and inspection methods")
+    (description
+      "Module to define equality, equivalence and inspection methods")
+    (home-page "https://github.com/dkubb/equalizer")
+    (license license:expat)))
+
+(define-public ruby-buftok
+  (package
+    (name "ruby-buftok")
+    (version "0.2.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "buftok" version))
+        (sha256
+         (base32
+          "1rzsy1vy50v55x9z0nivf23y0r9jkmq6i130xa75pq9i8qrn1mxs"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "BufferedTokenizer extracts token delimited entities from a sequence of arbitrary inputs")
+    (description
+      "BufferedTokenizer extracts token delimited entities from a sequence of arbitrary inputs")
+    (home-page "https://github.com/sferik/buftok")
+    (license license:expat)))
+
+(define-public ruby-twitter
+  (package
+    (name "ruby-twitter")
+    (version "7.0.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/sferik/twitter")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "057d3wg3850r7xyhb5xv8xgxv7qra31ic0m317mwi2n5w1p4n480"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-addressable" ,ruby-addressable)
+       ("ruby-buftok" ,ruby-buftok)
+       ("ruby-equalizer" ,ruby-equalizer)
+       ("ruby-http" ,ruby-http)
+       ("ruby-http-form-data" ,ruby-http-form-data)
+       ("ruby-http-parser.rb" ,ruby-http-parser.rb)
+       ("ruby-memoizable" ,ruby-memoizable)
+       ("ruby-multipart-post" ,ruby-multipart-post)
+       ("ruby-naught" ,ruby-naught)
+       ("ruby-simple-oauth" ,ruby-simple-oauth)))
+    (native-inputs
+     `(("ruby-coveralls" ,ruby-coveralls)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-simplecov" ,ruby-simplecov)
+       ("ruby-timecop" ,ruby-timecop)
+       ("ruby-webmock" ,ruby-webmock)
+       ("ruby-yard" ,ruby-yard)
+       ("ruby-yardstick" ,ruby-yardstick)))
+    (synopsis "Ruby interface to the Twitter API")
+    (description "This package provides a Ruby interface to the Twitter API.")
+    (home-page "https://sferik.github.io/twitter/")
+    (license license:expat)))
+
+(define-public ruby-yardstick
+  (package
+    (name "ruby-yardstick")
+    (version "0.9.9")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "yardstick" version))
+        (sha256
+         (base32
+          "0vn0br8x0n7b9i2raz79g480cn711zichs8rvijb3h1pk9m1d6n3"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; Prevent cycle with ruby-devtools.
+    (propagated-inputs
+     `(("ruby-yard" ,ruby-yard)))
+    (synopsis "Measure YARD documentation coverage")
+    (description
+      "Measure YARD documentation coverage")
+    (home-page "https://github.com/dkubb/yardstick")
+    (license license:expat)))
+
+(define-public ruby-psych
+  (package
+    (name "ruby-psych")
+    (version "3.3.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "psych" version))
+        (sha256
+         (base32
+          "0r8rd9q4g6wda6k2bvsgpwnn9wbaqglb843bm4f1q6xfjkhs5h0l"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "Psych is a YAML parser and emitter. Psych leverages libyaml[https://pyyaml.org/wiki/LibYAML]
+for its YAML parsing and emitting capabilities. In addition to wrapping libyaml,
+Psych also knows how to serialize and de-serialize most Ruby objects to and from the YAML format.
+")
+    (description
+      "Psych is a YAML parser and emitter.  Psych leverages libyaml[https://pyyaml.org/wiki/LibYAML]
+for its YAML parsing and emitting capabilities.  In addition to wrapping libyaml,
+Psych also knows how to serialize and de-serialize most Ruby objects to and from the YAML format.
+")
+    (home-page "https://github.com/ruby/psych")
+    (license license:expat)))
+
+(define-public ruby-kwalify
+  (package
+    (name "ruby-kwalify")
+    (version "0.7.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "kwalify" version))
+        (sha256
+         (base32
+          "1ngxg3ysq5vip9dn3d32ajc7ly61kdin86hfycm1hkrcvkkn1vjf"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "   Kwalify is a parser, schema validator, and data binding tool for YAML and JSON.
+")
+    (description
+      "   Kwalify is a parser, schema validator, and data binding tool for YAML and JSON.
+")
+    (home-page "http://www.kuwata-lab.com/kwalify/")
+    (license #f)))
+
+(define-public ruby-reek
+  (package
+    (name "ruby-reek")
+    (version "6.0.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "reek" version))
+        (sha256
+         (base32
+          "1zlfvj1dh064y119sfz9w3rkj3d9qkwm1k6dkcjymr6cwj6cqqp2"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-kwalify" ,ruby-kwalify)
+       ("ruby-parser" ,ruby-parser)
+       ("ruby-psych" ,ruby-psych)
+       ("ruby-rainbow" ,ruby-rainbow)))
+    (synopsis
+      "Reek is a tool that examines Ruby classes, modules and methods and reports any code smells it finds.")
+    (description
+      "Reek is a tool that examines Ruby classes, modules and methods and reports any code smells it finds.")
+    (home-page "https://github.com/troessner/reek")
+    (license license:expat)))
+
+(define-public ruby-procto
+  (package
+    (name "ruby-procto")
+    (version "0.0.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "procto" version))
+        (sha256
+         (base32
+          "13imvg1x50rz3r0yyfbhxwv72lbf7q28qx9l9nfbb91h2n9ch58c"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "Turns your object into a method object")
+    (description
+      "Turns your object into a method object")
+    (home-page "https://github.com/snusnu/procto")
+    (license license:expat)))
+
+(define-public ruby-flog
+  (package
+    (name "ruby-flog")
+    (version "4.6.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "flog" version))
+        (sha256
+         (base32
+          "0qy7s5q450wbc78av8h0w8inrdz46vp4rqnm5ikpsnh7dilh7amm"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-path-expander" ,ruby-path-expander)
+       ("ruby-ruby-parser" ,ruby-ruby-parser)
+       ("ruby-sexp-processor" ,ruby-sexp-processor)))
+    (synopsis
+      "Flog reports the most tortured code in an easy to read pain
+report. The higher the score, the more pain the code is in.")
+    (description
+      "Flog reports the most tortured code in an easy to read pain
+report.  The higher the score, the more pain the code is in.")
+    (home-page "http://ruby.sadi.st/")
+    (license license:expat)))
+
+(define-public ruby-path-expander
+  (package
+    (name "ruby-path-expander")
+    (version "1.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "path_expander" version))
+        (sha256
+         (base32
+          "1l40n8i959c8bk5m9cfs4m75h2cq01wjwhahnkw7jxgicpva30gv"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "PathExpander helps pre-process command-line arguments expanding
+directories into their constituent files. It further helps by
+providing additional mechanisms to make specifying subsets easier
+with path subtraction and allowing for command-line arguments to be
+saved in a file.
+
+NOTE: this is NOT an options processor. It is a path processor
+(basically everything else besides options). It does provide a
+mechanism for pre-filtering cmdline options, but not with the intent
+of actually processing them in PathExpander. Use OptionParser to
+deal with options either before or after passing ARGV through
+PathExpander.")
+    (description
+      "PathExpander helps pre-process command-line arguments expanding
+directories into their constituent files.  It further helps by
+providing additional mechanisms to make specifying subsets easier
+with path subtraction and allowing for command-line arguments to be
+saved in a file.
+
+NOTE: this is NOT an options processor.  It is a path processor
+(basically everything else besides options).  It does provide a
+mechanism for pre-filtering cmdline options, but not with the intent
+of actually processing them in PathExpander.  Use OptionParser to
+deal with options either before or after passing ARGV through
+PathExpander.")
+    (home-page "https://github.com/seattlerb/path_expander")
+    (license license:expat)))
+
+(define-public ruby-flay
+  (package
+    (name "ruby-flay")
+    (version "2.12.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "flay" version))
+        (sha256
+         (base32
+          "1my4ga8a8wsqb4nqbf31gvml64ngr66r0zim4mx2kvi76zygczv7"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-erubis" ,ruby-erubis)
+       ("ruby-path-expander" ,ruby-path-expander)
+       ("ruby-ruby-parser" ,ruby-ruby-parser)
+       ("ruby-sexp-processor" ,ruby-sexp-processor)))
+    (synopsis
+      "Flay analyzes code for structural similarities. Differences in literal
+values, variable, class, method names, whitespace, programming style,
+braces vs do/end, etc are all ignored. Making this totally rad.")
+    (description
+      "Flay analyzes code for structural similarities.  Differences in literal
+values, variable, class, method names, whitespace, programming style,
+braces vs do/end, etc are all ignored.  Making this totally rad.")
+    (home-page "http://ruby.sadi.st/")
+    (license license:expat)))
+
+(define-public ruby-concord
+  (package
+    (name "ruby-concord")
+    (version "0.1.6")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "concord" version))
+        (sha256
+         (base32
+          "1vznyzcd3z7wiwjfgr941nq405kd7zm5vjb3sv2mzbbrcla9qkhq"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-adamantium" ,ruby-adamantium)
+       ("ruby-equalizer" ,ruby-equalizer)))
+    (synopsis "Helper for object composition")
+    (description "Helper for object composition")
+    (home-page "https://github.com/mbj/concord")
+    (license license:expat)))
+
+(define-public ruby-anima
+  (package
+    (name "ruby-anima")
+    (version "0.3.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "anima" version))
+        (sha256
+         (base32
+          "007wrc8px9ql4nqp34w0ffb9nj2nrbrcxvy036ng28bpbig7fzs6"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-abstract-type" ,ruby-abstract-type)
+       ("ruby-adamantium" ,ruby-adamantium)
+       ("ruby-equalizer" ,ruby-equalizer)))
+    (synopsis
+      "Initialize object attributes via attributes hash")
+    (description
+      "Initialize object attributes via attributes hash")
+    (home-page "http://github.com/mbj/anima")
+    (license license:expat)))
+
+(define-public ruby-ice-nine
+  (package
+    (name "ruby-ice-nine")
+    (version "0.11.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "ice_nine" version))
+        (sha256
+         (base32
+          "1nv35qg1rps9fsis28hz2cq2fx1i96795f91q4nmkm934xynll2x"))))
+    (build-system ruby-build-system)
+    (synopsis "Deep Freeze Ruby Objects")
+    (description "Deep Freeze Ruby Objects")
+    (home-page "https://github.com/dkubb/ice_nine")
+    (license license:expat)))
+
+(define-public ruby-adamantium
+  (package
+    (name "ruby-adamantium")
+    (version "0.2.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "adamantium" version))
+        (sha256
+         (base32
+          "0165r2ikgfwv2rm8dzyijkp74fvg0ni72hpdx8ay2v7cj08dqyak"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-ice-nine" ,ruby-ice-nine)
+       ("ruby-memoizable" ,ruby-memoizable)))
+    (synopsis "Immutable extensions to objects")
+    (description "Immutable extensions to objects")
+    (home-page "https://github.com/dkubb/adamantium")
+    (license license:expat)))
+
+(define-public ruby-abstract-type
+  (package
+    (name "ruby-abstract-type")
+    (version "0.0.7")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "abstract_type" version))
+        (sha256
+         (base32
+          "09330cmhrc2wmfhdj9zzg82sv6cdhm3qgdkva5ni5xfjril2pf14"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "Module to declare abstract classes and methods")
+    (description
+      "Module to declare abstract classes and methods")
+    (home-page "https://github.com/dkubb/abstract_type")
+    (license license:expat)))
+
+(define-public ruby-devtools
+  (package
+    (name "ruby-devtools")
+    (version "0.1.26")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "devtools" version))
+        (sha256
+         (base32
+          "08c8j2zcq9hhxpz9wsyy9v8mfs4d4smyagi0qr398w1qryb6w4m0"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-abstract-type" ,ruby-abstract-type)
+       ("ruby-adamantium" ,ruby-adamantium)
+       ("ruby-anima" ,ruby-anima)
+       ("ruby-concord" ,ruby-concord)
+       ("ruby-flay" ,ruby-flay)
+       ("ruby-flog" ,ruby-flog)
+       ("ruby-procto" ,ruby-procto)
+       ("ruby-rake" ,ruby-rake)
+       ("ruby-reek" ,ruby-reek)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rspec-core" ,ruby-rspec-core)
+       ("ruby-rspec-its" ,ruby-rspec-its)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-simplecov" ,ruby-simplecov)
+       ("ruby-yard" ,ruby-yard)
+       ("ruby-yardstick" ,ruby-yardstick)))
+    (synopsis "A metagem wrapping development tools")
+    (description
+      "This package provides a metagem wrapping development tools")
+    (home-page "https://github.com/rom-rb/devtools")
+    (license license:expat)))
+
+(define-public ruby-certificate-authority
+  (package
+    (name "ruby-certificate-authority")
+    (version "1.0.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "certificate_authority" version))
+        (sha256
+         (base32
+          "1d4j37i40l76pdkxx9964f58d83fjv82x3c0sykrpiixcmjcax44"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "spec"
+       ;; An error occurred while loading spec_helper.
+       ;; Failure/Error: return gem_original_require(path)
+       #:tests? #f))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ))
+    (synopsis
+      "Ruby gem for managing the core functions outlined in RFC-3280 for PKI")
+    (description
+      "Ruby gem for managing the core functions outlined in RFC-3280 for PKI")
+    (home-page "https://github.com/cchandler/certificate_authority")
+    (license license:expat)))
+
+(define-public ruby-msgpack
+  (package
+    (name "ruby-msgpack")
+    (version "1.4.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "msgpack" version))
+        (sha256
+         (base32
+          "06iajjyhx0rvpn4yr3h1hc4w4w3k59bdmfhxnjzzh76wsrdxxrc6"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'install 'install-fake-gem
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((target (string-append (assoc-ref outputs "out") "/lib/ruby/vendor_ruby/cache/./pkg/msgpack-" ,version ".gem")))
+               (mkdir-p (dirname target))
+               (with-output-to-file target
+                 (lambda _ ""))
+               #t))))
+       ))
+    (native-inputs
+     `(
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-yard" ,ruby-yard)
+       ))
+    (synopsis
+      "MessagePack is a binary-based efficient object serialization library. It enables to exchange structured objects between many languages like JSON. But unlike JSON, it is very fast and small.")
+    (description
+      "MessagePack is a binary-based efficient object serialization library.  It enables to exchange structured objects between many languages like JSON.  But unlike JSON, it is very fast and small.")
+    (home-page "http://msgpack.org/")
+    (license license:asl2.0)))
+
+(define-public ruby-bootsnap
+  (package
+    (name "ruby-bootsnap")
+    (version "1.7.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/Shopify/bootsnap")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "14l0r074kpy9pwzs6zbgq3zpx32mpk4905k23v0znqgkmrb6s5bm"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; can't find rake-compiler
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'replace-git-ls-files
+           (lambda _
+             (substitute* "bootsnap.gemspec"
+               (("git ls-files -z ext lib")
+                "find ext lib -type f -print0 | sort -z"))
+             #t)))))
+    (propagated-inputs
+     `(("ruby-msgpack" ,ruby-msgpack)))
+    (native-inputs
+     `(("ruby-minitest" ,ruby-minitest)
+       ("ruby-mocha" ,ruby-mocha)
+       ("ruby-rake" ,ruby-rake)
+       ("ruby-rake-compiler" ,ruby-rake-compiler)))
+    (synopsis "Boot large ruby/rails apps faster")
+    (description "Boot large ruby/rails apps faster")
+    (home-page "https://github.com/Shopify/bootsnap")
+    (license license:expat)))
+
+(define-public ruby-actionview-precompiler
+  (package
+    (name "ruby-actionview-precompiler")
+    (version "0.2.3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/jhawthorn/actionview_precompiler")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0hyvzhyx3bmvnmmj247vyfznps835d0zmi3xb6y6s4v570d8mrf0"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; tests expect ruby-actionview >=6.0.a
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'build 'delete-gemfile-lock
+           (lambda _
+             (delete-file "Gemfile.lock")
+             #t)))))
+    (propagated-inputs
+     `(("ruby-actionview" ,ruby-actionview)))
+    (native-inputs
+     `(("ruby-minitest" ,ruby-minitest)
+       ("ruby-pry" ,ruby-pry)))
+    (synopsis
+      "Parses templates for render calls and uses them to precompile")
+    (description
+      "Parses templates for render calls and uses them to precompile")
+    (home-page "https://github.com/jhawthorn/actionview_precompiler")
+    (license license:expat)))
+
+(define-public ruby-rocco
+  (package
+    (name "ruby-rocco")
+    (version "0.8.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "rocco" version))
+        (sha256
+         (base32
+          "0z3wnk8848wphrzyb61adl1jbfjlsqnzkayp2m0qmisg566352l1"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; needs pygments
+    (propagated-inputs
+     `(("ruby-mustache" ,ruby-mustache)
+       ;; pygments
+       ("ruby-redcarpet" ,ruby-redcarpet)))
+    (synopsis "Docco in Ruby")
+    (description "Docco in Ruby")
+    (home-page "https://rtomayko.github.com/rocco/")
+    (license license:expat)))
+
+(define-public ruby-bundler
+  (package
+    (name "ruby-bundler")
+    (version "2.2.11")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "bundler" version))
+        (sha256
+         (base32
+          "1izx6wsjdm6mnbxazgz1z5qbhwrrisbq0np2nmx4ij6lrqjy18jf"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "Bundler manages an application's dependencies through its entire life, across many machines, systematically and repeatably")
+    (description
+      "Bundler manages an application's dependencies through its entire life, across many machines, systematically and repeatably")
+    (home-page "https://bundler.io/")
+    (license license:expat)))
+
+(define-public ruby-appraisal
+  (package
+    (name "ruby-appraisal")
+    (version "2.3.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "appraisal" version))
+        (sha256
+         (base32
+          "0j092f2zfgb6afimidgspzqg4iw6n4mrs2zp8hhs2m2giav4mkrn"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; Tests require activesupport, cycle with ruby-m
+    (propagated-inputs
+     `(("bundler" ,bundler)
+       ("ruby-rake" ,ruby-rake)
+       ("ruby-thor" ,ruby-thor)))
+    (synopsis
+      "Appraisal integrates with bundler and rake to test your library against different versions of dependencies in repeatable scenarios called \"appraisals.\"")
+    (description
+      "Appraisal integrates with bundler and rake to test your library against different versions of dependencies in repeatable scenarios called \"appraisals.\"")
+    (home-page
+      "http://github.com/thoughtbot/appraisal")
+    (license license:expat)))
 
