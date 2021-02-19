@@ -62,6 +62,13 @@
          ("alias_module" "modules/mod_alias.so")
          ("rewrite_module" "modules/mod_rewrite.so"))))
 
+; Alternative setup
+;  (let* ((gn1-user "wrk")
+;        (gn1-source "/home/wrk/gn1-pjotr/gnshare/gn")
+;        (gn1-server "gn1-pjotr.genenetwork.org")
+;        (gn1-port "8043"))
+
+
 (define GN1-httpd-config
   (let* ((gn1-user "gn1")
 	 (gn1-source (string-append "/home/" gn1-user "/production/gnshare/gn"))
@@ -117,12 +124,13 @@ NameVirtualHost *:" gn1-port "
   PythonHandler " gn1-source "/web/webqtl/main.py
   #PythonHandler mod_python.publisher
   #PythonHandler mod_python.cgihandler
+  PythonOption mod_python.session.session_type FileSession
   # only while debugging:
-  PythonOption mod_python.session.session_type MemorySession
   PythonDebug On
 </Directory>
 # only while debugging:
-<Location /mpinfo>
-  SetHandler python-program
-  PythonHandler mod_python.testhandler
-</Location>")))))
+# <Location /mpinfo>
+#   SetHandler python-program
+#   PythonHandler mod_python.testhandler
+# </Location>"
+)))))
