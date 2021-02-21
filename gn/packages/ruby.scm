@@ -371,6 +371,8 @@ one-to-one, while still providing an idiomatic interface.")
              (substitute* "Gemfile"
                (("6.0.3.3") "5.2.2.1")  ; different rails version
                (("active_model_serializers.*") "active_model_serializers'\n")
+               ;; hide mini-racer for now, can't build libv8
+               ((".*mini_racer.*") "")
                )
              #t))
          (replace 'build
@@ -387,16 +389,71 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-active-model-serializers" ,ruby-active-model-serializers)
        ("ruby-activemodel" ,ruby-activemodel)
        ("ruby-activerecord" ,ruby-activerecord)
+       ("ruby-aws-sdk-s3" ,ruby-aws-sdk-s3)
+       ("ruby-aws-sdk-sns" ,ruby-aws-sdk-sns)
        ("ruby-bootsnap" ,ruby-bootsnap)
+       ("ruby-cbor" ,ruby-cbor)
+       ("ruby-certified" ,ruby-certified)
+       ("ruby-cose" ,ruby-cose)
+       ("ruby-css-parser" ,ruby-css-parser)
+       ("ruby-diffy" ,ruby-diffy)
+       ("ruby-discourse-ember-rails" ,ruby-discourse-ember-rails)
+       ("ruby-discourse-ember-source" ,ruby-discourse-ember-source)
+       ("ruby-discourse-fonts" ,ruby-discourse-fonts)
+       ("ruby-discourse-image-optim" ,ruby-discourse-image-optim)
+       ("ruby-email-reply-trimmer" ,ruby-email-reply-trimmer)
+       ("ruby-excon" ,ruby-excon)
+       ("ruby-fabrication" ,ruby-fabrication)
+       ("ruby-fakeweb" ,ruby-fakeweb)
+       ("ruby-fast-xs" ,ruby-fast-xs)
+       ("ruby-fastimage" ,ruby-fastimage)
+       ("ruby-highline" ,ruby-highline)
+       ("ruby-http-accept-language" ,ruby-http-accept-language)
+       ("ruby-listen" ,ruby-listen)
+       ("ruby-message-bus" ,ruby-message-bus)
        ("ruby-mini-mime" ,ruby-mini-mime)
+       ;("ruby-mini-racer" ,ruby-mini-racer)
+       ("ruby-mini-scheduler" ,ruby-mini-scheduler)
+       ("ruby-mini-sql" ,ruby-mini-sql)
        ("ruby-mini-suffix" ,ruby-mini-suffix)
+       ("ruby-mocha" ,ruby-mocha)
+       ("ruby-mock-redis" ,ruby-mock-redis)
+       ("ruby-oj" ,ruby-oj)
+       ("ruby-omniauth" ,ruby-omniauth)
+       ("ruby-omniauth-facebook" ,ruby-omniauth-facebook)
+       ("ruby-omniauth-github" ,ruby-omniauth-github)
+       ("ruby-omniauth-google-oauth2" ,ruby-omniauth-google-oauth2)
+       ("ruby-omniauth-twitter" ,ruby-omniauth-twitter)
        ("ruby-onebox" ,ruby-onebox)
+       ("ruby-parallel-tests" ,ruby-parallel-tests)
+       ("ruby-pg" ,ruby-pg)
+       ("ruby-pry-byebug" ,ruby-pry-byebug)
+       ("ruby-pry-rails" ,ruby-pry-rails)
+       ("ruby-r2" ,ruby-r2)
+       ("ruby-rack-protection" ,ruby-rack-protection)
+       ("ruby-rails-multisite" ,ruby-rails-multisite)
        ("ruby-railties" ,ruby-railties)
        ("ruby-rake" ,ruby-rake)
        ("ruby-redis" ,ruby-redis)
        ("ruby-redis-namespace" ,ruby-redis-namespace)
+       ("ruby-rinku" ,ruby-rinku)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rspec-html-matchers" ,ruby-rspec-html-matchers)
+       ("ruby-rspec-rails" ,ruby-rspec-rails)
+       ("ruby-rswag-specs" ,ruby-rswag-specs)
+       ("ruby-rtlit" ,ruby-rtlit)
+       ("ruby-rubocop-discourse" ,ruby-rubocop-discourse)
+       ("ruby-ruby-prof" ,ruby-ruby-prof)
        ("ruby-seed-fu" ,ruby-seed-fu)
+       ("ruby-shoulda-matchers" ,ruby-shoulda-matchers)
+       ("ruby-sidekiq" ,ruby-sidekiq)
+       ("ruby-simplecov" ,ruby-simplecov)
        ("ruby-sprockets-rails" ,ruby-sprockets-rails)
+       ("ruby-test-prof" ,ruby-test-prof)
+       ("ruby-uglifier" ,ruby-uglifier)
+       ("ruby-unf" ,ruby-unf)
+       ("ruby-webmock" ,ruby-webmock)
+       ("ruby-xorcist" ,ruby-xorcist)
        ))
     (native-inputs
      `(
@@ -1700,12 +1757,35 @@ and HTML without having to deal with character set issues.")
          (base32
           "0317sr3nrl51sp844bps71smkrwim3fjn47wdfpbycixnbxspivm"))))
     (build-system ruby-build-system)
+    (arguments
+     `(
+       ;#:test-target "spec binary"
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'check)
+         (add-after 'install 'check
+           (assoc-ref %standard-phases 'check))
+         (add-after 'unpack 'adjust-version-requirements
+           (lambda _
+             (substitute* "libv8.gemspec"
+               (("rake-compiler.*") "rake-compiler'\n"))
+             #t))
+         (add-before 'build 'pre-build
+           (lambda _
+             (setenv "HOME" (getcwd))
+             ;(invoke "bundle" "install")   ; no network access
+             (invoke "bundle" "exec" "rake" "compile")
+             ))
+         )
+       ))
     (native-inputs
      `(
        ("glib" ,(@ (gnu packages glib) glib))
        ("pkg-config" ,(@ (gnu packages pkg-config) pkg-config))
        ("python" ,python-2)
+       ("ruby-rake" ,ruby-rake)
        ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)
        ))
     (synopsis
       "Distributes the V8 JavaScript engine in binary and source forms in order to support fast builds of The Ruby Racer")
@@ -3436,5 +3516,915 @@ braces vs do/end, etc are all ignored.  Making this totally rad.")
       "Appraisal integrates with bundler and rake to test your library against different versions of dependencies in repeatable scenarios called \"appraisals.\"")
     (home-page
       "http://github.com/thoughtbot/appraisal")
+    (license license:expat)))
+
+(define-public ruby-http-accept-language
+  (package
+    (name "ruby-http-accept-language")
+    (version "2.1.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "http_accept_language" version))
+        (sha256
+         (base32
+          "0d0nlfz9vm4jr1l6q0chx4rp2hrnrfbx3gadc1dz930lbbaz0hq0"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "spec"
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "HOME" (getcwd))
+             (substitute* "cucumber.yml"
+               (("~@") "'not @'"))
+             #t)))))
+    (native-inputs
+     `(
+       ("ruby-aruba" ,ruby-aruba)
+       ("ruby-cucumber" ,ruby-cucumber)
+       ("ruby-guard-rspec" ,ruby-guard-rspec)
+       ("ruby-rack" ,ruby-rack)
+       ("ruby-rack-test" ,ruby-rack-test)
+       ("ruby-rails" ,ruby-rails)
+       ("ruby-rspec" ,ruby-rspec)
+       ))
+    (synopsis
+      "Find out which locale the user preferes by reading the languages they specified in their browser")
+    (description
+      "Find out which locale the user preferes by reading the languages they specified in their browser")
+    (home-page "https://github.com/iain/http_accept_language")
+    (license license:expat)))
+
+(define-public ruby-guard-compat
+  (package
+    (name "ruby-guard-compat")
+    (version "1.2.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "guard-compat" version))
+        (sha256
+         (base32
+          "1zj6sr1k8w59mmi27rsii0v8xyy2rnsi09nqvwpgj1q10yq1mlis"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "spec" ; not default, tests not upgraded for newer rubocop versions.
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "HOME" (getcwd))
+             #t)))))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ))
+    (synopsis
+      "Helps creating valid Guard plugins and testing them")
+    (description
+      "Helps creating valid Guard plugins and testing them")
+    (home-page "https://github.com/guard/guard-compat")
+    (license license:expat)))
+
+(define-public ruby-guard-rspec
+  (package
+    (name "ruby-guard-rspec")
+    (version "4.7.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "guard-rspec" version))
+        (sha256
+         (base32
+          "1jkm5xp90gm4c5s51pmf92i9hc10gslwwic6mvk72g0yplya0yx4"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; Tests not included in release.
+    (propagated-inputs
+     `(("ruby-guard" ,ruby-guard)
+       ("ruby-guard-compat" ,ruby-guard-compat)
+       ("ruby-rspec" ,ruby-rspec)))
+    (synopsis
+      "Guard::RSpec automatically run your specs (much like autotest).")
+    (description
+      "Guard::RSpec automatically run your specs (much like autotest).")
+    (home-page "https://github.com/guard/guard-rspec")
+    (license license:expat)))
+
+(define-public ruby-aws-sdk-kms
+  (package
+    (name "ruby-aws-sdk-kms")
+    (version "1.42.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-sdk-kms" version))
+        (sha256
+         (base32
+          "00wgf83cdy6z77b2y0ld0aqiidfyldi71hx0z8b73gxjdlbwpq1i"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (propagated-inputs
+     `(("ruby-aws-sdk-core" ,ruby-aws-sdk-core)
+       ("ruby-aws-sigv4" ,ruby-aws-sigv4)))
+    (synopsis
+      "Official AWS Ruby gem for AWS Key Management Service (KMS). This gem is part of the AWS SDK for Ruby.")
+    (description
+      "Official AWS Ruby gem for AWS Key Management Service (KMS).  This gem is part of the AWS SDK for Ruby.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-jmespath
+  (package
+    (name "ruby-jmespath")
+    (version "1.4.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "jmespath" version))
+        (sha256
+         (base32
+          "1d4wac0dcd1jf6kc57891glih9w57552zgqswgy74d1xhgnk0ngf"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; tests not included
+    (synopsis "Implements JMESPath for Ruby")
+    (description "Implements JMESPath for Ruby")
+    (home-page "https://github.com/trevorrowe/jmespath.rb")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-sigv4
+  (package
+    (name "ruby-aws-sigv4")
+    (version "1.2.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-sigv4" version))
+        (sha256
+         (base32
+          "1ll9382c1x2hp750cilh01h1cycgyhdr4cmmgx23k94hyyb8chv5"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (propagated-inputs
+     `(("ruby-aws-eventstream" ,ruby-aws-eventstream)))
+    (synopsis
+      "Amazon Web Services Signature Version 4 signing library. Generates sigv4 signature for HTTP requests.")
+    (description
+      "Amazon Web Services Signature Version 4 signing library.  Generates sigv4 signature for HTTP requests.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-partitions
+  (package
+    (name "ruby-aws-partitions")
+    (version "1.428.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-partitions" version))
+        (sha256
+         (base32
+          "13rvpllihvpksf1jqwa2i5vbv2hhb34viaidw4rkxr3dyygkdpj8"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (synopsis
+      "Provides interfaces to enumerate AWS partitions, regions, and services.")
+    (description
+      "This package provides interfaces to enumerate AWS partitions, regions, and services.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-eventstream
+  (package
+    (name "ruby-aws-eventstream")
+    (version "1.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-eventstream" version))
+        (sha256
+         (base32
+          "0r0pn66yqrdkrfdin7qdim0yj2x75miyg4wp6mijckhzhrjb7cv5"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (synopsis
+      "Amazon Web Services event stream library. Decodes and encodes binary stream under `vnd.amazon.event-stream` content-type")
+    (description
+      "Amazon Web Services event stream library.  Decodes and encodes binary stream under `vnd.amazon.event-stream` content-type")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-sdk-core
+  (package
+    (name "ruby-aws-sdk-core")
+    (version "3.112.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-sdk-core" version))
+        (sha256
+         (base32
+          "15lynby6r91p9hh5h92pg4jr8xgnjr52px5ax0p0wncdw4vz0skp"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (propagated-inputs
+     `(("ruby-aws-eventstream" ,ruby-aws-eventstream)
+       ("ruby-aws-partitions" ,ruby-aws-partitions)
+       ("ruby-aws-sigv4" ,ruby-aws-sigv4)
+       ("ruby-jmespath" ,ruby-jmespath)))
+    (synopsis
+      "Provides API clients for AWS. This gem is part of the official AWS SDK for Ruby.")
+    (description
+      "This package provides API clients for AWS.  This gem is part of the official AWS SDK for Ruby.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-sdk-s3
+  (package
+    (name "ruby-aws-sdk-s3")
+    (version "1.88.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-sdk-s3" version))
+        (sha256
+         (base32
+          "01zlv2icx3m0pq94z9fcsp1r9ivdqhfpnpbrv63fpr6m7yqww24y"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (propagated-inputs
+     `(("ruby-aws-sdk-core" ,ruby-aws-sdk-core)
+       ("ruby-aws-sdk-kms" ,ruby-aws-sdk-kms)
+       ("ruby-aws-sigv4" ,ruby-aws-sigv4)))
+    (synopsis
+      "Official AWS Ruby gem for Amazon Simple Storage Service (Amazon S3). This gem is part of the AWS SDK for Ruby.")
+    (description
+      "Official AWS Ruby gem for Amazon Simple Storage Service (Amazon S3).  This gem is part of the AWS SDK for Ruby.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-aws-sdk-sns
+  (package
+    (name "ruby-aws-sdk-sns")
+    (version "1.38.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "aws-sdk-sns" version))
+        (sha256
+         (base32
+          "0cqri14igfmcxlapbagg0nmy79zzg29awzybv51gl76m3mljbafb"))))
+    (build-system ruby-build-system)
+    (arguments `(#:tests? #f))  ; no tests
+    (propagated-inputs
+     `(("ruby-aws-sdk-core" ,ruby-aws-sdk-core)
+       ("ruby-aws-sigv4" ,ruby-aws-sigv4)))
+    (synopsis
+      "Official AWS Ruby gem for Amazon Simple Notification Service (Amazon SNS). This gem is part of the AWS SDK for Ruby.")
+    (description
+      "Official AWS Ruby gem for Amazon Simple Notification Service (Amazon SNS).  This gem is part of the AWS SDK for Ruby.")
+    (home-page "https://github.com/aws/aws-sdk-ruby")
+    (license license:asl2.0)))
+
+(define-public ruby-excon
+  (package
+    (name "ruby-excon")
+    (version "0.79.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/excon/excon")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0cm3rpkzdmq78ni7irw449qrya8wgb6hfzxjwkyq4pkalc21afqb"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'replace-git-ls-files
+           (lambda _
+             (substitute* "excon.gemspec"
+               (("git ls-files -- data/\\* lib/\\*")
+                "find data lib -type f"))
+             #t))
+         (add-before 'check 'pre-check
+           (lambda _
+             ;; Don't demand the latest ruby-rack
+             (substitute* "Gemfile"
+               (("rack.*") "rack'\n"))
+             ;; No network connection inside the container.
+             (delete-file "tests/basic_tests.rb")
+             #t))
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (setenv "HOME" (getcwd))
+               (invoke "bundle" "exec" "shindont")
+               (invoke "bundle" "exec" "rake" "spec[progress]"))
+             #t))
+         )))
+    (native-inputs
+     `(
+       ("ruby-activesupport" ,ruby-activesupport)
+       ("ruby-delorean" ,ruby-delorean)
+       ("ruby-eventmachine" ,ruby-eventmachine)
+       ("ruby-open4" ,ruby-open4)
+       ("ruby-puma" ,ruby-puma)
+       ("ruby-rack" ,ruby-rack)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-shindo" ,ruby-shindo)
+       ("ruby-sinatra" ,ruby-sinatra)
+       ("ruby-sinatra-contrib" ,ruby-sinatra-contrib)
+       ("ruby-unicorn" ,ruby-unicorn)
+       ))
+    (synopsis "EXtended http(s) CONnections")
+    (description "EXtended http(s) CONnections")
+    (home-page "https://github.com/excon/excon")
+    (license license:expat)))
+
+(define-public ruby-chronic
+  (package
+    (name "ruby-chronic")
+    (version "0.10.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "chronic" version))
+        (sha256
+         (base32
+          "1hrdkn4g8x7dlzxwb1rfgr8kw3bp4ywg5l4y4i9c2g5cwv62yvvn"))))
+    (build-system ruby-build-system)
+    (synopsis
+      "Chronic is a natural language date/time parser written in pure Ruby.")
+    (description
+      "Chronic is a natural language date/time parser written in pure Ruby.")
+    (home-page "http://github.com/mojombo/chronic")
+    (license license:expat)))
+
+(define-public ruby-delorean
+  (package
+    (name "ruby-delorean")
+    (version "2.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "delorean" version))
+        (sha256
+         (base32
+          "0k39ix0a9rf4fd05ncml4h9r29dzwgzdbhp01gp67baid6adxwf4"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; tests not included
+    (propagated-inputs
+     `(("ruby-chronic" ,ruby-chronic)))
+    (synopsis
+      "Delorean lets you travel in time with Ruby by mocking Time.now")
+    (description
+      "Delorean lets you travel in time with Ruby by mocking Time.now")
+    (home-page "http://github.com/bebanjo/delorean")
+    (license license:expat)))
+
+(define-public ruby-sinatra-contrib
+  (package
+    (name "ruby-sinatra-contrib")
+    (version "2.0.8.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "sinatra-contrib" version))
+        (sha256
+         (base32
+          "1mmrfm4pqh98f3irjpkvfpazhcx6q42bnx6bbms9dqvmck3mid28"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-backports" ,ruby-backports)
+       ("ruby-multi-json" ,ruby-multi-json)
+       ("ruby-mustermann" ,ruby-mustermann)
+       ("ruby-rack-protection" ,ruby-rack-protection)
+       ("ruby-sinatra" ,ruby-sinatra)
+       ("ruby-tilt" ,ruby-tilt)))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ))
+    (synopsis "Collection of useful Sinatra extensions")
+    (description
+      "Collection of useful Sinatra extensions")
+    (home-page "http://sinatrarb.com/contrib/")
+    (license license:expat)))
+
+(define-public ruby-raindrops
+  (package
+    (name "ruby-raindrops")
+    (version "0.19.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "raindrops" version))
+        (sha256
+         (base32
+          "0zjja00mzgx2lddb7qrn14k7qrnwhf4bpmnlqj78m1pfxh7svync"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; not clear how to run tests
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "ruby" "setup.rb" "tests"))
+             #t)))))
+    (synopsis "real-time stats for preforking Rack servers")
+    (description
+      "raindrops is a real-time stats toolkit to show statistics for Rack HTTP
+servers.  It is designed for preforking servers such as unicorn, but
+should support any Rack HTTP server on platforms supporting POSIX shared
+memory.  It may also be used as a generic scoreboard for sharing atomic
+counters across multiple processes.")
+    (home-page "https://yhbt.net/raindrops/")
+    (license license:lgpl2.1+)))
+
+(define-public ruby-kgio
+  (package
+    (name "ruby-kgio")
+    (version "2.11.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "kgio" version))
+        (sha256
+         (base32
+          "0ai6bzlvxbzpdl466p1qi4dlhx8ri2wcrp6x1l19y3yfs3a29rng"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; not clear how to run tests
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "ruby" "setup.rb" "tests"))
+             #t)))))
+    (synopsis "kinder, gentler I/O for Ruby")
+    (description
+      "This is a legacy project, do not use it for new projects.  Ruby
+2.3 and later should make this obsolete.  kgio provides
+non-blocking I/O methods for Ruby without raising exceptions on
+EAGAIN and EINPROGRESS.
+")
+    (home-page "https://yhbt.net/kgio/")
+    (license #f)))
+
+(define-public ruby-unicorn
+  (package
+    (name "ruby-unicorn")
+    (version "5.8.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "unicorn" version))
+        (sha256
+         (base32
+          "0ig48f4xhrssq5d11vkc41k7nj6pbv2jh1f8k5gfskfd469mcc2y"))))
+    (build-system ruby-build-system)
+    (propagated-inputs
+     `(("ruby-kgio" ,ruby-kgio)
+       ("ruby-raindrops" ,ruby-raindrops)))
+    (synopsis
+      "unicorn is an HTTP server for Rack applications designed to only serve
+fast clients on low-latency, high-bandwidth connections and take
+advantage of features in Unix/Unix-like kernels.  Slow clients should
+only be served by placing a reverse proxy capable of fully buffering
+both the the request and response in between unicorn and slow clients.")
+    (description
+      "unicorn is an HTTP server for Rack applications designed to only serve
+fast clients on low-latency, high-bandwidth connections and take
+advantage of features in Unix/Unix-like kernels.  Slow clients should
+only be served by placing a reverse proxy capable of fully buffering
+both the the request and response in between unicorn and slow clients.")
+    (home-page "https://yhbt.net/unicorn/")
+    (license (list #f #f))))
+
+(define-public ruby-pry-rails
+  (package
+    (name "ruby-pry-rails")
+    (version "0.3.9")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "pry-rails" version))
+        (sha256
+         (base32
+          "1cf4ii53w2hdh7fn8vhqpzkymmchjbwij4l3m7s6fsxvb9bn51j6"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f      ; not clear what the test suite wants
+       #:test-target "appraisal"    ; as per the Rakefile
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "HOME" (getcwd))
+             #t)))))
+    (propagated-inputs
+     `(("ruby-pry" ,ruby-pry)))
+    (native-inputs
+     `(
+       ("ruby-appraisal" ,ruby-appraisal)
+       ("ruby-minitest" ,ruby-minitest)
+       ))
+    (synopsis "Use Pry as your rails console")
+    (description "Use Pry as your rails console")
+    (home-page "https://github.com/rweng/pry-rails")
+    (license license:expat)))
+
+(define-public ruby-r2
+  (package
+    (name "ruby-r2")
+    (version "0.2.7")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "r2" version))
+        (sha256
+         (base32
+          "0wk0p55zp3l96xy5ps28b33dn5z0jwsjl74bwfdn6z81pzjs5sfk"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ))
+    (synopsis
+      "CSS flipper for right-to-left processing. A Ruby port of https://github.com/ded/r2")
+    (description
+      "CSS flipper for right-to-left processing.  A Ruby port of https://github.com/ded/r2")
+    (home-page "https://github.com/mzsanford/R2rb")
+    (license #f)))
+
+(define-public ruby-cbor
+  (package
+    (name "ruby-cbor")
+    (version "0.5.9.6")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "cbor" version))
+        (sha256
+         (base32
+          "0511idr8xps9625nh3kxr68sdy6l3xy2kcz7r57g47fxb1v18jj3"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "spec"))
+    (native-inputs
+     `(
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-yard" ,ruby-yard)
+       ))
+    (synopsis
+      "CBOR is a library for the CBOR binary object representation format, based on Sadayuki Furuhashi's MessagePack library.")
+    (description
+      "CBOR is a library for the CBOR binary object representation format, based on Sadayuki Furuhashi's MessagePack library.")
+    (home-page "http://cbor.io/")
+    (license #f)))
+
+(define-public ruby-openssl
+  (package
+    (name "ruby-openssl")
+    (version "2.2.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/ruby/openssl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "01xigwxpwha9hj8r2synkl6c7xlhs02f27qv98a1b7cbhgqqs6n3"))))
+    (build-system ruby-build-system)
+    (inputs
+     `(
+       ("openssl" ,openssl)
+       ))
+    (native-inputs
+     `(
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ))
+    (synopsis "It wraps the OpenSSL library.")
+    (description "It wraps the OpenSSL library.")
+    (home-page "https://github.com/ruby/openssl")
+    (license license:ruby)))
+
+(define-public ruby-openssl-signature-algorithm
+  (package
+    (name "ruby-openssl-signature-algorithm")
+    (version "1.1.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri
+               "openssl-signature_algorithm"
+               version))
+        (sha256
+         (base32
+          "173p9agv45hj62fdgl9bzqr9f6xg7hi2sf5iyd3ahiwbv220x332"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; cannot load such file -- spec_helper
+       #:test-target "spec" ; not default, don't care about rubocop output
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "HOME" (getcwd))
+             #t)))))
+    (propagated-inputs
+     `(("ruby-openssl" ,ruby-openssl)))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ))
+    (synopsis
+      "ECDSA, EdDSA, RSA-PSS and RSA-PKCS#1 algorithms for ruby")
+    (description
+      "ECDSA, EdDSA, RSA-PSS and RSA-PKCS#1 algorithms for ruby")
+    (home-page "https://github.com/cedarcode/openssl-signature_algorithm")
+    (license license:asl2.0)))
+
+(define-public ruby-cose
+  (package
+    (name "ruby-cose")
+    (version "1.2.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "cose" version))
+        (sha256
+         (base32
+          "1gx239d2fracq9az74wfdwmp5zm7zpzkcgchwnv2ng33d8r33p3m"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; cannot load such file -- spec_helper
+       #:test-target "spec" ; not default, don't care about rubocop output
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "HOME" (getcwd))
+             #t)))))
+    (propagated-inputs
+     `(("ruby-cbor" ,ruby-cbor)
+       ("ruby-openssl-signature-algorithm" ,ruby-openssl-signature-algorithm)))
+    (native-inputs
+     `(
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-rubocop-performance" ,ruby-rubocop-performance)
+       ))
+    (synopsis
+      "Ruby implementation of RFC 8152 CBOR Object Signing and Encryption (COSE)")
+    (description
+      "Ruby implementation of RFC 8152 CBOR Object Signing and Encryption (COSE)")
+    (home-page "https://github.com/cedarcode/cose-ruby")
+    (license license:expat)))
+
+(define-public ruby-rtlit
+  (package
+    (name "ruby-rtlit")
+    (version "0.0.5")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "rtlit" version))
+        (sha256
+         (base32
+          "0srfh7cl95srjiwbyc9pmn3w739zlvyj89hyj0bm7g92zrsd27qm"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; tests don't want to run
+    (native-inputs
+     `(
+       ("ruby-rake", ruby-rake)
+       ))
+    (synopsis
+      "Converts CSS files from left-to-right to right-to-left")
+    (description
+      "Converts CSS files from left-to-right to right-to-left")
+    (home-page "https://github.com/zohararad/rtlit")
+    (license license:expat)))
+
+(define-public ruby-test-prof
+  (package
+    (name "ruby-test-prof")
+    (version "1.0.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/test-prof/test-prof")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "092q3m56843yrd94xby2a29vg8kca4lirgvqlkmdjyjckmi3qdzr"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; seems to need running database
+       #:test-target "spec" ; not default, don't care about rubocop output
+       ;; cannot load such file -- standard/cop/semantic_blocks
+       ))
+    (native-inputs
+     `(
+       ("ruby-activerecord" ,ruby-activerecord)
+       ("ruby-fabrication" ,ruby-fabrication)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)
+       ("ruby-sqlite3" ,ruby-sqlite3-1.3)
+       ))
+    (synopsis
+      "
+    Ruby applications tests profiling tools.
+
+    Contains tools to analyze factories usage, integrate with Ruby profilers,
+    profile your examples using ActiveSupport notifications (if any) and
+    statically analyze your code with custom RuboCop cops.
+  ")
+    (description
+      "
+    Ruby applications tests profiling tools.
+
+    Contains tools to analyze factories usage, integrate with Ruby profilers,
+    profile your examples using ActiveSupport notifications (if any) and
+    statically analyze your code with custom RuboCop cops.
+  ")
+    (home-page "https://test-prof.evilmartians.io/")
+    (license license:expat)))
+
+(define-public ruby-fabrication
+  (package
+    (name "ruby-fabrication")
+    (version "2.21.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "fabrication" version))
+        (sha256
+         (base32
+          "1pdrl55xf76pbc5kjzp7diawxxvgbk2cm38532in6df823431n6z"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; TODO later
+    (synopsis
+      "Fabrication is an object generation framework for ActiveRecord, Mongoid, DataMapper, Sequel, or any other Ruby object.")
+    (description
+      "Fabrication is an object generation framework for ActiveRecord, Mongoid, DataMapper, Sequel, or any other Ruby object.")
+    (home-page "http://fabricationgem.org")
+    (license license:expat)))
+
+(define-public ruby-ruby2-keywords
+  (package
+    (name "ruby-ruby2-keywords")
+    (version "0.0.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/ruby/ruby2_keywords")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1fz81nw92cvpi1h99q1pvsnkdkpmp40jvvpkn1jnjbx9by04bw45"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:test-target "default"))
+    (synopsis
+      "Shim library for Module#ruby2_keywords")
+    (description
+      "Shim library for Module#ruby2_keywords")
+    (home-page "https://github.com/ruby/ruby2_keywords")
+    (license (list license:ruby license:bsd-2))))
+
+(define-public ruby-mock-redis
+  (package
+    (name "ruby-mock-redis")
+    (version "0.27.3")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "mock_redis" version))
+        (sha256
+         (base32
+          "0fhwhp0w2n79k9ibmqhq09m88rp2jmr7dknx9ibn84wf7r8a3a8k"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; tests need a running redis server.
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "rspec"))
+             #t)))))
+    (propagated-inputs
+     `(("ruby-ruby2-keywords" ,ruby-ruby2-keywords)))
+    (native-inputs
+     `(
+       ("ruby-redis" ,ruby-redis)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rspec-its" ,ruby-rspec-its)
+       ("ruby-simplecov" ,ruby-simplecov)
+       ("ruby-timecop" ,ruby-timecop)
+       ))
+    (synopsis
+      "Instantiate one with `redis = MockRedis.new` and treat it like you would a normal Redis object. It supports all the usual Redis operations.")
+    (description
+      "Instantiate one with `redis = MockRedis.new` and treat it like you would a normal Redis object.  It supports all the usual Redis operations.")
+    (home-page "https://github.com/sds/mock_redis")
+    (license license:expat)))
+
+(define-public ruby-certified
+  (package
+    (name "ruby-certified")
+    (version "1.0.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "certified" version))
+        (sha256
+         (base32
+          "1706p6p0a8adyvd943af2a3093xakvislgffw3v9dvp7j07dyk5a"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; no rakefile or tests
+    (synopsis
+      "Ensure net/https uses OpenSSL::SSL::VERIFY_PEER to verify SSL certificates and provides certificate bundle in case OpenSSL cannot find one")
+    (description
+      "Ensure net/https uses OpenSSL::SSL::VERIFY_PEER to verify SSL certificates and provides certificate bundle in case OpenSSL cannot find one")
+    (home-page "https://github.com/stevegraham/certified")
+    (license license:expat)))
+
+(define-public ruby-rspec-html-matchers
+  (package
+    (name "ruby-rspec-html-matchers")
+    (version "0.9.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "rspec-html-matchers" version))
+        (sha256
+         (base32
+          "0883rqv77n2wawnk5lp3la48l7pckyz8l013qddngzmksi5p1v3f"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; no tests in gem release
+    (propagated-inputs
+     `(("ruby-nokogiri" ,ruby-nokogiri)
+       ("ruby-rspec" ,ruby-rspec)))
+    (synopsis
+      "Nokogiri based 'have_tag' and 'with_tag' matchers for rspec 3. Does not depend on assert_select matcher, provides useful error messages.
+")
+    (description
+      "Nokogiri based 'have_tag' and 'with_tag' matchers for rspec 3.  Does not depend on assert_select matcher, provides useful error messages.
+")
+    (home-page "https://github.com/kucaahbe/rspec-html-matchers")
+    (license license:expat)))
+
+(define-public ruby-rswag-specs
+  (package
+    (name "ruby-rswag-specs")
+    (version "2.4.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "rswag-specs" version))
+        (sha256
+         (base32
+          "1dma3j5vfjhyclg8y0gsp44vs4wn9chf4jgfhc9r6ws018xrbxzd"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; no tests in Rakefile
+    (propagated-inputs
+     `(("ruby-activesupport" ,ruby-activesupport)
+       ("ruby-json-schema" ,ruby-json-schema)
+       ("ruby-railties" ,ruby-railties)))
+    (synopsis
+      "Simplify API integration testing with a succinct rspec DSL and generate OpenAPI specification files directly from your rspecs. More about the OpenAPI initiative here: http://spec.openapis.org/")
+    (description
+      "Simplify API integration testing with a succinct rspec DSL and generate OpenAPI specification files directly from your rspecs.  More about the OpenAPI initiative here: http://spec.openapis.org/")
+    (home-page "https://github.com/rswag/rswag")
     (license license:expat)))
 
