@@ -345,7 +345,7 @@ one-to-one, while still providing an idiomatic interface.")
 (define-public discourse
   (package
     (name "discourse")
-    (version "2.6.1")
+    (version "2.6.2")
     (source
       (origin
         (method git-fetch)
@@ -355,7 +355,7 @@ one-to-one, while still providing an idiomatic interface.")
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "1j1sinbxrdvidvn52z0qg668p7zd2ir5qdm43n4zdncmps6s4bnd"))))
+          "02g8bh0k8n9v2zbh6mrlvn3z3zrccd56z9wd1nriy4mckk0s85d7"))))
     (build-system ruby-build-system)
     (arguments
      `(#:phases
@@ -369,41 +369,38 @@ one-to-one, while still providing an idiomatic interface.")
            ;; This may not work, but it's worth a shot for now
            (lambda _
              (substitute* "Gemfile"
-               (("6.0.3.3") "5.2.2.1")  ; different rails version
-               ((".*rails_failover.*") "")  ; need to upgrade rails to 6.0+
+               (("6.0.3.3") ,(package-version ruby-rails))
                (("2.0.1") ,(package-version ruby-sassc))
                (("active_model_serializers.*") "active_model_serializers'\n")
-               ;; hide mini-racer and rbtrace for now, can't build libv8, rbtrace
+               ;; hide mini-racer and for now, can't build libv8
                ((".*mini_racer.*") "")
-               ((".*rbtrace.*") "")
                ;; ruby-cppjieba-rb never finishes the install phase
                ((".*cppjieba_rb.*") "")
                )
              #t))
          (replace 'build
            (lambda _
+             ;; https://github.com/discourse/discourse/blob/v2.6.2/docs/DEVELOPER-ADVANCED.md
              (setenv "HOME" (getcwd))
+             (setenv "RAILS_ENV" "test")
+             (invoke "bundle" "exec" "rake" "db:create" "db:migrate")
              (invoke "bundle" "exec" "rake" "autospec")))
          )
        ))
     ;;TODO: What should be moved to native-inputs?
     (inputs
      `(
+       ("node" ,(@ (gnu packages node) node))
        ("ruby-actionmailer" ,ruby-actionmailer)
        ("ruby-actionview-precompiler" ,ruby-actionview-precompiler)
        ("ruby-active-model-serializers" ,ruby-active-model-serializers)
        ("ruby-activemodel" ,ruby-activemodel)
        ("ruby-activerecord" ,ruby-activerecord)
-       ("ruby-annotate" ,ruby-annotate)
        ("ruby-aws-sdk-s3" ,ruby-aws-sdk-s3)
        ("ruby-aws-sdk-sns" ,ruby-aws-sdk-sns)
-       ("ruby-better-errors" ,ruby-better-errors)
-       ("ruby-binding-of-caller" ,ruby-binding-of-caller)
        ("ruby-bootsnap" ,ruby-bootsnap)
-       ("ruby-bullet" ,ruby-bullet)
        ("ruby-cbor" ,ruby-cbor)
        ;("ruby-cppjieba-rb" ,ruby-cppjieba-rb)
-       ("ruby-certified" ,ruby-certified)
        ("ruby-colored2" ,ruby-colored2)
        ("ruby-cose" ,ruby-cose)
        ("ruby-css-parser" ,ruby-css-parser)
@@ -414,8 +411,6 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-discourse-image-optim" ,ruby-discourse-image-optim)
        ("ruby-email-reply-trimmer" ,ruby-email-reply-trimmer)
        ("ruby-excon" ,ruby-excon)
-       ("ruby-fabrication" ,ruby-fabrication)
-       ("ruby-fakeweb" ,ruby-fakeweb)
        ("ruby-fast-blank" ,ruby-fast-blank)
        ("ruby-fast-xs" ,ruby-fast-xs)
        ("ruby-fastimage" ,ruby-fastimage)
@@ -423,7 +418,6 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-gc-tracer" ,ruby-gc-tracer)
        ("ruby-highline" ,ruby-highline)
        ("ruby-http-accept-language" ,ruby-http-accept-language)
-       ("ruby-listen" ,ruby-listen)
        ("ruby-lograge" ,ruby-lograge)
        ("ruby-logstash-event" ,ruby-logstash-event)
        ("ruby-logstash-logger" ,ruby-logstash-logger)
@@ -438,8 +432,6 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-mini-scheduler" ,ruby-mini-scheduler)
        ("ruby-mini-sql" ,ruby-mini-sql)
        ("ruby-mini-suffix" ,ruby-mini-suffix)
-       ("ruby-mocha" ,ruby-mocha)
-       ("ruby-mock-redis" ,ruby-mock-redis)
        ("ruby-oj" ,ruby-oj)
        ("ruby-omniauth" ,ruby-omniauth)
        ("ruby-omniauth-facebook" ,ruby-omniauth-facebook)
@@ -447,7 +439,6 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-omniauth-google-oauth2" ,ruby-omniauth-google-oauth2)
        ("ruby-omniauth-twitter" ,ruby-omniauth-twitter)
        ("ruby-onebox" ,ruby-onebox)
-       ("ruby-parallel-tests" ,ruby-parallel-tests)
        ("ruby-pg" ,ruby-pg)
        ("ruby-pry-byebug" ,ruby-pry-byebug)
        ("ruby-pry-rails" ,ruby-pry-rails)
@@ -455,24 +446,18 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-r2" ,ruby-r2)
        ("ruby-rack-mini-profiler" ,ruby-rack-mini-profiler)
        ("ruby-rack-protection" ,ruby-rack-protection)
-       ;("ruby-rails-failover" ,ruby-rails-failover)
+       ("ruby-rails-failover" ,ruby-rails-failover)
        ("ruby-rails-multisite" ,ruby-rails-multisite)
        ("ruby-railties" ,ruby-railties)
        ("ruby-rake" ,ruby-rake)
-       ;("ruby-rbtrace" ,ruby-rbtrace)
+       ("ruby-rbtrace" ,ruby-rbtrace)
        ("ruby-rchardet" ,ruby-rchardet)
        ("ruby-redis" ,ruby-redis)
        ("ruby-redis-namespace" ,ruby-redis-namespace)
        ("ruby-rinku" ,ruby-rinku)
        ("ruby-rotp" ,ruby-rotp)
        ("ruby-rqrcode" ,ruby-rqrcode)
-       ("ruby-rspec" ,ruby-rspec)
-       ("ruby-rspec-html-matchers" ,ruby-rspec-html-matchers)
-       ("ruby-rspec-rails" ,ruby-rspec-rails)
-       ("ruby-rswag-specs" ,ruby-rswag-specs)
        ("ruby-rtlit" ,ruby-rtlit)
-       ("ruby-rubocop-discourse" ,ruby-rubocop-discourse)
-       ("ruby-ruby-prof" ,ruby-ruby-prof)
        ("ruby-ruby-readability" ,ruby-ruby-readability)
        ("ruby-rubyzip" ,ruby-rubyzip)
        ("ruby-sassc" ,ruby-sassc)
@@ -480,21 +465,38 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-seed-fu" ,ruby-seed-fu)
        ("ruby-shoulda-matchers" ,ruby-shoulda-matchers)
        ("ruby-sidekiq" ,ruby-sidekiq)
-       ("ruby-simplecov" ,ruby-simplecov)
        ("ruby-sprockets-rails" ,ruby-sprockets-rails)
        ("ruby-sshkey" ,ruby-sshkey)
        ("ruby-stackprof" ,ruby-stackprof)
-       ("ruby-test-prof" ,ruby-test-prof)
        ("ruby-uglifier" ,ruby-uglifier)
        ("ruby-unf" ,ruby-unf)
        ("ruby-unicorn" ,ruby-unicorn)
-       ("ruby-webmock" ,ruby-webmock)
        ("ruby-webpush" ,ruby-webpush)
        ("ruby-xorcist" ,ruby-xorcist)
-       ("ruby-yaml-lint" ,ruby-yaml-lint)
        ))
     (native-inputs
      `(
+       ("ruby-annotate" ,ruby-annotate)
+       ("ruby-better-errors" ,ruby-better-errors)
+       ("ruby-binding-of-caller" ,ruby-binding-of-caller)
+       ("ruby-bullet" ,ruby-bullet)
+       ("ruby-certified" ,ruby-certified)
+       ("ruby-fabrication" ,ruby-fabrication)
+       ("ruby-fakeweb" ,ruby-fakeweb)
+       ("ruby-listen" ,ruby-listen)
+       ("ruby-mocha" ,ruby-mocha)
+       ("ruby-mock-redis" ,ruby-mock-redis)
+       ("ruby-parallel-tests" ,ruby-parallel-tests)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rspec-html-matchers" ,ruby-rspec-html-matchers)
+       ("ruby-rspec-rails" ,ruby-rspec-rails)
+       ("ruby-rswag-specs" ,ruby-rswag-specs)
+       ("ruby-rubocop-discourse" ,ruby-rubocop-discourse)
+       ("ruby-ruby-prof" ,ruby-ruby-prof)
+       ("ruby-simplecov" ,ruby-simplecov)
+       ("ruby-test-prof" ,ruby-test-prof)
+       ("ruby-webmock" ,ruby-webmock)
+       ("ruby-yaml-lint" ,ruby-yaml-lint)
        ))
     (synopsis "Platform for community discussion")
     (description "Discourse is the 100% open source discussion platform built
@@ -527,23 +529,6 @@ and maintaining seed data in a database.  It uses a variety of techniques
 gathered from various places around the web and combines them to create what is
 hopefully the most robust seed data system around.")
     (home-page "https://github.com/mbleigh/seed-fu")
-    (license license:expat)))
-
-(define-public ruby-mini-mime
-  (package
-    (name "ruby-mini-mime")
-    (version "1.0.2")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "mini_mime" version))
-        (sha256
-         (base32
-          "1axm0rxyx3ss93wbmfkm78a6x03l8y4qy60rhkkiq0aza0vwq3ha"))))
-    (build-system ruby-build-system)
-    (synopsis "Lightweight mime type lookup toy")
-    (description "This package provides a lightweight mime type lookup toy.")
-    (home-page "https://github.com/discourse/mini_mime")
     (license license:expat)))
 
 ;; TODO: deal with bundled libraries
@@ -2459,7 +2444,7 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (arguments
      `(#:tests? #f))    ; no rakefile found
     (propagated-inputs
-     `(("ruby-concurrent-ruby" ,ruby-concurrent-ruby)
+     `(("ruby-concurrent-ruby" ,ruby-concurrent)
        ("ruby-dry-core" ,ruby-dry-core)))
     (synopsis
       "Predicate logic with rule composition")
@@ -2502,7 +2487,7 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (arguments
      `(#:tests? #f))    ; no rakefile found
     (propagated-inputs
-     `(("ruby-concurrent-ruby" ,ruby-concurrent-ruby)))
+     `(("ruby-concurrent-ruby" ,ruby-concurrent)))
     (synopsis
       "A toolset of small support modules used throughout the dry-rb ecosystem")
     (description
@@ -2525,7 +2510,7 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (arguments
      `(#:tests? #f))    ; no rakefile found
     (propagated-inputs
-     `(("ruby-concurrent-ruby" ,ruby-concurrent-ruby)
+     `(("ruby-concurrent-ruby" ,ruby-concurrent)
        ("ruby-dry-core" ,ruby-dry-core)))
     (synopsis
       "A mixin to add configuration functionality to your classes")
@@ -2549,7 +2534,7 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (arguments
      `(#:tests? #f))    ; no rakefile found
     (propagated-inputs
-     `(("ruby-concurrent-ruby" ,ruby-concurrent-ruby)
+     `(("ruby-concurrent-ruby" ,ruby-concurrent)
        ("ruby-dry-configurable" ,ruby-dry-configurable)))
     (native-inputs
      `(
@@ -2560,31 +2545,6 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (description
       "This package provides a simple container intended for use as an IoC container")
     (home-page "https://github.com/dry-rb/dry-container")
-    (license license:expat)))
-
-(define-public ruby-concurrent-ruby
-  (package
-    (name "ruby-concurrent-ruby")
-    (version "1.1.8")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "concurrent-ruby" version))
-        (sha256
-         (base32
-          "0mr23wq0szj52xnj0zcn1k0c7j4v79wlwbijkpfcscqww3l6jlg3"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:tests? #f))    ;; TODO: Fix
-    (synopsis
-      "Modern concurrency tools including agents, futures, promises, thread pools, actors, supervisors, and more.
-Inspired by Erlang, Clojure, Go, JavaScript, actors, and classic concurrency patterns.
-")
-    (description
-      "Modern concurrency tools including agents, futures, promises, thread pools, actors, supervisors, and more.
-Inspired by Erlang, Clojure, Go, JavaScript, actors, and classic concurrency patterns.
-")
-    (home-page "http://www.concurrent-ruby.com")
     (license license:expat)))
 
 (define-public ruby-dry-types
@@ -2602,7 +2562,7 @@ Inspired by Erlang, Clojure, Go, JavaScript, actors, and classic concurrency pat
     (arguments
      `(#:tests? #f))    ; no rakefile found
     (propagated-inputs
-     `(("ruby-concurrent-ruby" ,ruby-concurrent-ruby)
+     `(("ruby-concurrent-ruby" ,ruby-concurrent)
        ("ruby-dry-container" ,ruby-dry-container)
        ("ruby-dry-core" ,ruby-dry-core)
        ("ruby-dry-inflector" ,ruby-dry-inflector)
@@ -4978,19 +4938,37 @@ specify.")
      `(#:tests? #f  ; no test suite
        #:phases
        (modify-phases %standard-phases
-         ;(replace 'build
-         ;  (lambda _
-         ;    (setenv "HOME" (getcwd))
-         ;    (substitute* "rbtrace.gemspec"
-         ;      (("~>") ">="))
-         ;    (setenv "CC" ,(cc-for-target))
-         ;    (invoke "bundle" "exec" "rake" "build")))
-         )
-       ))
+         (add-before 'build 'build-msgpack-library
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((msgpack (assoc-ref inputs "msgpack")))
+               ;; Don't try to build msgpack during 'install
+               (substitute* "rbtrace.gemspec"
+                 ((".*s.extensions.*") ""))
+
+               ;; Use shared library, built with -fPIC
+               (substitute* "ext/extconf.rb"
+                 (("libmsgpackc.a") "libmsgpackc.so")
+                 (("libmsgpackc_ext.a") "libmsgpackc_ext.so"))
+
+               (mkdir-p "ext/dst/lib")
+               (mkdir-p "ext/dst/include")
+               (symlink (string-append msgpack "/lib/libmsgpackc.so")
+                        "ext/dst/lib/libmsgpackc.so")
+               (symlink (string-append msgpack "/include/msgpack.h")
+                        "ext/dst/include/msgpack.h")
+
+               ;; compile the rbtrace binary, linking to msgpack
+               (setenv "CC" ,(cc-for-target))
+               (with-directory-excursion "ext"
+                 (invoke "ruby" "extconf.rb")
+                 (invoke "make"))
+               #t))))))
     (propagated-inputs
      `(("ruby-ffi" ,ruby-ffi)
        ("ruby-msgpack" ,ruby-msgpack)
        ("ruby-optimist" ,ruby-optimist)))
+    (inputs
+     `(("msgpack" ,(@ (gnu packages serialization) msgpack))))
     (synopsis
       "rbtrace shows you method calls happening inside another ruby process in real time.")
     (description
@@ -5681,7 +5659,6 @@ Simple gem that adds various color methods to String class, and can be used as f
     (home-page "https://github.com/kigster/colored2")
     (license license:expat)))
 
-;; TODO: Depends on rails >= 6.0
 (define-public ruby-rails-failover
   (package
     (name "ruby-rails-failover")
@@ -5696,24 +5673,10 @@ Simple gem that adds various color methods to String class, and can be used as f
     (build-system ruby-build-system)
     (arguments
      `(#:test-target "default"
-       #:tests? #f      ; cannot load such file -- spec_helper
-       #:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'patch-source
-           ;; Of course this is easier than upgrading rails to 6
-           (lambda _
-             (substitute* "rails_failover.gemspec"
-               (("gem_name, \\\".*") "gem_name\n")
-               )
-             (delete-file "Gemfile.lock")
-             (with-output-to-file "Gemfile.lock"
-               (lambda _ ""))
-             (substitute* "Gemfile"
-               (("activerecord.*") "activerecord'\n"))
-             #t)))))
+       #:tests? #f))    ; cannot load such file -- spec_helper
     (propagated-inputs
      `(("ruby-activerecord" ,ruby-activerecord)
-       ("ruby-concurrent-ruby" ,ruby-concurrent-ruby)
+       ("ruby-concurrent-ruby" ,ruby-concurrent)
        ("ruby-railties" ,ruby-railties)))
     (native-inputs
      `(
