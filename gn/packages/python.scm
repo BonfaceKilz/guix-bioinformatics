@@ -102,53 +102,6 @@ including wrappers to graphical libraries, as well as R-like structures and
 functions.")
     (license license:gpl3+)))
 
-
-(define-public python-plotly ; guix candidate
-   ; python-plotly, python-requests, python-pytz
-(package
-  (name "python-plotly")
-  (version "2.1.0")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "plotly" version))
-      (sha256
-        (base32
-          "1r4y9l5z62sqyd2r205vchlvlc1f7dcgjyagjkxiwywh27f9js7z"))))
-  (build-system python-build-system)
-  (arguments `(#:tests? #f)) ;; No tests.
-  (home-page "https://plot.ly/python/")
-  (synopsis
-    "Python plotting library for collaborative, interactive, publication-quality graphs.")
-  (description
-    "Python plotting library for collaborative, interactive, publication-quality graphs.")
-  (license license:expat))
-)
-
-(define-public python-plotly-3.2.1
-  (package
-    (inherit python-plotly)
-    (name "python-plotly")
-    (version "3.2.1")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "plotly" version))
-        (sha256
-         (base32
-          "1ay1plgsckfi7fddl99kvbcx5nifh48ahvszkqvb4d7r008m8sxk"))))
-    (build-system python-build-system)
-    (propagated-inputs
-     `(("python-decorator" ,python-decorator)
-       ("python-nbformat" ,python-nbformat)
-       ("python-pytz" ,python-pytz)
-       ("python-requests" ,python-requests)
-       ("python-retrying" ,python-retrying)
-       ("python-six" ,python-six)))))
-
-(define-public python2-plotly-3.2.1
-  (package-with-python2 python-plotly-3.2.1))
-
 (define-public python-subprocess32 ; guix candidate
   (package
     (name "python-subprocess32")
