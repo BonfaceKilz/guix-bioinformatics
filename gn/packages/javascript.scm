@@ -198,17 +198,9 @@ directed graphs on the client-side.")
         (file-name (git-file-name name version))
         (sha256
          (base32 "0z0sh5q5cd0iirdyhlln83vmsvwn1sbh4zdmdh8k5hld075g4q64"))))
-    (build-system trivial-build-system)
+    (build-system minify-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((out (assoc-ref %outputs "out"))
-                (targetdir (string-append out "/share/genenetwork2/javascript/cytoscape-dagre"))
-                (source (assoc-ref %build-inputs "source")))
-           (install-file (string-append source "/cytoscape-dagre.js") targetdir)))))
-    (native-inputs `(("source" ,source)))
+     `(#:javascript-files '("cytoscape-dagre.js")))
     (propagated-inputs
      `(("javascript-cytoscape" ,javascript-cytoscape)
        ("javascript-dagre" ,javascript-dagre)))
