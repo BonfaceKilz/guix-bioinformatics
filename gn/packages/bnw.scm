@@ -4,29 +4,59 @@
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages graph)
+  #:use-module (gnu packages graphviz)
+  #:use-module (gnu packages maths)
   #:use-module (gnu packages python)
   #:use-module (gnu packages statistics)
-  #:use-module (past packages graphviz)
   #:use-module (gn packages javascript)
-  #:use-module (gn packages maths)
-  #:use-module (gn packages python)
   #:use-module (gn packages web))
 
 (define-public bnw
-  (let ((commit "eb6b002b924694808384f1a8d7c6d1121806ae04")
-        (revision "6"))
+  (let ((commit "2c16603cab7c917118d2d7b3c34813b29aa5af68")
+        (revision "1"))
     (package
       (name "bnw")
-      (version (git-version "1.22" revision commit)) ; June 28, 2019
+      (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 2, 2021
       (source (origin
                (method git-fetch)
                (uri (git-reference
-                     (url "https://github.com/ziejd2/BNW.git")
+                     (url "https://github.com/ziejd2/BNW")
                      (commit commit)))
                (file-name (git-file-name name version))
                (sha256
                 (base32
-                 "10qwykp2zcyxih6a52icvy30ps69qk4v3jgirmdpw1l15zi4p2wq"))))
+                 "0pfcmx7swnxz48xn5bryx3a71if4j53iawkp05myhdl1c6mdvsw0"))
+               (modules '((guix build utils)))
+               (snippet
+                '(begin
+                   (delete-file "var_lib_genenet_bnw/localscore/libRmath.so")
+                   (delete-file-recursively "bnw-env")
+                   (delete-file "var_lib_genenet_bnw/k-best/src/get_kbest_nets")
+                   (delete-file "var_lib_genenet_bnw/k-best/src/get_kbest_parents")
+                   (for-each delete-file (find-files "." "\\.dll$"))
+                   (for-each delete-file (find-files "." "\\.o$"))
+                   (for-each
+                     (lambda (file)
+                       (delete-file (string-append "sourcecodes/scripts/" file)))
+                     ;; accordion.js, create_table.js and table.css are original files.
+                     '("FileSaver.min.js"
+                       "canvas-toBlob.js"
+                       "cytoscape-dagre.min.js"
+                       "cytoscape-panzoom.js"
+                       "cytoscape.js-panzoom.css"
+                       "cytoscape.min.js"
+                       "d3-selection-multi.v1.js"
+                       ;"d3.v4.min.js"  ; some work needs to be done on our package
+                       "dagre.js"
+                       "font-awesome.css"
+                       "fontawesome-webfont.eot"
+                       "fontawesome-webfont.svg"
+                       "fontawesome-webfont.ttf"
+                       "fontawesome-webfont.woff"
+                       "jquery.min.js"
+                       "lodash.js"))
+                   #t))))
       (build-system gnu-build-system)
       (arguments
        `(#:tests? #f ; no test suite
@@ -35,46 +65,36 @@
            (delete 'configure)
            (add-after 'unpack 'patch-source
              (lambda _
-               (substitute* "index.html"
-                 (("url=home.php") "url=sourcecodes/home.php"))
-               (substitute* "home.php"
-                 (("http://bnw.genenetwork.org/BNW_1.22")
-                  "http://bnw-test.genenetwork.org"))
-               (substitute* "sourcecodes/header_batchsearch.inc"
-                 (("my_style.css") "my_new_style.css"))
-               (substitute* (find-files "." "\\.php")
-                 (("HTTP_POST_VARS") "_POST")
-                 (("HTTP_POST_FILES") "_FILES"))
-               ;; change $dir to a writable directory
-               ;(substitute* (find-files "sourcecodes" "\\.php$")
-               ;  (("\\$dir=\"./data") "$dir=\"./data/tmp"))
+               ;; sourcecodes/matrix.php     hardcodes $dir=/tmp/bnw
+               (substitute* "sourcecodes/matrix.php"
+                 (("/tmp/bnw") "/var/lib/genenet/bnw/"))
                #t))
            (add-after 'patch-source-shebangs 'patch-more-shebangs
              (lambda* (#:key inputs #:allow-other-keys)
-               (let ((bash     (assoc-ref inputs "bash"))
-                     (graphviz (assoc-ref inputs "graphviz"))
+               (let ((graphviz (assoc-ref inputs "graphviz"))
                      (octave   (assoc-ref inputs "octave"))
                      (python   (assoc-ref inputs "python"))
                      (rmath    (assoc-ref inputs "rmath")))
                  (for-each (lambda (file)
                    (patch-shebang file
-                     (list (string-append bash "/bin")
-                           (string-append octave "/bin")
-                           (string-append python "/bin"))))
-                   (find-files "." ".*"))
+                     (list (string-append octave "/bin"))))
+                   (find-files "sourcecodes/run_scripts" "^run"))
                  (substitute* (find-files "sourcecodes" "(^run|py$)")
-                   (("/home/jziebart/python/Python-2.7.15/python")
-                    (which "python2")))
+                   (("/var/www/html/compbio/BNW_1.3/bnw-env/bin/python3")
+                    (which "python3"))
+                   (("/var/www/html/compbio/BNW_1.3/bnw-env/bin/python")
+                    (which "python3")))
                  (substitute*
                    (append (find-files "sourcecodes" ".php")
-                           (find-files "sourcecodes/run_scripts" ".*"))
+                           (find-files "sourcecodes/run_scripts"))
                    (("/usr/bin/dot") (string-append graphviz "/bin/dot")))
-                 (substitute* '("sourcecodes/build.sh"
-                                "downloads/BNW/src/build.sh")
+                 (substitute* "var_lib_genenet_bnw/build.sh"
                    (("./localscore/libRmath.so")
                     (string-append rmath "/lib/libRmath.so")))
+                 ;; Or we have to wrap everything with coreutils.
                  (substitute* (find-files "." "\\.sh$")
                    (("cat ") (string-append (which "cat") " "))
+                   (("cut ") (string-append (which "cut") " "))
                    (("\\ cp") (string-append " " (which "cp")))
                    (("date ") (string-append (which "date") " "))
                    (("dirname \\$0") (string-append (which "dirname")" $0"))
@@ -91,9 +111,8 @@
                (let ((jquery        (assoc-ref inputs "jquery"))
                      (awesome       (assoc-ref inputs "awesome"))
                      (cyto          (assoc-ref inputs "cytoscape"))
-                     (cyto2         (assoc-ref inputs "cytoscape-2"))
                      (cs-dagre      (assoc-ref inputs "cyto-dagre"))
-                     (d3js          (assoc-ref inputs "d3js"))
+                     (d3js-4        (assoc-ref inputs "d3js-4"))
                      (d3js-multi    (assoc-ref inputs "d3js-multi"))
                      (dagre         (assoc-ref inputs "dagre"))
                      (lodash        (assoc-ref inputs "lodash"))
@@ -103,33 +122,38 @@
                      (js-path "/share/genenetwork2/javascript/"))
                  (substitute* "sourcecodes/layout_cyto.php"
                    (("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.7.1/cytoscape.min.js")
-                    "/javascript/cytoscape.min.js")
-                   (("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.7.29/cytoscape.min.js")
-                    "/javascript/cytoscape2.min.js")
-                   (("http://spades.bioinf.spbau.ru/~alla/graph_viewer/js/cytoscape-dagre.js")
-                    "/javascript/cytoscape-dagre.js")
+                    "./scripts/cytoscape.min.js")
+                   (("https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.2.2/cytoscape-dagre.min.js")
+                    "./scripts/cytoscape-dagre.min.js")
                    (("https://unpkg.com/dagre@0.7.4/dist/dagre.js")
-                    "/javascript/dagre.js")
+                    "./scripts/dagre.js")
                    (("https://cdnjs.cloudflare.com/ajax/libs/cytoscape-panzoom/2.5.3/cytoscape.js-panzoom.css")
-                    "/javascript/cytoscape.js-panzoom.css")
+                    "./scripts/cytoscape.js-panzoom.css")
                    (("https://cdnjs.cloudflare.com/ajax/libs/cytoscape-panzoom/2.5.3/cytoscape-panzoom.js")
-                    "/javascript/cytoscape-panzoom.js")
+                    "./scripts/cytoscape-panzoom.js")
                    (("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css")
-                    "/javascript/font-awesome.css")
+                    "./scripts/font-awesome.css")
                    (("https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js")
-                    "/javascript/jquery.min.js")
+                    "./scripts/jquery.min.js")
                    (("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js")
-                    "/javascript/lodash.js"))
-                 (substitute* '("sourcecodes/layout_svg_wt.php"
-                                "sourcecodes/layout_svg_no.php")
+                    "./scripts/lodash.js"))
+                 (substitute* "sourcecodes/layout_svg_no.php"
                    (("http://d3js.org/d3.v4.min.js")
-                    "/javascript/d3.min.js")
+                    "./scripts/d3.v4.min.js")
                    (("http://d3js.org/d3-selection-multi.v1.js")
-                    "/javascript/d3-selection-multi.js")
+                    "./scripts/d3-selection-multi.v1.js")
                    (("https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js")
-                    "/javascript/canvas-toBlob.js")
+                    "./scripts/canvas-toBlob.js")
                    (("https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js")
-                    "/javascript/filesaver.js")))
+                    "./scripts/FileSaver.min.js"))
+                 ;; Against Google's ToS to make available offline:
+                 ;; https://developers.google.com/chart/interactive/faq?csw=1#offline
+                 ;(substitute* '("sourcecodes/network_layout_evd.php"
+                 ;               "sourcecodes/network_layout_evd_2.php"
+                 ;               "sourcecodes/network_layout_inv.php"
+                 ;               "sourcecodes/network_layout_inv_2.php")
+                 ;  (("https://www.google.com/jsapi") "https://www.gstatic.com/charts/loader.js"))
+                 )
                #t))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
@@ -138,48 +162,58 @@
                #t))
            (add-after 'install 'install-javascript-libraries
              (lambda* (#:key inputs outputs #:allow-other-keys)
-               (let ((out (assoc-ref outputs "out"))
-                     (jquery        (assoc-ref inputs "jquery"))
-                     (awesome       (assoc-ref inputs "awesome"))
-                     (cyto          (assoc-ref inputs "cytoscape"))
-                     (cyto2         (assoc-ref inputs "cytoscape-2"))
-                     (cs-dagre      (assoc-ref inputs "cyto-dagre"))
-                     (d3js          (assoc-ref inputs "d3js"))
-                     (d3js-multi    (assoc-ref inputs "d3js-multi"))
-                     (dagre         (assoc-ref inputs "dagre"))
-                     (lodash        (assoc-ref inputs "lodash"))
-                     (canvas-toblob (assoc-ref inputs "canvas-toblob"))
-                     (filesaver     (assoc-ref inputs "filesaver"))
-                     (panzoom       (assoc-ref inputs "panzoom"))
-                     (js-path  "/share/genenetwork/javascript/")
-                     (js-path2 "/share/genenetwork2/javascript/"))
-                 (mkdir-p (string-append out "/javascript"))
-                 (symlink (string-append (string-append cyto2 js-path2 "cytoscape/cytoscape.min.js"))
-                          (string-append out "/javascript/cytoscape.min.js"))
-                 (symlink (string-append (string-append cyto js-path2 "cytoscape/cytoscape.min.js"))
-                          (string-append out "/javascript/cytoscape2.min.js"))
-                 (symlink (string-append cs-dagre js-path2 "cytoscape-dagre/cytoscape-dagre.js")
-                          (string-append out "/javascript/cytoscape-dagre.js"))
+               (let* ((out (assoc-ref outputs "out"))
+                      (scripts      (string-append out "/sourcecodes/scripts/"))
+                      (fonts        (string-append out "/sourcecodes/fonts/"))
+                      (jquery       (assoc-ref inputs "jquery"))
+                      (awesome      (assoc-ref inputs "awesome"))
+                      (cyto         (assoc-ref inputs "cytoscape"))
+                      (cs-dagre     (assoc-ref inputs "cyto-dagre"))
+                      (d3js-4       (assoc-ref inputs "d3js-4"))
+                      (d3js-multi   (assoc-ref inputs "d3js-multi"))
+                      (dagre        (assoc-ref inputs "dagre"))
+                      (lodash       (assoc-ref inputs "lodash"))
+                      (canvas-toblob (assoc-ref inputs "canvas-toblob"))
+                      (filesaver    (assoc-ref inputs "filesaver"))
+                      (panzoom      (assoc-ref inputs "panzoom"))
+                      (js-path  "/share/genenetwork/javascript/")
+                      (js-path2 "/share/genenetwork2/javascript/"))
+                 (symlink (string-append cyto js-path2 "cytoscape/cytoscape.min.js")
+                          (string-append scripts "cytoscape.min.js"))
+                 (symlink (string-append cs-dagre "/share/javascript/cytoscape-dagre.min.js")
+                          (string-append scripts "cytoscape-dagre.min.js"))
                  (symlink (string-append dagre js-path2 "dagre/dagre.js")
-                          (string-append out "/javascript/dagre.js"))
+                          (string-append scripts "dagre.js"))
                  (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape.js-panzoom.css")
-                          (string-append out "/javascript/cytoscape.js-panzoom.css"))
+                          (string-append scripts "cytoscape.js-panzoom.css"))
                  (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape-panzoom.js")
-                          (string-append out "/javascript/cytoscape-panzoom.js"))
+                          (string-append scripts "cytoscape-panzoom.js"))
                  (symlink (string-append awesome "/share/web/font-awesomecss/font-awesome.css")
-                          (string-append out "/javascript/font-awesome.css"))
+                          (string-append scripts "font-awesome.css"))
+                 ;; font-awesome.css depends on the other font-awesome files,
+                 ;; by default in the ../fonts/ folder. Because we remove the
+                 ;; bundled (and minimally modified) version we have to make
+                 ;; some adjustments, namely moving the font files.
+                 (mkdir-p fonts)
+                 (for-each
+                   (lambda (font)
+                     (symlink (string-append awesome "/share/web/font-awesomefonts"
+                                             "/fontawesome-webfont." font)
+                              (string-append fonts "fontawesome-webfont." font)))
+                   '("eot" "woff" "woff2" "ttf" "svg"))
+
                  (symlink (string-append jquery "/share/web/jquery/jquery.min.js")
-                          (string-append out "/javascript/jquery.min.js"))
+                          (string-append scripts "jquery.min.js"))
                  (symlink (string-append lodash js-path2 "lodash/lodash.js")
-                          (string-append out "/javascript/lodash.js"))
-                 (symlink (string-append d3js js-path "d3js/d3.min.js")
-                          (string-append out "/javascript/d3.min.js"))
+                          (string-append scripts "lodash.js"))
+                 ;(symlink (string-append d3js-4 js-path "d3js/d3.min.js")
+                 ;         (string-append scripts "d3.v4.min.js"))
                  (symlink (string-append d3js-multi js-path "d3js-multi/d3-selection-multi.js")
-                          (string-append out "/javascript/d3-selection-multi.js"))
+                          (string-append scripts "d3-selection-multi.v1.js"))
                  (symlink (string-append canvas-toblob js-path "canvas-toblob/canvas-toBlob.js")
-                          (string-append out "/javascript/canvas-toBlob.js"))
+                          (string-append scripts "canvas-toBlob.js"))
                  (symlink (string-append filesaver js-path2 "filesaver/FileSaver.js")
-                          (string-append out "/javascript/filesaver.js"))
+                          (string-append scripts "FileSaver.min.js"))
                #t)))
            (add-after 'install 'make-files-executable
              (lambda* (#:key outputs #:allow-other-keys)
@@ -188,37 +222,34 @@
                    (lambda (file)
                      (chmod file #o555))
                    (append (find-files out "\\.(sh|py)$")
-                           (find-files (string-append out "/sourcecodes/run_scripts/" "."))))
-                 ;; This folder needs to be writable.
-                 (chmod (string-append out "/sourcecodes/data") #o777)
+                           (find-files
+                             (string-append out "/sourcecodes/run_scripts/") "^run")))
                  #t)))
+           (add-after 'make-files-executable 'wrap-executables-in-pythonpath
+             (lambda* (#:key outputs #:allow-other-keys)
+               (for-each
+                 (lambda (script)
+                   (wrap-program script
+                    `("PYTHONPATH" prefix (,(getenv "PYTHONPATH")))))
+                 (find-files (string-append (assoc-ref outputs "out")
+                                            "/sourcecodes/run_scripts") "^run"))
+               #t))
            (replace 'build
-             (lambda _
-               (with-directory-excursion "sourcecodes"
-                 (substitute* "build.sh"
-                   (("./localscore") "localscore"))
-                 (chmod "k-best/src/buildk_poster.sh" #o555)
-                 (invoke "sh" "build.sh")
-                 ;; from info_files/plotly_notes.txt
-                 ;(with-directory-excursion "data"
-                 ;  (setenv "HOME" "/tmp")
-                 ;  (invoke "python" "../cv_plotly.py" "LvQ")
-                 ;  (invoke "sh" "../plotly_loo.sh"))
-                 ;(invoke "./run_scripts/run_loo" "LvQ Weight")
-                 ))))))
+             (lambda* (#:key inputs #:allow-other-keys)
+               (with-directory-excursion "var_lib_genenet_bnw"
+                 (invoke "sh" "build.sh")))))))
       (inputs
-       `(("graphviz" ,graphviz-2.26)
-         ("octave" ,octave-3.4.3)
-         ("plotly" ,python2-plotly-3.2.1)
-         ("python" ,python-2)
+       `(("graphviz" ,graphviz)
+         ("octave" ,octave)
+         ("python" ,python)
+         ("python-plotly" ,python-plotly)
          ("rmath" ,rmath-standalone)
          ;; the javascript libraries:
          ("awesome" ,web-font-awesome)
          ("canvas-toblob" ,javascript-canvas-toblob)
          ("cyto-dagre" ,javascript-cytoscape-dagre)
          ("cytoscape" ,javascript-cytoscape)
-         ("cytoscape-2" ,javascript-cytoscape-2)
-         ("d3js" ,javascript-d3js-4)
+         ("d3js-4" ,javascript-d3js-4)
          ("d3js-multi" ,javascript-d3js-multi)
          ("dagre" ,javascript-dagre)
          ("filesaver" ,javascript-filesaver)
@@ -226,7 +257,8 @@
          ("lodash" ,javascript-lodash)
          ("panzoom" ,javascript-cytoscape-panzoom)))
       (native-inputs
-       `(("gcc" ,gcc-5)))
+       ;; get_best_knets isn't buildable with anything newer than gcc-5.
+       `(("gcc" ,(@ (gnu packages commencement) gcc-toolchain-5))))
       (home-page "http://compbio.uthsc.edu/BNW/")
       (synopsis "Bayesian Network Webserver")
       (description

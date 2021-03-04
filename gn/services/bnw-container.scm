@@ -5,6 +5,7 @@
              (guix records)
              (ice-9 match))
 (use-service-modules networking web)
+(use-package-modules base)
 
 (define-record-type* <bnw-configuration>
   bnw-configuration
@@ -21,10 +22,12 @@
   (match-lambda
     (($ <bnw-configuration> package deploy-directory port)
      #~(begin
-         (mkdir-p #$deploy-directory)
-         (copy-recursively #$package #$deploy-directory)
-         (invoke #$(file-append coreutils "/bin/chmod") "a+w"
-                 (string-append #$deploy-directory "/sourcecodes/data"))))))
+         (let ((genenet "/var/lib/genenet/bnw"))
+           ;(mkdir-p #$deploy-directory)
+           ;(copy-recursively #$package #$deploy-directory)
+           (mkdir-p genenet)
+           (copy-recursively #$(file-append package "/var_lib_genenet_bnw") genenet)
+           (invoke #$(file-append coreutils "/bin/chmod") "a+w" genenet))))))
 
 (define bnw-nginx-config
   (match-lambda
@@ -33,8 +36,8 @@
        (nginx-server-configuration
          (server-name '("Bayesian Network"))
          (listen port)
-         ;(root package)
-         (root deploy-directory)
+         (root package)
+         ;(root deploy-directory)
          (locations
            (list
              (nginx-php-location)
@@ -74,7 +77,7 @@
   ;; No firmware for VMs.
   (firmware '())
   ;; We don't need any packages inside the container.
-  (packages '())
+  (packages (list coreutils))
 
   (services (list (service dhcp-client-service-type)
                   (service bnw-service-type
