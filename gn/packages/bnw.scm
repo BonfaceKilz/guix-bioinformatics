@@ -13,11 +13,11 @@
   #:use-module (gn packages web))
 
 (define-public bnw
-  (let ((commit "2c16603cab7c917118d2d7b3c34813b29aa5af68")
-        (revision "1"))
+  (let ((commit "f39cd7ba681262de5658cfe7b9b0d46c6000b4fa")
+        (revision "2"))
     (package
       (name "bnw")
-      (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 2, 2021
+      (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 4, 2021
       (source (origin
                (method git-fetch)
                (uri (git-reference
@@ -26,7 +26,7 @@
                (file-name (git-file-name name version))
                (sha256
                 (base32
-                 "0pfcmx7swnxz48xn5bryx3a71if4j53iawkp05myhdl1c6mdvsw0"))
+                 "1w5hf3pkp91lf697675hjmhir622nz49spx30d0vkvh4i791cpqh"))
                (modules '((guix build utils)))
                (snippet
                 '(begin
@@ -40,22 +40,23 @@
                      (lambda (file)
                        (delete-file (string-append "sourcecodes/scripts/" file)))
                      ;; accordion.js, create_table.js and table.css are original files.
-                     '("FileSaver.min.js"
-                       "canvas-toBlob.js"
-                       "cytoscape-dagre.min.js"
-                       "cytoscape-panzoom.js"
-                       "cytoscape.js-panzoom.css"
-                       "cytoscape.min.js"
-                       "d3-selection-multi.v1.js"
+                     '(;"FileSaver.min.js"          ; sha256 mismatch
+                       ;"canvas-toBlob.js"          ; sha256 mismatch
+                       ;"cytoscape-dagre.min.js"    ; sha256 mismatch
+                       ;"cytoscape-panzoom.js"      ; sha256 mismatch
+                       ;"cytoscape.js-panzoom.css"  ; sha256 mismatch
+                       ;"cytoscape.min.js"
+                       ;"d3-selection-multi.v1.js"
                        ;"d3.v4.min.js"  ; some work needs to be done on our package
-                       "dagre.js"
-                       "font-awesome.css"
-                       "fontawesome-webfont.eot"
-                       "fontawesome-webfont.svg"
-                       "fontawesome-webfont.ttf"
-                       "fontawesome-webfont.woff"
-                       "jquery.min.js"
-                       "lodash.js"))
+                       ;"dagre.js"                  ; sha256 mismatch
+                       ;"font-awesome.css"          ; sha256 mismatch
+                       ;"fontawesome-webfont.eot"   ; sha256 mismatch
+                       ;"fontawesome-webfont.svg"   ; sha256 mismatch
+                       ;"fontawesome-webfont.ttf"   ; sha256 mismatch
+                       ;"fontawesome-webfont.woff"  ; sha256 mismatch
+                       ;"jquery.min.js"             ; sha256 mismatch
+                       ;"lodash.js"                 ; sha256 mismatch
+                       ))
                    #t))))
       (build-system gnu-build-system)
       (arguments
@@ -91,20 +92,6 @@
                  (substitute* "var_lib_genenet_bnw/build.sh"
                    (("./localscore/libRmath.so")
                     (string-append rmath "/lib/libRmath.so")))
-                 ;; Or we have to wrap everything with coreutils.
-                 (substitute* (find-files "." "\\.sh$")
-                   (("cat ") (string-append (which "cat") " "))
-                   (("cut ") (string-append (which "cut") " "))
-                   (("\\ cp") (string-append " " (which "cp")))
-                   (("date ") (string-append (which "date") " "))
-                   (("dirname \\$0") (string-append (which "dirname")" $0"))
-                   (("dirname \"\\$0") (string-append (which "dirname")" \"$0"))
-                   (("expr ") (string-append (which "expr") " "))
-                   (("head ") (string-append (which "head") " "))
-                   (("mkdir ") (string-append (which "mkdir") " "))
-                   (("^rm ") (string-append (which "rm") " "))
-                   (("rmdir ") (string-append (which "rmdir") " "))
-                   (("wc ") (string-append (which "wc") " ")))
                #t)))
            (add-after 'patch-source-shebangs 'replace-javascript
              (lambda* (#:key inputs #:allow-other-keys)
@@ -178,42 +165,54 @@
                       (panzoom      (assoc-ref inputs "panzoom"))
                       (js-path  "/share/genenetwork/javascript/")
                       (js-path2 "/share/genenetwork2/javascript/"))
-                 (symlink (string-append cyto js-path2 "cytoscape/cytoscape.min.js")
-                          (string-append scripts "cytoscape.min.js"))
-                 (symlink (string-append cs-dagre "/share/javascript/cytoscape-dagre.min.js")
-                          (string-append scripts "cytoscape-dagre.min.js"))
-                 (symlink (string-append dagre js-path2 "dagre/dagre.js")
-                          (string-append scripts "dagre.js"))
-                 (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape.js-panzoom.css")
-                          (string-append scripts "cytoscape.js-panzoom.css"))
-                 (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape-panzoom.js")
-                          (string-append scripts "cytoscape-panzoom.js"))
-                 (symlink (string-append awesome "/share/web/font-awesomecss/font-awesome.css")
-                          (string-append scripts "font-awesome.css"))
-                 ;; font-awesome.css depends on the other font-awesome files,
-                 ;; by default in the ../fonts/ folder. Because we remove the
-                 ;; bundled (and minimally modified) version we have to make
-                 ;; some adjustments, namely moving the font files.
-                 (mkdir-p fonts)
-                 (for-each
-                   (lambda (font)
-                     (symlink (string-append awesome "/share/web/font-awesomefonts"
-                                             "/fontawesome-webfont." font)
-                              (string-append fonts "fontawesome-webfont." font)))
-                   '("eot" "woff" "woff2" "ttf" "svg"))
+                 (unless (file-exists? (string-append scripts "cytoscape.min.js"))
+                   (symlink (string-append cyto js-path2 "cytoscape/cytoscape.min.js")
+                            (string-append scripts "cytoscape.min.js")))
+                 (unless (file-exists? (string-append scripts "cytoscape-dagre.min.js"))
+                   (symlink (string-append cs-dagre "/share/javascript/cytoscape-dagre.min.js")
+                            (string-append scripts "cytoscape-dagre.min.js")))
+                 (unless (file-exists? (string-append scripts "dagre.js"))
+                   (symlink (string-append dagre js-path2 "dagre/dagre.js")
+                            (string-append scripts "dagre.js")))
+                 (unless (file-exists? (string-append scripts "cytoscape.js-panzoom.css"))
+                   (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape.js-panzoom.css")
+                            (string-append scripts "cytoscape.js-panzoom.css")))
+                 (unless (file-exists? (string-append scripts "cytoscape-panzoom.js"))
+                   (symlink (string-append panzoom js-path2 "cytoscape-panzoom/cytoscape-panzoom.js")
+                            (string-append scripts "cytoscape-panzoom.js")))
+                 (unless (file-exists? (string-append scripts "font-awesome.css"))
+                   (symlink (string-append awesome "/share/web/font-awesomecss/font-awesome.css")
+                            (string-append scripts "font-awesome.css"))
+                   ;; font-awesome.css depends on the other font-awesome files,
+                   ;; by default in the ../fonts/ folder. Because we remove the
+                   ;; bundled (and minimally modified) version we have to make
+                   ;; some adjustments, namely moving the font files.
+                   (mkdir-p fonts)
+                   (for-each
+                     (lambda (font)
+                       (symlink (string-append awesome "/share/web/font-awesomefonts"
+                                               "/fontawesome-webfont." font)
+                                (string-append fonts "fontawesome-webfont." font)))
+                     '("eot" "woff" "woff2" "ttf" "svg")))
 
-                 (symlink (string-append jquery "/share/web/jquery/jquery.min.js")
-                          (string-append scripts "jquery.min.js"))
-                 (symlink (string-append lodash js-path2 "lodash/lodash.js")
-                          (string-append scripts "lodash.js"))
-                 ;(symlink (string-append d3js-4 js-path "d3js/d3.min.js")
-                 ;         (string-append scripts "d3.v4.min.js"))
-                 (symlink (string-append d3js-multi js-path "d3js-multi/d3-selection-multi.js")
-                          (string-append scripts "d3-selection-multi.v1.js"))
-                 (symlink (string-append canvas-toblob js-path "canvas-toblob/canvas-toBlob.js")
-                          (string-append scripts "canvas-toBlob.js"))
-                 (symlink (string-append filesaver js-path2 "filesaver/FileSaver.js")
-                          (string-append scripts "FileSaver.min.js"))
+                 (unless (file-exists? (string-append scripts "jquery.min.js"))
+                   (symlink (string-append jquery "/share/web/jquery/jquery.min.js")
+                            (string-append scripts "jquery.min.js")))
+                 (unless (file-exists? (string-append scripts "lodash.js"))
+                   (symlink (string-append lodash js-path2 "lodash/lodash.js")
+                            (string-append scripts "lodash.js")))
+                 (unless (file-exists? (string-append scripts "d3.v4.min.js"))
+                   (symlink (string-append d3js-4 js-path "d3js/d3.min.js")
+                            (string-append scripts "d3.v4.min.js")))
+                 (unless (file-exists? (string-append scripts "d3-selection-multi.v1.js"))
+                   (symlink (string-append d3js-multi js-path "d3js-multi/d3-selection-multi.js")
+                            (string-append scripts "d3-selection-multi.v1.js")))
+                 (unless (file-exists? (string-append scripts "canvas-toBlob.js"))
+                   (symlink (string-append canvas-toblob js-path "canvas-toblob/canvas-toBlob.js")
+                            (string-append scripts "canvas-toBlob.js")))
+                 (unless (file-exists? (string-append scripts "FileSaver.min.js"))
+                   (symlink (string-append filesaver js-path2 "filesaver/FileSaver.min.js")
+                            (string-append scripts "FileSaver.min.js")))
                #t)))
            (add-after 'install 'make-files-executable
              (lambda* (#:key outputs #:allow-other-keys)
@@ -225,7 +224,7 @@
                            (find-files
                              (string-append out "/sourcecodes/run_scripts/") "^run")))
                  #t)))
-           (add-after 'make-files-executable 'wrap-executables-in-pythonpath
+           (add-after 'make-files-executable 'wrap-executables
              (lambda* (#:key outputs #:allow-other-keys)
                (for-each
                  (lambda (script)
@@ -233,6 +232,15 @@
                     `("PYTHONPATH" prefix (,(getenv "PYTHONPATH")))))
                  (find-files (string-append (assoc-ref outputs "out")
                                             "/sourcecodes/run_scripts") "^run"))
+               (for-each
+                 (lambda (script)
+                   (wrap-program script
+                    `("PATH" prefix (,(dirname (which "cut"))))))
+                 (append
+                   (find-files (string-append (assoc-ref outputs "out")
+                                              "/sourcecodes") "\\.sh$")
+                   (find-files (string-append (assoc-ref outputs "out")
+                                              "/var_lib_genenet_bnw") "\\.sh$")))
                #t))
            (replace 'build
              (lambda* (#:key inputs #:allow-other-keys)
