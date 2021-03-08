@@ -1607,3 +1607,28 @@ sorted order.")
     (description
      "Python implementation of jbenet's multiaddr")
     (license license:expat)))
+
+(define-public python-ipfshttpclient
+  (package
+    (name "python-ipfshttpclient")
+    (version "0.6.1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "ipfshttpclient" version))
+       (sha256
+        (base32
+         "160hcczkrnbqwqjx86vri5kvmvn17v01csll1c8w8ifx96r14azv"))))
+    (build-system python-build-system)
+    (native-inputs
+     `(("python-pytest" ,python-pytest)
+       ("python-pytest-runner" ,python-pytest-runner)))
+    (propagated-inputs
+     `(("python-httpx" ,python-httpx)
+       ("python-multiaddr" ,python-multiaddr)
+       ("python-requests" ,python-requests)))
+    (home-page
+     "https://ipfs.io/ipns/12D3KooWEqnTdgqHnkkwarSrJjeMP2ZJiADWLYADaNvUb6SQNyPF/")
+    (synopsis "Python IPFS HTTP CLIENT library")
+    (description "Python IPFS HTTP CLIENT library")
+    (license license:expat)))
