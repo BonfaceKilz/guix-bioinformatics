@@ -1578,3 +1578,32 @@ sorted order.")
     (description
      "Simple python varint implementation")
     (license license:expat)))
+
+(define-public python-multiaddr
+  (package
+    (name "python-multiaddr")
+    (version "0.0.9")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "multiaddr" version))
+       (sha256
+        (base32
+         "1kqfmcbv8plpicbygwpdljin7n82iyxklc0w1ywxbhzdi58nkcih"))))
+    (build-system python-build-system)
+    (native-inputs
+     `(("python-pytest" ,python-pytest)
+       ("python-pytest-runner" ,python-pytest-runner)))
+    (propagated-inputs
+     `(("python-base58" ,python-base58)
+       ("python-idna" ,python-idna)
+       ("python-netaddr" ,python-netaddr)
+       ("python-six" ,python-six)
+       ("python-varint" ,python-varint)))
+    (home-page
+     "https://github.com/multiformats/py-multiaddr")
+    (synopsis
+     "Python implementation of jbenet's multiaddr")
+    (description
+     "Python implementation of jbenet's multiaddr")
+    (license license:expat)))
