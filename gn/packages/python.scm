@@ -1559,3 +1559,22 @@ sorted order.")
     (description
      "Socket.IO integration for Flask applications")
     (license license:expat)))
+
+(define-public python-varint
+  (package
+    (name "python-varint")
+    (version "1.0.2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "varint" version))
+       (sha256
+        (base32
+         "19ac46adalgva1chlh0rxv6cinpikxfd92kabbbfjpmcfwiw1v56"))))
+    (build-system python-build-system)
+    (home-page
+     "http://github.com/fmoo/python-varint")
+    (synopsis "Simple python varint implementation")
+    (description
+     "Simple python varint implementation")
+    (license license:expat)))
