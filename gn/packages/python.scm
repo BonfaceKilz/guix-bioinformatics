@@ -1620,6 +1620,15 @@ sorted order.")
         (base32
          "160hcczkrnbqwqjx86vri5kvmvn17v01csll1c8w8ifx96r14azv"))))
     (build-system python-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'bumpup-max-version
+           (lambda _
+             (substitute* "ipfshttpclient/client/__init__.py"
+               (("VERSION_MAXIMUM   = \"0.7.0\"")
+                "VERSION_MAXIMUM   = \"0.7.1\""))
+             #t)))))
     (native-inputs
      `(("python-pytest" ,python-pytest)
        ("python-pytest-runner" ,python-pytest-runner)))
