@@ -2,6 +2,7 @@
 
 (use-modules (gnu)
              (gn packages bnw)
+             (guix build utils)
              (guix records)
              (ice-9 match))
 (use-service-modules networking web)
@@ -20,14 +21,18 @@
 
 (define bnw-activation
   (match-lambda
-    (($ <bnw-configuration> package deploy-directory port)
+    (($ <bnw-configuration> package _ port)
      #~(begin
-         (let ((genenet "/var/lib/genenet/bnw"))
-           ;(mkdir-p #$deploy-directory)
-           ;(copy-recursively #$package #$deploy-directory)
+         (let ((genenet "/var/lib/genenet/bnw")
+               (php-fpm-uid (passwd:uid (getpw "php-fpm")))
+               (php-fpm-gid (passwd:gid (getpw "php-fpm"))))
            (mkdir-p genenet)
            (copy-recursively #$(file-append package "/var_lib_genenet_bnw") genenet)
-           (invoke #$(file-append coreutils "/bin/chmod") "a+w" genenet))))))
+           (for-each (lambda (file-name)
+                       (make-file-writable file-name)
+                       (chown file-name php-fpm-uid php-fpm-gid))
+                     (find-files genenet
+                                 #:directories? #t)))))))
 
 (define bnw-nginx-config
   (match-lambda
@@ -85,3 +90,5 @@
                            ;(bnw-configuration
                            ;  (port '("8888")))
                            ))))
+
+;; guix system container -L ~/workspace/guix-past/modules/ -L ~/workspace/guix-bioinformatics/ ~/workspace/guix-bioinformatics/gn/services/bnw-container.scm --network

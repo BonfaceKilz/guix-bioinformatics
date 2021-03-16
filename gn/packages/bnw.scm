@@ -14,7 +14,7 @@
 
 (define-public bnw
   (let ((commit "f39cd7ba681262de5658cfe7b9b0d46c6000b4fa")
-        (revision "2"))
+        (revision "3"))
     (package
       (name "bnw")
       (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 4, 2021
@@ -229,6 +229,7 @@
                (for-each
                  (lambda (script)
                    (wrap-program script
+                    `("PATH" prefix (,(dirname (which "cp"))))
                     `("PYTHONPATH" prefix (,(getenv "PYTHONPATH")))))
                  (find-files (string-append (assoc-ref outputs "out")
                                             "/sourcecodes/run_scripts") "^run"))
@@ -248,7 +249,7 @@
                  (invoke "sh" "build.sh")))))))
       (inputs
        `(("graphviz" ,graphviz)
-         ("octave" ,octave)
+         ("octave" ,octave-cli)
          ("python" ,python)
          ("python-plotly" ,python-plotly)
          ("rmath" ,rmath-standalone)
