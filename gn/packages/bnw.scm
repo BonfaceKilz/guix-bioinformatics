@@ -13,11 +13,11 @@
   #:use-module (gn packages web))
 
 (define-public bnw
-  (let ((commit "f39cd7ba681262de5658cfe7b9b0d46c6000b4fa")
-        (revision "3"))
+  (let ((commit "9ba1e1cf346771581d02133b73f359be28b323e7")
+        (revision "4"))
     (package
       (name "bnw")
-      (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 4, 2021
+      (version (git-version "genenet8_initial_1.3" revision commit)) ; Mar 16, 2021
       (source (origin
                (method git-fetch)
                (uri (git-reference
@@ -26,7 +26,7 @@
                (file-name (git-file-name name version))
                (sha256
                 (base32
-                 "1w5hf3pkp91lf697675hjmhir622nz49spx30d0vkvh4i791cpqh"))
+                 "0ibrmaq1b7x8l2f8q988njbgzgy6d7x4f3za4ry5j1swv4p9skdp"))
                (modules '((guix build utils)))
                (snippet
                 '(begin
