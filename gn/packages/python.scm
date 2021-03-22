@@ -1611,14 +1611,14 @@ sorted order.")
 (define-public python-ipfshttpclient
   (package
     (name "python-ipfshttpclient")
-    (version "0.6.1")
+    (version "0.7.0")
     (source
      (origin
        (method url-fetch)
        (uri (pypi-uri "ipfshttpclient" version))
        (sha256
         (base32
-         "160hcczkrnbqwqjx86vri5kvmvn17v01csll1c8w8ifx96r14azv"))))
+         "14rnqk61fqa6c1ql412q723g7spgpv2pch96h7p8gb632hy07cgy"))))
     (build-system python-build-system)
     (arguments
      `(#:phases
@@ -1627,7 +1627,7 @@ sorted order.")
            (lambda _
              (substitute* "ipfshttpclient/client/__init__.py"
                (("VERSION_MAXIMUM   = \"0.7.0\"")
-                "VERSION_MAXIMUM   = \"0.7.1\""))
+                "VERSION_MAXIMUM   = \"0.8.1\""))
              #t)))))
     (native-inputs
      `(("python-pytest" ,python-pytest)
