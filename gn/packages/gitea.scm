@@ -9,15 +9,14 @@
 (define-public gitea
   (package
     (name "gitea")
-    (version "1.12.3")
+    (version "1.13.7")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/go-gitea/gitea/releases"
                                   "/download/v" version
                                   "/gitea-src-" version ".tar.gz"))
               (sha256
-               (base32
-                "05z1pp2lnbr82pw97wy0j0qk2vv1qv9c46df13d03xdfsc3gsm50"))))
+               (base32 "0z0qsnqxxfkdaq18hkm92fdvssp2frmqdkd5y5pxva8p8zxdg5lc"))))
     (build-system go-build-system)
     (arguments
      `(#:install-source? #f
@@ -25,24 +24,26 @@
        (modify-phases %standard-phases
          (add-before 'build 'prepare-build
            (lambda _
-             (chdir "src")
              (setenv "TAGS" "bindata sqlite sqlite_unlock_notify")
              #t))
          (replace 'build
            (lambda _
-             (invoke "make" "build")))
+             (with-directory-excursion "src"
+               (invoke "make" "build"))))
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
              (if tests?
                (begin
-                 (invoke "make" "test")
-                 ;; Gitea requires git with lfs support to run tests.
-                 ;(invoke "make" "test-sqlite")
-                 (invoke "make" "test-sqlite-migration"))
+                 (with-directory-excursion "src"
+                   (invoke "make" "test")
+                   ;; Gitea requires git with lfs support to run tests.
+                   ;(invoke "make" "test-sqlite")
+                   (invoke "make" "test-sqlite-migration")))
                #t)))
          (replace 'install
            (lambda _
-             (invoke "make" "install")))
+             (with-directory-excursion "src"
+               (invoke "make" "install"))))
          (add-after 'install 'wrap-program
            (lambda* (#:key outputs inputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
