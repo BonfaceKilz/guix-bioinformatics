@@ -37,6 +37,9 @@
   #:use-module (guix git-download)
   #:use-module (guix utils)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system meson)
+  #:use-module (guix build-system python)
+  #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages web)
   #:use-module (guix build-system ruby))
@@ -212,28 +215,6 @@ a history.")
    "http://docs.seattlerb.org/mechanize/")
   (license expat)))
 
-(define-public ruby-faraday
-(package
-  (name "ruby-faraday")
-  (version "0.14.0")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (rubygems-uri "faraday" version))
-      (sha256
-        (base32
-          "1c3x3s8vb5nf7inyfvhdxwa4q3swmnacpxby6pish5fgmhws7zrr"))))
-  (build-system ruby-build-system)
-  (propagated-inputs
-    `(("ruby-multipart-post" ,ruby-multipart-post)))
-  (arguments
-   `(#:tests? #f)) ;; no bundler/cucumber
-  (synopsis "HTTP/REST API client library.")
-  (description "HTTP/REST API client library.")
-  (home-page
-    "https://github.com/lostisland/faraday")
-  (license license:expat)))
-
 (define-public ruby-elasticsearch-transport
 (package
   (name "ruby-elasticsearch-transport")
@@ -345,7 +326,7 @@ one-to-one, while still providing an idiomatic interface.")
 (define-public discourse
   (package
     (name "discourse")
-    (version "2.6.2")
+    (version "2.6.3")
     (source
       (origin
         (method git-fetch)
@@ -355,7 +336,7 @@ one-to-one, while still providing an idiomatic interface.")
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "02g8bh0k8n9v2zbh6mrlvn3z3zrccd56z9wd1nriy4mckk0s85d7"))))
+          "06ykn53m7mmdk71szk86nlq87rspqlb3fjpdmqi133z63dbj20ll"))))
     (build-system ruby-build-system)
     (arguments
      `(#:phases
@@ -366,25 +347,59 @@ one-to-one, while still providing an idiomatic interface.")
              (delete-file "Gemfile.lock")
              #t))
          (add-after 'unpack 'adjust-version-dependencies
-           ;; This may not work, but it's worth a shot for now
            (lambda _
              (substitute* "Gemfile"
+               ;; Don't require specific versions of these gems
                (("6.0.3.3") ,(package-version ruby-rails))
                (("2.0.1") ,(package-version ruby-sassc))
                (("active_model_serializers.*") "active_model_serializers'\n")
-               ;; hide mini-racer and for now, can't build libv8
-               ((".*mini_racer.*") "")
-               ;; ruby-cppjieba-rb never finishes the install phase
+               ;; Add tzinfo-data and figure out how to use non-Ruby version later
+               (("active_model_serializers'")
+                "active_model_serializers'\ngem 'tzinfo-data'")
+               ;; ruby-cppjieba-rb never finishes the install phase with ruby-2.6
                ((".*cppjieba_rb.*") "")
                )
              #t))
          (replace 'build
            (lambda _
-             ;; https://github.com/discourse/discourse/blob/v2.6.2/docs/DEVELOPER-ADVANCED.md
+             ;; https://github.com/discourse/discourse/blob/v2.6.3/docs/DEVELOPER-ADVANCED.md
              (setenv "HOME" (getcwd))
              (setenv "RAILS_ENV" "test")
-             (invoke "bundle" "exec" "rake" "db:create" "db:migrate")
-             (invoke "bundle" "exec" "rake" "autospec")))
+
+             ;; Launch Redis and Postgresql before continuing
+
+             ;(invoke "bundle" "exec" "rake" "db:create" "db:migrate")
+             ;(invoke "bundle" "exec" "rake" "autospec")
+             ))
+         ;(replace 'check
+         ;  (lambda _
+         ;    (invoke "rubocop")
+         ;    (invoke "rubocop" "plugins")))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (vendor-dir (string-append out "/lib/ruby/vendor_ruby"))
+                    )
+               (copy-recursively (getcwd) out)
+               (for-each make-file-writable (find-files out "\\.gz$"))
+               ;(with-output-to-file (string-append out "/bundler")
+               ;  (lambda _
+
+               ;(setenv "GEM_VENDOR" vendor-dir)
+               ;(setenv "BUNDLE_PATH" (getenv "GEM_PATH"))
+               ;(invoke "bundle" "install"
+               ;        "--path" out
+               ;        "--verbose"
+               ;        "--deployment"
+               ;        "--local"
+               ;        "--standalone"
+               ;        )
+               ;(invoke "gem" "install"
+               ;        "--verbose"
+               ;        ;"--vendor"
+               ;        "--local"
+               ;        "--bindir" (string-append out "/bin")
+               )))
          )
        ))
     ;;TODO: What should be moved to native-inputs?
@@ -428,7 +443,7 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-memory-profiler" ,ruby-memory-profiler)
        ("ruby-message-bus" ,ruby-message-bus)
        ("ruby-mini-mime" ,ruby-mini-mime)
-       ;("ruby-mini-racer" ,ruby-mini-racer)
+       ("ruby-mini-racer" ,ruby-mini-racer-0.2.4)
        ("ruby-mini-scheduler" ,ruby-mini-scheduler)
        ("ruby-mini-sql" ,ruby-mini-sql)
        ("ruby-mini-suffix" ,ruby-mini-suffix)
@@ -497,6 +512,7 @@ one-to-one, while still providing an idiomatic interface.")
        ("ruby-test-prof" ,ruby-test-prof)
        ("ruby-webmock" ,ruby-webmock)
        ("ruby-yaml-lint" ,ruby-yaml-lint)
+       ;("tzdata" ,(@ (gnu packages base) tzdata))
        ))
     (synopsis "Platform for community discussion")
     (description "Discourse is the 100% open source discussion platform built
@@ -874,8 +890,7 @@ latest ember versions.")
       "The sprockets template for Ember Handlebars.")
     (description
       "The sprockets template for Ember Handlebars.")
-    (home-page
-      "https://github.com/tricknotes/ember-handlebars-template")
+    (home-page "https://github.com/tricknotes/ember-handlebars-template")
     (license license:expat)))
 
 (define-public ruby-babel-source
@@ -894,8 +909,7 @@ latest ember versions.")
      `(#:tests? #f))    ; no rakefile found
     (synopsis "Babel JS source")
     (description "Babel JS source")
-    (home-page
-      "https://github.com/babel/ruby-babel-transpiler")
+    (home-page "https://github.com/babel/ruby-babel-transpiler")
     (license license:expat)))
 
 (define-public ruby-babel-transpiler
@@ -1157,7 +1171,8 @@ latest ember versions.")
           "0hckijk9aa628nx66vr7axfsk7zfdkskaxj1mdzikk019q3h54fr"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:tests? #f  ; Don't know how to build task 'test'
+     `(#:tests? #f  ; Tests require running redis instance.
+       #:test-target "default"
        #:phases
        (modify-phases %standard-phases
          (add-before 'check 'pre-check
@@ -1169,6 +1184,7 @@ latest ember versions.")
     (native-inputs
      `(
        ("ruby-byebug" ,ruby-byebug)
+       ("ruby-concurrent" ,ruby-concurrent)
        ("ruby-http-parser.rb" ,ruby-http-parser.rb)
        ("ruby-jasmine" ,ruby-jasmine)
        ("ruby-minitest-global-expectations" ,ruby-minitest-global-expectations)
@@ -1278,27 +1294,39 @@ latest ember versions.")
     (home-page "https://github.com/discourse/rubocop-discourse")
     (license license:expat)))
 
+;; 2.1.0+ have ActiveRecord::ConnectionAdapters::ConnectionSpecification which causes failures
 (define-public ruby-rails-multisite
   (package
     (name "ruby-rails-multisite")
-    (version "2.5.0")
+    (version "2.0.7")
     (source
       (origin
-        (method url-fetch)
-        (uri (rubygems-uri "rails_multisite" version))
+        (method git-fetch)
+        (uri (git-reference
+               ;; No tests included in release gem.
+               (url "https://github.com/discourse/rails_multisite")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
         (sha256
-          (base32
-            "0p7g9gkcmw030zfqlw3k933i40j31wf3jh4bj1niihzk7slha97y"))))
+         (base32
+          "1k6bvymilcg0mvaszc5g14f87p6bvbm911dv6g4sa3asfgw62cdp"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:tests? #f))    ; no rakefile found
+     '(#:tests? #f))    ; tests not working with 2.0.7.
     (propagated-inputs
      `(("ruby-activerecord" ,ruby-activerecord)
        ("ruby-railties" ,ruby-railties)))
+    (native-inputs
+     `(("ruby-byebug" ,ruby-byebug)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-sqlite3" ,ruby-sqlite3-1.3)))
     (synopsis "Multi tenancy support for Rails")
-    (description "Multi tenancy support for Rails")
-    (home-page "")
-    (license #f)))
+    (description "This gem provides multi-db support for Rails applications.
+Using its middleware you can partition your app so each hostname has its own db.
+It provides a series of helper for working with multiple database, and some
+additional rails tasks for working with them.")
+    (home-page "https://github.com/discourse/rails_multisite")
+    (license license:expat)))
 
 (define-public ruby-fast-xs
   (package
@@ -1362,7 +1390,7 @@ and HTML without having to deal with character set issues.")
       "FastImage finds the size or type of an image given its uri by fetching as little as needed.")
     (description
       "FastImage finds the size or type of an image given its uri by fetching as little as needed.")
-    (home-page "http://github.com/sdsykes/fastimage")
+    (home-page "https://github.com/sdsykes/fastimage")
     (license license:expat)))
 
 (define-public ruby-email-reply-trimmer
@@ -1401,7 +1429,7 @@ and HTML without having to deal with character set issues.")
     (synopsis "Show progress of long running tasks")
     (description
       "Show progress of long running tasks")
-    (home-page "http://github.com/toy/progress")
+    (home-page "https://github.com/toy/progress")
     (license license:expat)))
 
 (define-public ruby-in-threads
@@ -1475,7 +1503,7 @@ and HTML without having to deal with character set issues.")
      `(#:tests? #f))    ; no rakefile found
     (synopsis "Better than Pathname")
     (description "Better than Pathname")
-    (home-page "http://github.com/toy/fspath")
+    (home-page "https://github.com/toy/fspath")
     (license license:expat)))
 
 (define-public ruby-exifr
@@ -1550,8 +1578,7 @@ and HTML without having to deal with character set issues.")
       "Optimize (lossless compress, optionally lossy) images (jpeg, png, gif, svg) using external utilities (advpng, gifsicle, jhead, jpeg-recompress, jpegoptim, jpegrescan, jpegtran, optipng, pngcrush, pngout, pngquant, svgo)")
     (description
       "Optimize (lossless compress, optionally lossy) images (jpeg, png, gif, svg) using external utilities (advpng, gifsicle, jhead, jpeg-recompress, jpegoptim, jpegrescan, jpegtran, optipng, pngcrush, pngout, pngquant, svgo)")
-    (home-page
-      "http://github.com/toy/discourse_image_optim")
+    (home-page "https://github.com/toy/discourse_image_optim")
     (license license:expat)))
 
 (define-public ruby-omniauth-facebook
@@ -1827,8 +1854,256 @@ and HTML without having to deal with character set issues.")
       "Distributes the V8 JavaScript engine in binary and source forms in order to support fast builds of The Ruby Racer")
     (description
       "Distributes the V8 JavaScript engine in binary and source forms in order to support fast builds of The Ruby Racer")
-    (home-page "http://github.com/rubyjs/libv8")
+    (home-page "https://github.com/rubyjs/libv8")
     (license license:expat)))
+
+(define-public ruby-libv8-7.3
+  (package
+    (name "ruby-libv8")
+    (version "7.3.492.27.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "libv8" version))
+        (sha256
+         (base32
+          "1jivcckillfvd4n2jnsnnlf93z3gpvqbwsczs0fvv9hc90zpj7yh"))))
+        ;(method git-fetch)
+        ;(uri (git-reference
+        ;       (url "https://github.com/rubyjs/libv8")
+        ;       (commit (string-append "v" version))
+        ;       (recursive? #t)))
+        ;(file-name (git-file-name name version))
+        ;(sha256
+        ; (base32
+        ;  "0sq026lxspglvnad2w3qiplcg8dc6ffj5130zm379yz7dncwgwdf"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(
+       #:tests? #f  ; no test target
+       #:gem-flags (list "--" "--with-system-v8"
+                         (string-append "--with-v8-dir=" (assoc-ref %build-inputs "libnode")))
+       #:phases
+       (modify-phases %standard-phases
+         ;(delete 'check)
+         ;(add-after 'install 'check
+         ;  (assoc-ref %standard-phases 'check))
+         ;(add-after 'unpack 'patch-source
+         ;  (lambda* (#:key inputs #:allow-other-keys)
+         ;    (copy-file (assoc-ref inputs "cipd-client")
+         ;               "vendor/depot_tools/.cipd_client")
+         ;    (invoke "ls" "vendor/depot_tools/" "-la")
+         ;    #t))
+         (replace 'replace-git-ls-files
+           (lambda _
+             (substitute* "libv8.gemspec"
+               ;(("git submodule.*`") "ls -d vendor/*`")
+               ;(("^\\s+submodules.*") "")
+               ;(("^\\s+end.*") "")
+               ;(("^\\s+s.files \\+=.*") "")
+               ;(("^\\s+`git.*") "")
+
+               ;(("',.*") "'\n")
+
+               (("`git ls-files`")  "`find . -type f`")
+               )
+             #t))
+         ;; Unconditionally clones v8 for compilation.
+         ;(delete 'build)
+         ;(add-before 'build 'pre-build
+         ;  (lambda _
+         ;    ;(setenv "HOME" (getcwd))
+         ;    (invoke "rake" "compile")
+         ;    ))
+         )
+       ))
+    (native-inputs
+     `(
+       ("glib" ,(@ (gnu packages glib) glib))
+       ;("llvm" ,(@ (gnu packages llvm) llvm))
+       ("pkg-config" ,(@ (gnu packages pkg-config) pkg-config))
+       ("python" ,python-2)
+       ;("ruby-rake" ,ruby-rake)
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)
+       ("which" ,(@ (gnu packages base) which))
+       ;("cipd-client"
+       ; ,(origin
+       ;    (method url-fetch)
+       ;    (uri "https://chrome-infra-packages.appspot.com/client?platform=linux-amd64&version=git_revision:bd09df254cc0d6ca4319f23c16b9039091be5b00")
+       ;    (file-name "ruby-libv8-cipd-client")
+       ;    (sha256
+       ;     (base32 "1wznd036rj7a6wpqdbbp0imlxqcv20iic1xhwg0rz7fp9x9zciz6"))))
+       ))
+    (inputs
+     `(
+       ("libnode" ,(@ (gnu packages node) libnode))
+       ))
+    (synopsis
+      "Distributes the V8 JavaScript engine in binary and source forms in order to support fast builds of The Ruby Racer")
+    (description
+      "Distributes the V8 JavaScript engine in binary and source forms in order to support fast builds of The Ruby Racer")
+    (home-page "https://github.com/rubyjs/libv8")
+    (license license:expat)))
+
+;; The last version of libv8 that can use system v8?
+(define-public ruby-libv8-6.3
+  (package
+    (name "ruby-libv8")
+    (version "6.3.292.48.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "libv8" version))
+        (sha256
+         (base32
+          "0fispdxscqnghahxhcb360lly25r7zsg695ygb8d79g4n03wx2js"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f  ; no test target / can't find rake-compiler
+       #:gem-flags (list "--"
+                         "--with-system-v8"
+                         (string-append "--with-v8-dir="
+                                        (assoc-ref %build-inputs "libnode"))
+                         ;(string-append "--with-v8-include="
+                         ;               (assoc-ref %build-inputs "libnode")
+                         ;               "/include/node")
+                         )
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'replace-git-ls-files
+           (lambda _
+             (substitute* "libv8.gemspec"
+               (("`git ls-files`") "`find . -type f`"))
+             #t))
+         (add-after 'unpack 'patch-source
+           ;; v8.h includes <memory>, which breaks the autotools-like detection scripts
+           (lambda _
+             (substitute* "ext/libv8/location.rb"
+               ;((".*find_header, 'v8.h.*") ""))
+               ((".*find_header.*") ""))
+             #t))
+         (add-after 'install 'remove-depot-tools
+           (lambda* (#:key outputs #:allow-other-keys)
+             (delete-file-recursively
+               (string-append (assoc-ref outputs "out")
+                              "/lib/ruby/vendor_ruby/gems/libv8-"
+                              ,version "/vendor"))
+             #t)))))
+    (native-inputs
+     `(("ruby-rake" ,ruby-rake)
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)))
+    (inputs
+     `(("libnode" ,(@ (gnu packages node) libnode))))
+    (synopsis "V8 JavaScript engine for The Ruby Racer")
+    (description
+     "This package provides a Ruby wrapper around the Javascript V8 engine.")
+    (home-page "https://github.com/rubyjs/libv8")
+    (license license:expat)))
+
+(define-public libv8-7.3
+  (package
+    (name "libv8")
+    (version "7.3.492.27")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://chromium.googlesource.com/v8/v8")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0y9awgbryap4z9kb9zhih4ri3kqkw7imxnjn3fzcm9mwzbj4wn0j"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:python ,python-2
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'build
+           (lambda _
+             (substitute* ".gn"
+               ;; Files refered to seems to not exist in repository.
+               ((".*dotfile_settings.*") "")
+               ;((".*BUILDCONFIG.*") "")
+               )
+             ;(invoke "tools/dev/gm.py" "x64.release")
+             (invoke "gn" "gen" "out/x64" "--args is_debug=false target_cpu=\"x64\" v8_target_cpu=\"arm64\" use_goma=false")
+             ))
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "tools/dev/gm.py" "x64.release.check"))
+             #t))
+         )
+       ))
+    (native-inputs
+     `(
+       ("gn" ,generate-ninja)
+       ;("python-gyp" ,python2-gyp)
+       ))
+    (synopsis "")
+    (description "")
+    (home-page "")
+    (license #f)))
+
+(define-public generate-ninja   ; or 'gn'
+  (let ((commit "dfcbc6fed0a8352696f92d67ccad54048ad182b3")
+        (revision "1"))
+    (package
+      (name "generate-ninja")
+      (version (git-version "0.0.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://gn.googlesource.com/gn")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32
+            "1941bzg37c4dpsk3sh6ga3696gpq6vjzpcw9rsnf6kdr9mcgdxvn"))))
+      (build-system meson-build-system)
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (replace 'configure
+             (lambda _
+               (setenv "CC" ,(cc-for-target))
+               (setenv "CXX" ,(cxx-for-target))
+               (substitute* "build/gen.py"
+                 (("      \\['git.*\\]")
+                  (string-append "      ['" (which "echo")
+                                 "', 'initial-commit-1111-g"
+                                 ,(string-take commit 10) "']")))
+               (invoke "python" "build/gen.py")
+               ;; This is an expected part of 'configure in the meson-build-system.
+               (chdir "out")
+               #t))
+           (delete 'patch-generated-file-shebangs)
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (invoke "./gn_unittests"))
+               #t))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (install-file "gn" (string-append out "/bin"))
+                 (install-file "../LICENSE"
+                               (string-append out "/share/doc/"
+                                              ,name "-" ,version))
+                 #t))))))
+      (native-inputs
+       `(("python" ,python-wrapper)))
+      (home-page "https://gn.googlesource.com/gn")
+      (synopsis "Meta-build system for ninja")
+      (description "Generate-Ninja, or GN, is a meta-build system that generates
+Ninja build files so that you can build your project with Ninja.  GN was,
+originally, part of the Chromium source tree, and has since been extracted into
+its own standalone repo.")
+      (license license:bsd-3))))
 
 (define-public ruby-mini-racer
   (package
@@ -1849,6 +2124,69 @@ and HTML without having to deal with character set issues.")
     (home-page "https://github.com/discourse/mini_racer")
     (license license:expat)))
 
+(define-public ruby-mini-racer-0.2
+  (package
+    (inherit ruby-mini-racer)
+    (version "0.2.15")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "mini_racer" version))
+        (sha256
+         (base32
+          "1gm4lin39pj0xi9ip22ynafxhq9xn79fq4fspqhph6bqv02cyv6a"))))
+    (arguments
+     `(#:gem-flags (list "--" "--with-system-v8"
+                         ;(string-append "--with-v8-dir="
+                         ;               (assoc-ref %build-inputs "libnode"))
+                         (string-append "--with-v8-include="
+                                        (assoc-ref %build-inputs "libnode")
+                                        "/include/node")
+                         )
+       ))
+    (propagated-inputs
+     `(
+       ("ruby-libv8" ,ruby-libv8-7.3)
+       ))
+    (inputs
+     `(("libnode" ,(@ (gnu packages node) libnode))))
+    (native-inputs
+     `(
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ))
+    ))
+
+;; The last version which uses ruby-libv8@6.3
+(define-public ruby-mini-racer-0.2.4
+  (package
+    (inherit ruby-mini-racer)
+    (version "0.2.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "mini_racer" version))
+        (sha256
+         (base32
+          "1c3a61l805slbvqscmc2wbv6bvw37gs2dchyhbfql178mnb7vnwg"))))
+    (arguments
+     `(#:gem-flags
+       (list "--"
+             ;; Include the correct lib directory and then fake
+             ;; linking to '-llibnode' / '-lv8'.
+             (string-append "--with-v8-lib="
+                            (assoc-ref %build-inputs "libnode")
+                            "/lib")
+             "--with-v8lib=ruby"
+             (string-append "--with-v8-include="
+                            (assoc-ref %build-inputs "libnode")
+                            "/include/node"))))
+    (propagated-inputs
+     `(("ruby-libv8" ,ruby-libv8-6.3)))
+    (inputs
+     `(("libnode" ,(@ (gnu packages node) libnode))))
+    (native-inputs
+     `(("ruby-rake-compiler" ,ruby-rake-compiler)))))
+
 (define-public ruby-uglifier
   (package
     (name "ruby-uglifier")
@@ -1862,14 +2200,16 @@ and HTML without having to deal with character set issues.")
           "0wgh7bzy68vhv9v68061519dd8samcy8sazzz0w3k8kqpy3g4s5f"))))
     (build-system ruby-build-system)
     (arguments
-     `(#:tests? #f))    ; cannot load such file -- rspec/core/rake_task
+     `(#:tests? #f))    ; Tests not included in gem
     (propagated-inputs
      `(("ruby-execjs" ,ruby-execjs)))
+    (native-inputs
+     `(("ruby-rspec" ,ruby-rspec)))
     (synopsis
       "Uglifier minifies JavaScript files by wrapping UglifyJS to be accessible in Ruby")
     (description
       "Uglifier minifies JavaScript files by wrapping UglifyJS to be accessible in Ruby")
-    (home-page "http://github.com/lautis/uglifier")
+    (home-page "https://github.com/lautis/uglifier")
     (license license:expat)))
 
 (define-public ruby-fast-blank
@@ -1906,9 +2246,7 @@ and HTML without having to deal with character set issues.")
           "1yxghzg7476sivz8yyr9nkak2dlbls0b89vc2kg52k0nmg6d0wgf"))))
     (build-system ruby-build-system)
     (native-inputs
-     `(
-       ("ruby-timecop" ,ruby-timecop)
-       ))
+     `(("ruby-timecop" ,ruby-timecop)))
     (synopsis
       "An efficient implementation of an lru cache")
     (description
@@ -2242,19 +2580,6 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
         (sha256
          (base32
           "1r46dxq6r5rc7mgfb4w68qsm27w4qrp9kwjpssch9d5ngr12g0n7"))))))
-
-(define-public ruby-minitest-5.10
-  (package
-    (inherit ruby-minitest)
-    (name "ruby-minitest")
-    (version "5.10.3")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "minitest" version))
-        (sha256
-         (base32
-          "05521clw19lrksqgvg2kmm025pvdhdaniix52vmbychrn2jm7kz2"))))))
 
 (define-public ruby-kaminari-activerecord
   (package
@@ -5056,7 +5381,8 @@ specify.")
     (home-page "https://github.com/cantino/ruby-readability")
     (license #f)))
 
-;; TODO: 0.3.3 never finishes the install phase
+;; TODO: 0.3.3 never finishes the install phase with ruby-2.6
+;; TODO: Unbundle cppjieba
 (define-public ruby-cppjieba-rb
   (package
     (name "ruby-cppjieba-rb")
@@ -5076,12 +5402,11 @@ specify.")
            (lambda _
              (invoke "rake" "compile"))))))
     (native-inputs
-     `(
-       ("ruby-rake-compiler" ,ruby-rake-compiler)
-       ))
+     `(("ruby-rake-compiler" ,ruby-rake-compiler)))
     (synopsis "Cppjieba binding for Ruby")
     (description
-      "cppjieba binding for ruby.  Mainly used by Discourse.")
+     "This package provides Ruby bindles for @code{cppjieba}, a library to help
+with processing Chinese text.")
     (home-page "https://github.com/fantasticfears/cppjieba_rb")
     (license license:expat)))
 
