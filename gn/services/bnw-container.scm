@@ -17,7 +17,7 @@
   (deploy-directory bnw-deploy-directory            ; string
                     (default "/srv/http"))
   (port             bnw-configuration-port          ; list of strings
-                    (default '("8880"))))
+                    (default '("8881"))))
 
 (define bnw-activation
   (match-lambda
@@ -87,8 +87,8 @@
   (services (list (service dhcp-client-service-type)
                   (service bnw-service-type
                            ;; The following is for testing:
-                           ;(bnw-configuration
-                           ;  (port '("8888")))
+                           (bnw-configuration
+                             (port '("8888")))
                            ))))
 
 ;; guix system container -L ~/workspace/guix-past/modules/ -L ~/workspace/guix-bioinformatics/ ~/workspace/guix-bioinformatics/gn/services/bnw-container.scm --network
