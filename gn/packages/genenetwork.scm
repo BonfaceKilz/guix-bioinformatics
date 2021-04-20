@@ -473,7 +473,7 @@ Graphical Fragment Assembly} files and related formats.")
            ("python-markdown" ,python-markdown)
            ("python-rdflib" ,python-rdflib)
            ;; TODO: Get rid of Python R bindings
-           ("python-rpy2" ,python-rpy2-2.9)
+           ("python-rpy2" ,python-rpy2-next)
            ("python-beautifulsoup4" ,python-beautifulsoup4)
            ;; Disable for now. Build fails on Penguin2
            ;; ("python-flask-socketio" ,python-flask-socketio)
