@@ -1665,3 +1665,16 @@ sorted order.")
     (synopsis "SQLAlchemy stubs and mypy plugin")
     (description "SQLAlchemy stubs and mypy plugin")
     (license license:expat)))
+
+(define-public python-rpy2-next
+  (package
+    (inherit python-rpy2)
+    (name "python-rpy2-next")
+    (version "3.4.4")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "rpy2" version))
+       (sha256
+        (base32
+         "0l4fvm58fyz044hxpaw3a8w1nlki1n8iikrg9bdd7imz04kqd671"))))))
