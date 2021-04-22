@@ -33,6 +33,7 @@
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
   #:use-module (gnu packages jemalloc)
   #:use-module (gnu packages linux)
@@ -49,9 +50,12 @@
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages rdf)
   #:use-module (gnu packages readline)
+  #:use-module (gnu packages rsync)
   #:use-module (gnu packages ruby)
+  #:use-module (gnu packages shells)
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages time)
+  #:use-module (gnu packages tls)
   #:use-module (gnu packages vim)
   #:use-module (gnu packages web))
 
@@ -1563,3 +1567,90 @@ multiple sequence alignment.")
         license:gpl3+   ; all sdsl-lite copies
         license:zlib    ; deps/sonLib/externalTools/cutest
         license:boost1.0)))) ; catch.hpp
+
+(define-public ucsc-genome-browser
+  (package
+    (name "ucsc-genome-browser")
+    (version "413")
+    (source (origin
+      (method git-fetch)
+      (uri (git-reference
+             (url "https://genome-source.gi.ucsc.edu/kent.git/")
+             (commit (string-append "v" version "_base"))))
+      (file-name (git-file-name name version))
+      (sha256
+       (base32 "1qcjhd4wcajik71z5347fw2sfhfkv0p6y7yldrrkmycw2qhqmpzn"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f ; fix later
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure) ; There is no configure phase.
+         (add-before 'build 'pre-build
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               ;; Start by setting some variables.
+               (chdir "src")
+               (setenv "CC" ,(cc-for-target))
+               (setenv "HOME" (getcwd))
+
+               ;; And here we set the output directories
+               (setenv "CGI_BIN" (string-append out "/cgi-bin"))
+               (setenv "CGI_BIN_USER" (string-append out "/cgi-bin"))
+               (setenv "DOCUMENTROOT" (string-append out "/html"))
+               (setenv "DOCUMENTROOT_USER" (string-append out "/html"))
+               (setenv "BINDIR" (string-append out "/bin"))
+
+               ;; Now let's fix some errors
+               (mkdir-p (string-append out "/cgi-bin"))
+               (substitute* "inc/cgi_build_rules.mk"
+                  (("rm -f.*") ""))
+               (substitute* (cons* "inc/cgi_build_rules.mk"
+                                   (find-files "." "makefile"))
+                  (("CGI_BIN\\}-\\$\\{USER") "CGI_BIN_USER"))
+
+               #t)))
+         ;; Install happens during the 'build phase.
+         ;; Install the website files too
+         ;; rsync -avzP rsync://hgdownload.cse.ucsc.edu/htdocs/ /var/www/html/
+         (replace 'install
+           (lambda _
+             (invoke "make" "doc-install")
+             #t)))))
+    (inputs
+     `(("libpng" ,libpng)
+       ("mysql:dev" ,mariadb "dev")
+       ("mysql:lib" ,mariadb "lib")
+       ("openssl" ,openssl)
+       ("perl" ,perl)
+       ("python2" ,python-2)
+       ("zlib" ,zlib)))
+    (native-inputs
+     `(;("python" ,python)
+       ("rsync" ,rsync)    ; For installing js files from the source checkout
+       ;("tcl" ,tcl)
+       ;("tcsh" ,tcsh)
+       ("util-linux:lib" ,util-linux "lib")
+       ("which" ,(@ (gnu packages base) which))))
+    (home-page "https://www.genome.ucsc.edu/")
+    (synopsis "Structural variants detector for next-gen sequencing data")
+    (description
+     "The UCSC Genome Browser provides a rapid and reliable display of any
+requested portion of genomes at any scale, together with dozens of aligned
+annotation tracks (known genes, predicted genes, ESTs, mRNAs, CpG islands,
+assembly gaps and coverage, chromosomal bands, mouse homologies, and more).
+Half of the annotation tracks are computed at UCSC from publicly available
+sequence data.  The remaining tracks are provided by collaborators worldwide.
+Users can also add their own custom tracks to the browser for educational or
+research purposes.
+The Genome Browser stacks annotation tracks beneath genome coordinate positions,
+allowing rapid visual correlation of different types of information.  The user
+can look at a whole chromosome to get a feel for gene density, open a specific
+cytogenetic band to see a positionally mapped disease gene candidate, or zoom in
+to a particular gene to view its spliced ESTs and possible alternative splicing.
+The Genome Browser itself does not draw conclusions; rather, it collates all
+relevant information in one location, leaving the exploration and interpretation
+to the user.")
+    (license (license:non-copyleft
+               "https://www.genome.ucsc.edu/conditions.html"
+               "Free for academic/non-profit/personal use only."))))
