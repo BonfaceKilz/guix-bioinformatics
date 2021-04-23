@@ -156,6 +156,14 @@ functions.")
       (inherit base)
       (arguments
        `(#:tests? #f)))))
+
+(define-public python2-werkzeug
+  (let ((base (package-with-python2 python-werkzeug)))
+    (package
+      (inherit base)
+      (arguments
+       `(#:tests? #f)))))
+
 (define-public python2-flask-sqlalchemy
   (package-with-python2 python-flask-sqlalchemy))
 
