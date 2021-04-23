@@ -150,6 +150,12 @@ functions.")
 (define-public python2-inotify
   (package-with-python2 python-inotify))
 
+(define-public python2-flask
+  (let ((base (package-with-python2 python-flask)))
+    (package
+      (inherit base)
+      (arguments
+       `(#:tests? #f)))))
 (define-public python2-flask-sqlalchemy
   (package-with-python2 python-flask-sqlalchemy))
 
