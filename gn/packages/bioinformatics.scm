@@ -1616,7 +1616,32 @@ multiple sequence alignment.")
          (replace 'install
            (lambda _
              (invoke "make" "doc-install")
-             #t)))))
+             #t))
+         ;; TODO: Figure out how to make this configurable in the service.
+         (add-after 'install 'create-hg-conf
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-output-to-file (string-append out "/cgi-bin/hg.conf")
+                 (lambda ()
+                   (display
+                     (string-append
+                     "browser.documentRoot=" out "/html\n"
+                     "db.host=gbdb\n"
+                     "db.user=admin\n"
+                     "db.password=admin\n"
+                     "db.trackDb=trackDb\n"
+                     "defaultGenome=Human\n"
+                     "central.db=hgcentral\n"
+                     "central.host=gbdb\n"
+                     "central.user=admin\n"
+                     "central.password=admin\n"
+                     "central.domain=\n"
+                     "backupcentral.db=hgcentral\n"
+                     "backupcentral.host=gbdb\n"
+                     "backupcentral.user=admin\n"
+                     "backupcentral.password=admin\n"
+                     "backupcentral.domain=\n"))))
+               #t))))))
     (inputs
      `(("libpng" ,libpng)
        ("mysql:dev" ,mariadb "dev")
