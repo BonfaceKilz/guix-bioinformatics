@@ -298,26 +298,6 @@ a history.")
    (license #f)))
 
 
-(define-public ruby-redis
-  (package
-    (name "ruby-redis")
-    (version "4.2.5")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "redis" version))
-        (sha256
-         (base32
-          "15x2sr6h094rjbvg8pkq6m3lcd5abpyx93aifvfdz3wv6x55xa48"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:tests? #f))    ; Tests require a running redis server.
-    (synopsis "Ruby client for Redis' API")
-    (description
-     "This package provides a Ruby client that tries to match Redis' API
-one-to-one, while still providing an idiomatic interface.")
-    (home-page "https://github.com/redis/redis-rb")
-    (license license:expat)))
 
 
 
@@ -1391,25 +1371,6 @@ and HTML without having to deal with character set issues.")
     (description
       "FastImage finds the size or type of an image given its uri by fetching as little as needed.")
     (home-page "https://github.com/sdsykes/fastimage")
-    (license license:expat)))
-
-(define-public ruby-email-reply-trimmer
-  (package
-    (name "ruby-email-reply-trimmer")
-    (version "0.1.13")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "email_reply_trimmer" version))
-        (sha256
-         (base32
-          "1jgcxifm48xq5dz9k47q43pqm5bfnf14l62l3bqhmv8f6z8dw4ki"))))
-    (build-system ruby-build-system)
-    (synopsis
-      "EmailReplyTrimmer is a small library to trim replies from plain text email.")
-    (description
-      "EmailReplyTrimmer is a small library to trim replies from plain text email.")
-    (home-page "https://github.com/discourse/email_reply_trimmer")
     (license license:expat)))
 
 (define-public ruby-progress
