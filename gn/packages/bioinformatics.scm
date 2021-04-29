@@ -54,6 +54,7 @@
   #:use-module (gnu packages ruby)
   #:use-module (gnu packages shells)
   #:use-module (gnu packages statistics)
+  #:use-module (gnu packages tcl)
   #:use-module (gnu packages time)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages vim)
@@ -1601,13 +1602,25 @@ multiple sequence alignment.")
                (setenv "DOCUMENTROOT_USER" (string-append out "/html"))
                (setenv "BINDIR" (string-append out "/bin"))
 
-               ;; Now let's fix some errors
+               ;; Now let's fix some errors:
                (mkdir-p (string-append out "/cgi-bin"))
                (substitute* "inc/cgi_build_rules.mk"
                   (("rm -f.*") ""))
                (substitute* (cons* "inc/cgi_build_rules.mk"
                                    (find-files "." "makefile"))
                   (("CGI_BIN\\}-\\$\\{USER") "CGI_BIN_USER"))
+               ;; Force linking with freetype.
+               (substitute* "inc/common.mk"
+                 (("libpng-config --ldflags") "pkg-config --libs libpng freetype2")
+                 (("libpng-config --I_opts") "pkg-config --cflags-only-I libpng freetype2"))
+               ;; Force the trash location.
+               (substitute* (cons*
+                              "utils/qa/showTracks"
+                              "webBlat/webBlat.cfg"
+                              "hg/js/hgTracks.js"
+                              (find-files "." "\\.c$"))
+                 ;; This line is specifically needed as-is.
+                 (("\\.\\./trash") "/var/www/html/trash"))
 
                #t)))
          ;; Install happens during the 'build phase.
@@ -1617,33 +1630,28 @@ multiple sequence alignment.")
            (lambda _
              (invoke "make" "doc-install")
              #t))
-         ;; TODO: Figure out how to make this configurable in the service.
          (add-after 'install 'create-hg-conf
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
                (with-output-to-file (string-append out "/cgi-bin/hg.conf")
                  (lambda ()
                    (display
-                     (string-append
-                     "browser.documentRoot=" out "/html\n"
-                     "db.host=gbdb\n"
-                     "db.user=admin\n"
-                     "db.password=admin\n"
-                     "db.trackDb=trackDb\n"
-                     "defaultGenome=Human\n"
-                     "central.db=hgcentral\n"
-                     "central.host=gbdb\n"
-                     "central.user=admin\n"
-                     "central.password=admin\n"
-                     "central.domain=\n"
-                     "backupcentral.db=hgcentral\n"
-                     "backupcentral.host=gbdb\n"
-                     "backupcentral.user=admin\n"
-                     "backupcentral.password=admin\n"
-                     "backupcentral.domain=\n"))))
-               #t))))))
+                     "include /var/lib/genome/hg.conf\n")))
+               #t)))
+         (add-after 'install 'create-symlink
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               ;; Some trash locations are hardcoded as "../trash"
+               ;(symlink "/var/www/html/trash"
+               ;         (string-append out "/trash"))
+               (symlink "../html"
+                        (string-append out "/htdocs"))
+               #t)))
+         )))
     (inputs
-     `(("libpng" ,libpng)
+     `(
+       ("freetype" ,freetype)
+       ("libpng" ,libpng)
        ("mysql:dev" ,mariadb "dev")
        ("mysql:lib" ,mariadb "lib")
        ("openssl" ,openssl)
@@ -1651,10 +1659,11 @@ multiple sequence alignment.")
        ("python2" ,python-2)
        ("zlib" ,zlib)))
     (native-inputs
-     `(;("python" ,python)
+     `(("pkg-config" ,pkg-config)
+       ("python" ,python)
        ("rsync" ,rsync)    ; For installing js files from the source checkout
-       ;("tcl" ,tcl)
-       ;("tcsh" ,tcsh)
+       ("tcl" ,tcl)
+       ("tcsh" ,tcsh)
        ("util-linux:lib" ,util-linux "lib")
        ("which" ,(@ (gnu packages base) which))))
     (home-page "https://www.genome.ucsc.edu/")
