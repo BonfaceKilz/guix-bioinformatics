@@ -1649,8 +1649,7 @@ multiple sequence alignment.")
                #t)))
          )))
     (inputs
-     `(
-       ("freetype" ,freetype)
+     `(("freetype" ,freetype)
        ("libpng" ,libpng)
        ("mysql:dev" ,mariadb "dev")
        ("mysql:lib" ,mariadb "lib")
@@ -1685,6 +1684,13 @@ to a particular gene to view its spliced ESTs and possible alternative splicing.
 The Genome Browser itself does not draw conclusions; rather, it collates all
 relevant information in one location, leaving the exploration and interpretation
 to the user.")
-    (license (license:non-copyleft
-               "https://www.genome.ucsc.edu/conditions.html"
-               "Free for academic/non-profit/personal use only."))))
+    (license (list
+               license:bsd-0    ; kent/src/{utils,lib,inc,tabStorm,parasol,hg/ausoSql,hg/autoXml}
+               license:bsd-3    ; these two for bundled htslib-1.3
+               license:expat
+               (license:non-copyleft
+                 "https://www.genome.ucsc.edu/license/"
+                 "Free for academic/non-profit/personal use only.")
+               (license:non-copyleft    ; Blat, In-Silico PCR
+                 "http://www.kentinformatics.com/index.html"
+                 "Free for universities and non-profit institutions.")))))

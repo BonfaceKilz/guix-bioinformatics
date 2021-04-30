@@ -8,6 +8,7 @@
              (gn packages bioinformatics))
 (use-service-modules
   databases
+  networking
   web)
 (use-package-modules
   bash
@@ -42,7 +43,10 @@
                    "backupcentral.domain=\n"
                    "freeType=on\n"
                    "freeTypeDir=" gs-fonts "/share/fonts/type1/ghostscript\n"
+                   ;"hgc.psxyPath=/hive/data/outside/GMT4.3.1/bin/psxy"
+                   ;"hgc.ps2rasterPath=""/bin/ps2raster"
                    "hgc.ghostscriptPath=" ghostscript "/bin/gs\n"   ; needed?
+                   "udc.cacheDir=/var/www/html/trash/udcCache\n"    ; default is /tmp/udcCache
                    ))
 
 (define %startup-script
@@ -55,8 +59,14 @@
                    coreutils-minimal "/bin/chown -R httpd:httpd /var/www\n"
                    ))
 
-;; TODO: create 'daily clean' mcron scripts.
-;;       /var/www/html/trash needs to be created and owned by httpd:httpd
+;; TODO:
+;;  create 'daily clean' mcron scripts.
+;;  move /var/www/html/trash to /gbdb/trash?
+;;  Fix from main page:
+;;      hgVai
+;;      hgIntegrator
+;;  from 'more tools'
+;;      hgPhyloPlace
 
 (define ucsc-genome-browser-port 4321)
 
@@ -78,6 +88,21 @@
           (service special-files-service-type
                    `(("/root/create_hgcentral" ,%startup-script)
                      ("/var/lib/genome/hg.conf" ,%hg.conf)))
+          (service inetd-service-type
+                   (inetd-configuration
+                     (entries
+                       (list
+                         (inetd-entry
+                           (node "127.0.0.1")
+                           (name "blat")    ; yes, it's named blat
+                           (socket-type 'stream)
+                           (protocol "tcp") ; probably?
+                           (wait? #f)
+                           (user "httpd:httpd") ; or dedicated user. Needs write access.
+                           (program (file-append ucsc-genome-browser "/bin/gfServer"))
+                           (arguments
+                             '("gfServer" "dynserver" "/gbdb")))))))
+          (syslog-service)  ; needed by inetd
           (service httpd-service-type
                    (httpd-configuration
                      (config
@@ -105,6 +130,8 @@ ScriptSock /var/run/cgid.sock
   Alias /bin " ucsc-genome-browser "/bin
   #Alias /cgi-bin " ucsc-genome-browser "/cgi-bin   # causes cgi scripts to fail to render
   Alias /htdocs " ucsc-genome-browser "/htdocs
+  #Alias /trash /var/www/html/trash # this is wrong
+  Alias /var/www/html/trash /var/www/html/trash
   <Directory " ucsc-genome-browser "/html>
     Options +Includes +FollowSymLinks +Indexes
     AllowOverride None
@@ -132,6 +159,8 @@ ScriptSock /var/run/cgid.sock
   </Directory>
 </VirtualHost>")))))))))
 
-;; guix system container -L /path/to/guix-past/modules/ -L /path/to/guix-bioinformatics/ /path/to/guix-bioinformatics/gn/services/genome-browser.scm --network ;--expose=/path/to/gbdb=/gbdb
+;; guix system container -L /path/to/guix-past/modules/ -L /path/to/guix-bioinformatics/ /path/to/guix-bioinformatics/gn/services/genome-browser.scm --network --share=/path/to/gbdb=/gbdb
 ;; ALSO need to share in the external database?
+;; Probably not, it falls back to http://hgdownload.soe.ucsc.edu/gbdb/
+;; Can skip the %startup-script dance if /var/lib/mysql is stored outside of the container, but might need /var/www/html/trash too then.
 ;; xdg-open http://localhost:4321
