@@ -32,6 +32,7 @@
   #:use-module (gnu packages elf)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages ghostscript)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
@@ -1609,10 +1610,12 @@ multiple sequence alignment.")
                (substitute* (cons* "inc/cgi_build_rules.mk"
                                    (find-files "." "makefile"))
                   (("CGI_BIN\\}-\\$\\{USER") "CGI_BIN_USER"))
+
                ;; Force linking with freetype.
                (substitute* "inc/common.mk"
                  (("libpng-config --ldflags") "pkg-config --libs libpng freetype2")
                  (("libpng-config --I_opts") "pkg-config --cflags-only-I libpng freetype2"))
+
                ;; Force the trash location.
                (substitute* (cons*
                               "utils/qa/showTracks"
@@ -1620,12 +1623,11 @@ multiple sequence alignment.")
                               "hg/js/hgTracks.js"
                               (find-files "." "\\.c$"))
                  ;; This line is specifically needed as-is.
-                 (("\\.\\./trash") "/var/www/html/trash"))
+                 (("\\.\\./trash") "/var/cache/genome"))
 
                #t)))
          ;; Install happens during the 'build phase.
          ;; Install the website files too
-         ;; rsync -avzP rsync://hgdownload.cse.ucsc.edu/htdocs/ /var/www/html/
          (replace 'install
            (lambda _
              (invoke "make" "doc-install")
@@ -1639,15 +1641,13 @@ multiple sequence alignment.")
                      "include /var/lib/genome/hg.conf\n")))
                #t)))
          (add-after 'install 'create-symlink
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out")))
-               ;; Some trash locations are hardcoded as "../trash"
-               ;(symlink "/var/www/html/trash"
-               ;         (string-append out "/trash"))
-               (symlink "../html"
-                        (string-append out "/htdocs"))
-               #t)))
-         )))
+           (lambda* (#:key inputs #:allow-other-keys)
+             (mkdir-p "htdocs")
+             ;; Fallback location for fonts.
+             (symlink (string-append (assoc-ref inputs "gs-fonts")
+                                     "/share/fonts/type1/ghostscript")
+                      "htdocs/urw-fonts")
+             #t)))))
     (inputs
      `(("freetype" ,freetype)
        ("libpng" ,libpng)
@@ -1658,7 +1658,8 @@ multiple sequence alignment.")
        ("python2" ,python-2)
        ("zlib" ,zlib)))
     (native-inputs
-     `(("pkg-config" ,pkg-config)
+     `(("gs-fonts" ,gs-fonts)
+       ("pkg-config" ,pkg-config)
        ("python" ,python)
        ("rsync" ,rsync)    ; For installing js files from the source checkout
        ("tcl" ,tcl)
