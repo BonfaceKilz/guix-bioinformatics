@@ -1584,7 +1584,8 @@ multiple sequence alignment.")
        (base32 "1qcjhd4wcajik71z5347fw2sfhfkv0p6y7yldrrkmycw2qhqmpzn"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f ; fix later
+     `(#:test-target "test"
+       #:parallel-tests? #f ; not supported
        #:phases
        (modify-phases %standard-phases
          (delete 'configure) ; There is no configure phase.
@@ -1626,6 +1627,75 @@ multiple sequence alignment.")
                  (("\\.\\./trash") "/var/cache/genome"))
 
                #t)))
+
+         (add-before 'check 'pre-check
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out"))
+                   (triplet ,(gnu-triplet->nix-system (%current-system))))
+               (setenv "PATH" (string-append (getenv "PATH")
+                                             ":" out "/bin"))
+               (setenv "MACHTYPE"
+                       (string-take triplet (string-index triplet #\-)))
+               (for-each make-file-writable
+                         (find-files "utils/bedJoinTabOffset/tests"))
+               (substitute* '("utils/bamToPsl/tests/makefile"
+                              "utils/trackDbIndexBb/tests/makefile")
+                 (("/cluster/bin/bedtools/bedtools") (which "bedtools")))
+
+               ;; These tests fail intermittently:
+               (substitute* "utils/vcfFilter/tests/makefile"
+                 ((" testRenameNoGt ") " ")
+                 ((" testMinAc1NoGt ") " "))
+
+               ;; These tests can't find their database:
+               (substitute* "hg/lib/tests/makefile"
+                 ((" spDbTest ") " ")
+                 ((" hdbTest ") " "))
+               (substitute* "hg/lib/tests/genePredTests.mk"
+                 ((" tableTests ") " ")
+                 ((" compatTblTests ") " "))
+               (substitute* "hg/lib/tests/pslReaderTests.mk"
+                 ((" tableTests") " "))
+               (substitute* "hg/lib/tests/makefile"
+                 ((" annoGratorTest ") " ")
+                 ((" customTrackTest ") " ")
+                 ((" hgvsTest") " "))
+               (substitute* "hg/autoSql/tests/makefile"
+                 ((" dbLinkTest ") " ")
+                 ((" symColsTest ") " "))
+               (delete-file "hg/checkTableCoords/tests/makefile")
+               (delete-file "hg/hgGetAnn/tests/makefile")
+               (substitute* "hg/sqlToXml/makefile"
+                 ((".*doTest.*") ""))
+               (substitute* "hg/utils/genePredFilter/tests/makefile"
+                 ((" gencodeHackDbTest") " "))
+               (substitute* "hg/utils/refSeqGet/tests/makefile"
+                 (("^test::.*") "test:: mkout\n"))
+               (delete-file "hg/utils/vcfToHgvs/tests/makefile")
+               (substitute* "hg/bedItemOverlapCount/tests/makefile"
+                 ((".*RunTest.*") ""))
+
+               ;; Depends on /cluster
+               (substitute* "hg/liftOver/tests/makefile"
+                 (("^test:.*") "test: mkdirs scaffoldEndBug\n"))
+               (delete-file "hg/mouseStuff/netToAxt/tests/makefile")
+               (substitute* "hg/pslToChain/tests/makefile"
+                 ((" example1 ") " "))
+
+               ;; Depends on /gbdb
+               (delete-file "hg/mouseStuff/chainBridge/tests/makefile")
+
+               ;; Depends on /hive
+               (delete-file "hg/utils/genePredToProt/tests/makefile")
+
+               ;; Unclear why this fails
+               (delete-file "hg/utils/hgvsToVcf/tests/makefile")
+
+               ;; Wants network
+               (substitute* "hg/utils/hubCheck/tests/makefile"
+                 (("^test::.*") "test:: one two\n"))
+               #t)))
+
          ;; Install happens during the 'build phase.
          ;; Install the website files too
          (replace 'install
@@ -1658,7 +1728,8 @@ multiple sequence alignment.")
        ("python2" ,python-2)
        ("zlib" ,zlib)))
     (native-inputs
-     `(("gs-fonts" ,gs-fonts)
+     `(("bedtools" ,bedtools)
+       ("gs-fonts" ,gs-fonts)
        ("pkg-config" ,pkg-config)
        ("python" ,python)
        ("rsync" ,rsync)    ; For installing js files from the source checkout
