@@ -20,11 +20,14 @@
 (define %hg.conf
   (mixed-text-file "hg.conf"
                    "browser.documentRoot=" ucsc-genome-browser "/html\n"
-                   "db.host=localhost\n"
-                   "db.user=readonly\n"
-                   "db.password=access\n"
+                   ;"db.host=localhost\n"
+                   ;"db.user=readonly\n"
+                   ;"db.password=access\n"
+                   "db.host=penguin2\n"
+                   "db.user=webqtlout\n"
+                   "db.password=webqtlout\n"
                    "db.trackDb=trackDb\n"
-                   "db.port=13306\n"
+                   ;"db.port=13306\n"
                    "gbdbLoc1=/gbdb/\n"
                    "gbdbLoc2=http://hgdownload.soe.ucsc.edu/gbdb/\n"
                    ;# To disable on-the-fly loading of mysql data, comment out these lines.
@@ -33,20 +36,23 @@
                    "slow-db.password=password\n"
                    "defaultGenome=Mouse\n"
                    "central.db=hgcentral\n"
-                   "central.host=localhost\n"
-                   "central.socket=/run/mysqld/mysqld.sock\n"   ; default for mysql service
-                   "central.user=readwrite\n"
-                   "central.password=update\n"
+                   ;"central.host=localhost\n"
+                   ;"central.socket=/run/mysqld/mysqld.sock\n"   ; default for mysql service
+                   ;"central.user=readwrite\n"
+                   ;"central.password=update\n"
+                   "central.host=penguin2\n"
+                   "central.user=webqtlout\n"
+                   "central.password=webqtlout\n"
                    "central.domain=\n"
                    "backupcentral.db=hgcentral\n"
-                   "backupcentral.host=localhost\n"
-                   "backupcentral.user=readwrite\n"
-                   "backupcentral.password=update\n"
+                   "backupcentral.host=penguin2\n"
+                   "backupcentral.user=webqtlout\n"
+                   "backupcentral.password=webqtlout\n"
                    "backupcentral.domain=\n"
                    "freeType=on\n"
                    "freeTypeDir=" gs-fonts "/share/fonts/type1/ghostscript\n"
-                   ;"hgc.psxyPath=/hive/data/outside/GMT4.3.1/bin/psxy"
-                   ;"hgc.ps2rasterPath=""/bin/ps2raster"
+                   ;"hgc.psxyPath=" gmt "/bin/psxy"
+                   ;"hgc.ps2rasterPath=" gmt "/bin/ps2raster"
                    "hgc.ghostscriptPath=" ghostscript "/bin/gs\n"   ; needed?
                    "udc.cacheDir=/var/cache/genome/udcCache\n"))    ; default is /tmp/udcCache
 
@@ -88,7 +94,7 @@
 ;;  create 'daily clean' mcron scripts. Only needed in /var/cache/genome grows too large.
 ;;  use rsync to make sure mouse genome data is kept up-to-date.
 
-(define ucsc-genome-browser-port 4321)
+(define ucsc-genome-browser-port 4322)
 
 (operating-system
   (host-name "genome-browser")
@@ -104,11 +110,11 @@
   (packages (cons* mariadb  ; for create-db script, interacting with database if necessary
                    %base-packages))
   (services
-    (list (service mysql-service-type
-                   (mysql-configuration
-                     (port 13306))) ; don't overlap with penguin2's mariadb
+    (list ;(service mysql-service-type
+          ;         (mysql-configuration
+          ;           (port 13306))) ; don't overlap with penguin2's mariadb
           (service special-files-service-type
-                   `(("/root/create_hgcentral" ,%startup-script)
+                   `(;("/root/create_hgcentral" ,%startup-script)
                      ("/var/lib/genome/hg.conf" ,%hg.conf)))
           (service inetd-service-type
                    (inetd-configuration
@@ -198,4 +204,4 @@ XBitHack On
 </VirtualHost>")))))))))
 
 ;; guix system container -L /path/to/guix-past/modules/ -L /path/to/guix-bioinformatics/ /path/to/guix-bioinformatics/gn/services/genome-browser.scm --network --share=/export/efraimf/UCSC_Genome/gbdb=/gbdb --share=/export/efraimf/UCSC_Genome/var-lib-mysql=/var/lib/mysql --share=/export/efraimf/UCSC_Genome/var-cache-genome=/var/cache/genome --share=/export/efraimf/UCSC_Genome/var-cache-genome=/var/www/html/trash
-;; xdg-open http://localhost:4321
+;; xdg-open http://localhost:4322
