@@ -417,6 +417,43 @@ Graphical Fragment Assembly} files and related formats.")
     (description "Genenetwork installation sumo.")
     (license license:agpl3+))))
 
+(define-public genenetwork3
+  (let ((commit "45f4dc8b2079ce97374785984b6f31049f374fd5"))
+    (package
+      (name "genenetwork3")
+      (version (string-append "0.0.1-guix-" (string-take commit 7)))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/genenetwork/genenetwork3.git")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1jyqf01b16bll8cf6v4562d141d1b64jicdcwm8k2q56vs2k461p"))))
+      (propagated-inputs `(("coreutils" ,coreutils)
+                           ("gemma-wrapper" ,gemma-wrapper)
+                           ("python" ,python-wrapper)
+                           ("python-bcrypt" ,python-bcrypt)
+                           ("python-flask" ,python-flask)
+                           ("python-ipfshttpclient" ,python-ipfshttpclient)
+                           ("python-mypy" ,python-mypy)
+                           ("python-mypy-extensions" ,python-mypy-extensions)
+                           ("python-mysqlclient" ,python-mysqlclient)
+                           ("python-numpy" ,python-numpy)
+                           ("python-pylint" ,python-pylint)
+                           ("python-redis" ,python-redis)
+                           ("python-requests" ,python-requests)
+                           ("python-scipy" ,python-scipy)
+                           ("python-sqlalchemy-stubs"
+                            ,python-sqlalchemy-stubs)))
+      (build-system python-build-system)
+      (home-page "https://github.com/genenetwork/genenetwork3")
+      (synopsis "GeneNetwork3 API for data science and machine learning.")
+      (description "GeneNetwork3 API for data science and machine learning.")
+      (license license:agpl3+))))
+
 (define-public python3-genenetwork2
   (let ((commit "84cbf35adbb15c79638372d108308edb05f12683"))
     (package
