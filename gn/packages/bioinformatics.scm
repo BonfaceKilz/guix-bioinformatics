@@ -1615,7 +1615,8 @@ multiple sequence alignment.")
                ;; Force linking with freetype.
                (substitute* "inc/common.mk"
                  (("libpng-config --ldflags") "pkg-config --libs libpng freetype2")
-                 (("libpng-config --I_opts") "pkg-config --cflags-only-I libpng freetype2"))
+                 (("libpng-config --I_opts") "pkg-config --cflags-only-I libpng freetype2")
+                 (("\\$\\{HG_INC\\}" hg_inc) (string-append hg_inc " -DUSE_FREETYPE")))
 
                ;; Force the trash location.
                (substitute* (cons*
