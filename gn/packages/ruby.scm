@@ -3854,6 +3854,8 @@ braces vs do/end, etc are all ignored.  Making this totally rad.")
          (base32
           "1izx6wsjdm6mnbxazgz1z5qbhwrrisbq0np2nmx4ij6lrqjy18jf"))))
     (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f))    ; no rakefile
     (synopsis
       "Bundler manages an application's dependencies through its entire life, across many machines, systematically and repeatably")
     (description
@@ -4502,13 +4504,14 @@ both the the request and response in between unicorn and slow clients.")
     (version "1.1.1")
     (source
       (origin
-        (method url-fetch)
-        (uri (rubygems-uri
-               "openssl-signature_algorithm"
-               version))
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/cedarcode/openssl-signature_algorithm")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
         (sha256
          (base32
-          "173p9agv45hj62fdgl9bzqr9f6xg7hi2sf5iyd3ahiwbv220x332"))))
+          "0ilshdmky1z8azm7szzbg129v5g2n54izzckhyqwnn1g8c55bmn5"))))
     (build-system ruby-build-system)
     (arguments
      `(#:tests? #f  ; cannot load such file -- spec_helper
@@ -4522,16 +4525,41 @@ both the the request and response in between unicorn and slow clients.")
     (propagated-inputs
      `(("ruby-openssl" ,ruby-openssl)))
     (native-inputs
-     `(
+     `(("ruby-ed25519" ,ruby-ed25519)
        ("ruby-rspec" ,ruby-rspec)
-       ("ruby-rubocop" ,ruby-rubocop)
-       ))
+       ("ruby-rubocop" ,ruby-rubocop)))
     (synopsis
       "ECDSA, EdDSA, RSA-PSS and RSA-PKCS#1 algorithms for ruby")
     (description
       "ECDSA, EdDSA, RSA-PSS and RSA-PKCS#1 algorithms for ruby")
     (home-page "https://github.com/cedarcode/openssl-signature_algorithm")
     (license license:asl2.0)))
+
+(define-public ruby-ed25519
+  (package
+    (name "ruby-ed25519")
+    (version "1.2.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (rubygems-uri "ed25519" version))
+        (sha256
+          (base32
+            "1f5kr8za7hvla38fc0n9jiv55iq62k5bzclsa5kdb14l3r4w6qnw"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f      ; cannot load spec_helper
+       #:test-target "default"))
+    (native-inputs
+     `(("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-rubocop" ,ruby-rubocop)))
+    (synopsis "Ruby binding to the Ed25519 elliptic curve public-key system")
+    (description
+     "This package provides a Ruby binding to the Ed25519 elliptic curve
+public-key signature system described in RFC 8032.")
+    (home-page "https://github.com/crypto-rb/ed25519")
+    (license license:expat)))
 
 (define-public ruby-cose
   (package
@@ -5101,37 +5129,6 @@ both the the request and response in between unicorn and slow clients.")
     (home-page "https://relishapp.com/vcr/vcr/docs")
     (license license:expat)))
 
-(define-public ruby-yaml-lint
-  (package
-    (name "ruby-yaml-lint")
-    (version "0.0.10")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "yaml-lint" version))
-        (sha256
-         (base32
-          "1m9n4sg7i0334yac7dcrhnhv5rzvrccgnh687n9x77ba3awk4yx1"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
-             (when tests?
-               (invoke "rspec"))
-             #t)))))
-    (native-inputs
-     `(
-       ("ruby-rspec" ,ruby-rspec)
-       ))
-    (synopsis
-      "Check if your YAML files can be loaded.")
-    (description
-      "Check if your YAML files can be loaded.")
-    (home-page "https://github.com/Pryz/yaml-lint")
-    (license license:expat)))
-
 (define-public ruby-annotate
   (package
     (name "ruby-annotate")
@@ -5478,15 +5475,11 @@ with processing Chinese text.")
     (arguments
      `(#:test-target "default"))
     (native-inputs
-     `(
-       ("ruby-rspec" ,ruby-rspec)
-       ))
+     `(("ruby-rspec" ,ruby-rspec)))
     (synopsis
-      "A log format that's readable by humans and easily parseable by computers.
-")
+      "Readable log format for humans and computers")
     (description
-      "This package provides a log format that's readable by humans and easily parseable by computers.
-")
+     "This package provides a log format that's readable by humans and easily parseable by computers.")
     (home-page "https://github.com/zimbatm/lines-ruby")
     (license license:expat)))
 
@@ -5826,34 +5819,6 @@ with processing Chinese text.")
     (description
       "Ruby bindings for LZ4.  LZ4 is a very fast lossless compression algorithm.")
     (home-page "https://github.com/komiya-atsushi/lz4-ruby")
-    (license license:expat)))
-
-(define-public ruby-hkdf
-  (package
-    (name "ruby-hkdf")
-    (version "0.3.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/jtdowney/hkdf")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "171xqhifjf9pxy60kds7fc8zfli7msnm9q9ncqyswxfspjdhj647"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:test-target "default"))
-    (native-inputs
-     `(
-       ("ruby-rspec" ,ruby-rspec)
-       ))
-    (synopsis
-      "A ruby implementation of RFC5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF). The goal of HKDF is to take some source key material and generate suitable cryptographic keys from it.")
-    (description
-      "This package provides a ruby implementation of RFC5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF).  The goal of HKDF is to take some source key material and generate suitable cryptographic keys from it.")
-    (home-page "https://github.com/jtdowney/hkdf")
     (license license:expat)))
 
 (define-public ruby-webpush
