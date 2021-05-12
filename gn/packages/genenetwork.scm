@@ -253,10 +253,10 @@ implemented, light on server resource usage, and fairly speedy.")
 Graphical Fragment Assembly} files and related formats.")
     (license license:expat)))
 
-(define-public genenetwork2
+(define-public python2-genenetwork2
   (let ((commit "1538ffd33af19e6ac922b4ee85fe701408968dfd"))
   (package
-    (name "genenetwork2")
+    (name "python2-genenetwork2")
     (version (string-append "2.11-guix-" (string-take commit 7) ))
     (source (origin
              (method git-fetch)
@@ -454,11 +454,11 @@ Graphical Fragment Assembly} files and related formats.")
       (description "GeneNetwork3 API for data science and machine learning.")
       (license license:agpl3+))))
 
-(define-public python3-genenetwork2
+(define-public genenetwork2
   (let ((commit "84cbf35adbb15c79638372d108308edb05f12683"))
     (package
-      (inherit genenetwork2)
-      (name "python3-genenetwork2")
+      (inherit python2-genenetwork2)
+      (name "genenetwork2")
       (version (string-append "3.11-guix-" (string-take commit 7) ))
       (source (origin
                 (method git-fetch)
@@ -472,7 +472,7 @@ Graphical Fragment Assembly} files and related formats.")
       (native-inputs
        `(("graphviz" ,graphviz)))
       (propagated-inputs
-       (let ((inputs (package-propagated-inputs genenetwork2)))
+       (let ((inputs (package-propagated-inputs python2-genenetwork2)))
          `(,@(fold
               alist-delete inputs
               (map car
@@ -520,7 +520,7 @@ Graphical Fragment Assembly} files and related formats.")
            ("python-xlsxwriter" ,python-xlsxwriter))))
       (arguments
        (let ((python (specification->package "python-wrapper"))
-             (args (package-arguments genenetwork2)))
+             (args (package-arguments python2-genenetwork2)))
          (substitute-keyword-arguments args
            ((#:python _) python)
            ((#:phases phases)
