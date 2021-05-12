@@ -6,6 +6,7 @@
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
   #:use-module (gnu packages)
+  #:use-module (gnu packages racket)
   #:use-module (gnu packages scheme))
 
 (define-public gn-proxy
