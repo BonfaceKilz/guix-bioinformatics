@@ -417,7 +417,7 @@ Graphical Fragment Assembly} files and related formats.")
     (license license:agpl3+))))
 
 (define-public genenetwork3
-  (let ((commit "45f4dc8b2079ce97374785984b6f31049f374fd5"))
+  (let ((commit "09f699253400a807e2390e6515b204a1b9f4c3a9"))
     (package
       (name "genenetwork3")
       (version (string-append "0.0.1-guix-" (string-take commit 7)))
@@ -430,7 +430,7 @@ Graphical Fragment Assembly} files and related formats.")
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1jyqf01b16bll8cf6v4562d141d1b64jicdcwm8k2q56vs2k461p"))))
+           "1m7vb7xsaac2pg8d996ylg00k5w18bb7z3wn61dwj4cmi9yi0w59"))))
       (propagated-inputs `(("coreutils" ,coreutils)
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("python" ,python-wrapper)
