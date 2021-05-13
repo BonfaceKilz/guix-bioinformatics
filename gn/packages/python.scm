@@ -1657,29 +1657,6 @@ sorted order.")
     (description "Python IPFS HTTP CLIENT library")
     (license license:expat)))
 
-;; TODO: Upstream
-(define-public python-sqlalchemy-stubs
-  (package
-    (name "python-sqlalchemy-stubs")
-    (version "0.4")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (pypi-uri "sqlalchemy-stubs" version))
-       (sha256
-        (base32
-         "1bppjmv7v7m0q8gwg791pgxbx4ay7mna0zq204pn9vw28kfxcrf6"))))
-    (build-system python-build-system)
-    (propagated-inputs
-     `(("python-mypy" ,python-mypy)
-       ("python-typing-extensions"
-        ,python-typing-extensions)))
-    (home-page
-     "https://github.com/dropbox/sqlalchemy-stubs")
-    (synopsis "SQLAlchemy stubs and mypy plugin")
-    (description "SQLAlchemy stubs and mypy plugin")
-    (license license:expat)))
-
 (define-public python-rpy2-next
   (package
     (inherit python-rpy2)
