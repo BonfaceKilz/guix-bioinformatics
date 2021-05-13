@@ -488,6 +488,7 @@ Graphical Fragment Assembly} files and related formats.")
            ("python" ,python-wrapper)
            ("python-pillow" ,python-pillow)
            ("python-coverage" ,python-coverage)
+           ("python-configparser" ,python-configparser) ;; maintenance/scripts
            ("python-flask" ,python-flask)
            ("gunicorn" ,gunicorn)
            ("python-autopep8" ,python-autopep8)
