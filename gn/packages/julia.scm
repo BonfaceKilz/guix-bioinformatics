@@ -664,6 +664,35 @@ with the return value.")
     (description "StatsBase.jl is a Julia package that provides basic support for statistics. Particularly, it implements a variety of statistics-related functions, such as scalar statistics, high-order moment computation, counting, ranking, covariances, sampling, and empirical density estimation.")
     (license license:expat)))
 
+(define-public julia-statsbase-0.23
+  (package
+    (inherit julia-statsbase)
+    (name "julia-statsbase")
+    (version "0.23.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaStats/StatsBase.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "09vdymrh88bq78rs4jc1w3yc3y0smnhclp20zaxgpgdza551hyk0"))))
+    (arguments
+     `(;#:tests? #f
+       #:julia-package-name "StatsBase"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-compat" ,julia-compat)
+       ("julia-datastructures" ,julia-datastructures)
+       ;("julia-missings" ,julia-missings)
+       ("julia-sortingalgorithms" ,julia-sortingalgorithms)
+       ;("julia-statsapi" ,julia-statsapi)
+       ))
+    ))
+
 (define-public julia-dataapi
   (package
     (name "julia-dataapi")
@@ -700,7 +729,40 @@ with the return value.")
           "1nz96sccgl6h6aknck59gmy1yrzx356kk9z68svj2g6yialprv1j"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f
+     `(;#:tests? #f
+       #:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-datastructures" ,julia-datastructures)
+       ))
+    (native-inputs
+     `(
+       ;("julia-statsbase" ,julia-statsbase-0.11)
+       ))
+    (home-page "https://github.com/JuliaCollections/SortingAlgorithms.jl")
+    (synopsis "extra sorting algorithms extending Julia's sorting API")
+    (description "The SortingAlgorithms package provides three sorting algorithms that can be used with Julia's standard sorting API: heapsort, timsort and radixsort.")
+    (license license:expat)))
+
+(define-public julia-sortingalgorithms-0.2
+  (package
+    (inherit julia-sortingalgorithms)
+    (name "julia-sortingalgorithms")
+    (version "0.2.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaCollections/SortingAlgorithms.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "16pbcarw65z9a6l6b10xvyhj00c203zdy6qjpj20l8jf7bxb3i2d"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
        #:julia-package-name "SortingAlgorithms"
        ))
     (propagated-inputs
@@ -711,7 +773,541 @@ with the return value.")
      `(
        ;("julia-statsbase" ,julia-statsbase)
        ))
-    (home-page "https://github.com/JuliaCollections/SortingAlgorithms.jl")
-    (synopsis "extra sorting algorithms extending Julia's sorting API")
-    (description "The SortingAlgorithms package provides three sorting algorithms that can be used with Julia's standard sorting API: heapsort, timsort and radixsort.")
+    ))
+
+(define-public julia-sortingalgorithms-0.1
+  (package
+    (inherit julia-sortingalgorithms)
+    (name "julia-sortingalgorithms")
+    (version "0.1.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaCollections/SortingAlgorithms.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1qqr32g32haa4kidxb57ii1yfqcmgid3vylj2p75pzz40m0gyi5z"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       #:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-datastructures" ,julia-datastructures)
+       ))
+    (native-inputs
+     `(
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    ))
+
+(define-public julia-optim
+  (package
+    (name "julia-optim")
+    (version "1.3.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaNLSolvers/Optim.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1nmc4979dim5s630b5wskkjg141yz9655qag7i5m8f4p2cq4b2dp"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-compat" ,julia-compat)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ("julia-nlsolversbase" ,julia-nlsolversbase)
+       ("julia-nanmath" ,julia-nanmath)
+       ("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (home-page "https://github.com/JuliaNLSolvers/Optim.jl")
+    (synopsis "Optimization functions for Julia")
+    (description "Optim.jl is a package for univariate and multivariate optimization of functions.")
+    (license license:expat)))
+
+(define-public julia-nlsolversbase
+  (package
+    (name "julia-nlsolversbase")
+    (version "7.8.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaNLSolvers/NLSolversBase.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0n8qh5a2ghjx1j70zxn0hmh8gzpa46kmjg8di879y9974bfk0f98"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-diffresults" ,julia-diffresults)
+       ;("julia-distributed" ,julia-distributed)
+       ("julia-finitediff" ,julia-finitediff)
+       ("julia-forwarddiff" ,julia-forwarddiff)
+       ))
+    (native-inputs
+     `(
+       ;("julia-linearalgebra" ,julia-linearalgebra)
+       ;("julia-optimtestproblems" ,julia-optimtestproblems)
+       ;("julia-random" ,julia-random)
+       ;("julia-recursivearraytools" ,julia-recursivearraytools)
+       ;("julia-sparsearrays" ,julia-sparsearrays)
+       ))
+    (home-page "https://github.com/JuliaNLSolvers/NLSolversBase.jl")
+    (synopsis "Base package for optimization and equation solver software in JuliaNLSolvers")
+    (description "The package aims at establishing common ground for Optim.jl, LineSearches.jl, and NLsolve.jl.  The common ground is mainly the types used to hold objective related callables, information about the objectives, and an interface to interact with these types.")
+    (license license:expat)))
+
+(define-public julia-finitediff
+  (package
+    (name "julia-finitediff")
+    (version "2.8.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaDiff/FiniteDiff.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0ndazn02wn8ddwgjh1i32y7pbaqpw06f42ccilz5ya78cyrjhq2m"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-arrayinterface" ,julia-arrayinterface)
+       ;("julia-requires" ,julia-requires)
+       ("julia-staticarrays" ,julia-staticarrays)
+       ))
+    (native-inputs
+     `(
+       ;("julia-bandedmatrices" ,julia-bandedmatrices)
+       ;("julia-blockedbandedmatrices" ,julia-blockedbandedmatrices)
+       ("julia-safetestsets" ,julia-safetestsets)
+       ))
+    (home-page "https://github.com/JuliaDiff/FiniteDiff.jl")
+    (synopsis "Fast non-allocating calculations of gradients, Jacobians, and Hessians with sparsity support")
+    (description "This package is for calculating derivatives, gradients, Jacobians, Hessians, etc. numerically.  This library is for maximizing speed while giving a usable interface to end users in a way that specializes on array types and sparsity.")
+    (license license:expat)))
+
+(define-public julia-safetestsets
+  (let ((commit "e553edc4c753344d38349304b9ff5483c3b8ff21")
+        (revision "1"))
+    (package
+      (name "julia-safetestsets")
+      (version (git-version "0.0.1" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/YingboMa/SafeTestsets.jl")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32
+            "1fb1dfdmiw2ggx60hf70954xlps0r48fcb3k3dvxynlz7ylphp96"))))
+      (build-system julia-build-system)
+      (arguments
+       `(#:julia-package-name "SafeTestsets"))
+      (native-inputs
+       `(("julia-staticarrays" ,julia-staticarrays)))
+      (home-page "https://github.com/YingboMa/SafeTestsets.jl")
+      (synopsis "Put Julia's testset in a module")
+      (description "@code{safetestset} puts @code{testset} into a module.")
+      (license license:expat))))
+
+(define-public julia-arrayinterface
+  (package
+    (name "julia-arrayinterface")
+    (version "3.1.12")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaArrays/ArrayInterface.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0hn3n2clhmly1842snn18kjxabkrxscd5mkbqgxqspk1a8r3r74k"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-ifelse" ,julia-ifelse)
+       ("julia-requires" ,julia-requires)
+       ;("julia-static" ,julia-static)
+       ;("julia-staticarrays" ,julia-staticarrays)
+       ))
+    (native-inputs
+     `(
+       ;("julia-bandedmatrices" ,julia-bandedmatrices)
+       ;("julia-blockedbandedmatrices" ,julia-blockedbandedmatrices)
+       ;("julia-safetestsets" ,julia-safetestsets)
+       ))
+    (home-page "https://github.com/JuliaArrays/ArrayInterface.jl")
+    (synopsis "Base array interface primitives")
+    (description "The purpose of this library is to solidify extensions to the current AbstractArray interface, which are put to use in package ecosystems like DifferentialEquations.jl.  Since these libraries are live, this package will serve as a staging ground for ideas before they are merged into Base Julia.  For this reason, no functionality is exported so that if such functions are added and exported in a future Base Julia, there will be no issues with the upgrade.")
+    (license license:expat)))
+
+(define-public julia-ifelse
+  (package
+    (name "julia-ifelse")
+    (version "0.1.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/sciml/ifelse.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1wrw842r8708fryf2ihp9mkmdrg27saa9nix2c31vs995k2fgr9w"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/sciml/ifelse.jl")
+    (synopsis "Under some conditions you may need this function")
+    (description "Sometimes, it's good to have a function form of a conditional.  Julia's Base defines ifelse for this, but... psyche, it's not defined in Base but in Core!  While this rarely matters, if you're trying to define a new dispatch for Core.ifelse you will find an interesting error message...")
+    (license license:expat)))
+
+(define-public julia-plots
+  (package
+    (name "julia-plots")
+    (version "1.14.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPlots/Plots.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0gpry538c3159ngf5kc86rsd5dpj8nh77g9kah0asahw46dz9sm8"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-compat" ,julia-compat)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ("julia-imagemagick" ,julia-imagemagick)
+       ))
+    (home-page "http://docs.juliaplots.org/")
+    (synopsis "Powerful convenience for Julia visualizations and data analysis")
+    (description "Plots is a plotting API and toolset.")
+    (license license:expat)))
+
+(define-public julia-imagemagick
+  (package
+    (name "julia-imagemagick")
+    (version "1.2.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaIO/ImageMagick.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "05vzv4jsj3l9pv6yrix28hlw7wnag0mqdfjwv8shn4x71hcfxl1p"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-fileio" ,julia-fileio)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ;("julia-imagemagick" ,julia-imagemagick)
+       ))
+    (home-page "https://github.com/JuliaIO/ImageMagick.jl")
+    (synopsis "Thin Wrapper for the library ImageMagick")
+    (description "This package provides a wrapper around ImageMagick version 6.  It was split off from Images.jl to make image I/O more modular.")
+    (license license:expat)))
+
+(define-public julia-fileio
+  (package
+    (name "julia-fileio")
+    (version "1.8.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaIO/FileIO.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0qbh93ys16h8p28sf8h556lzj7771ylhisqmla7y5yxwg4nqwkim"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-requires" ,julia-requires)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ("julia-filepathsbase" ,julia-filepathsbase)
+       ))
+    (home-page "https://github.com/JuliaIO/FileIO.jl")
+    (synopsis "Main Package for IO, loading all different kind of files")
+    (description "FileIO aims to provide a common framework for detecting file formats and dispatching to appropriate readers/writers.  The two core functions in this package are called load and save, and offer high-level support for formatted files (in contrast with julia's low-level read and write).  To avoid name conflicts, packages that provide support for standard file formats through functions named load and save are encouraged to register with FileIO.")
+    (license license:expat)))
+
+(define-public julia-filepathsbase
+  (package
+    (name "julia-filepathsbase")
+    (version "0.9.10")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/rofinn/FilePathsBase.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "136wm4ik6isrdanmpi4gdr1qw0qhr15i925qzjxbawk5hnyzwng9"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-requires" ,julia-requires)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ("julia-jlso" ,julia-jlso)
+       ))
+    (home-page "https://github.com/rofinn/FilePathsBase.jl")
+    (synopsis "Filesystem path types in Julia")
+    (description "FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.")
+    (license license:expat)))
+
+(define-public julia-jlso
+  (package
+    (name "julia-jlso")
+    (version "2.5.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/invenia/JLSO.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1x00mrn4njvkhjns4g8bzjj40g4n6slaxlpsbbccalyabs9sz6id"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-bson" ,julia-bson)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ;("julia-jlso" ,julia-jlso)
+       ))
+    (home-page "https://github.com/invenia/JLSO.jl")
+    (synopsis "Julia Serialized Object (JLSO) file format for storing checkpoint data")
+    (description "JLSO is a storage container for serialized Julia objects.  Think of it less as a serialization format but as a container, that employs a serializer, and a compressor, handles all the other concerns including metadata and saving.  Such that the serializer just needs to determine how to turn a julia object into a streamVector{UInt8}, and the compressor just needs to determine how to turn one stream of UInt8s into a smaller one (and the reverse).")
+    (license license:expat)))
+
+(define-public julia-bson
+  (package
+    (name "julia-bson")
+    (version "0.3.3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaIO/BSON.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1l5608ma2ys7v2gpcqbiv9mwfc6yrlqkihrfx1pf7fgv5llhd4fn"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-bson" ,julia-bson)
+       ;("julia-fillarrays" ,julia-fillarrays)
+       ;("julia-linesearches" ,julia-linesearches)
+       ;("julia-nlsolversbase" ,julia-nlsolversbase)
+       ;("julia-nanmath" ,julia-nanmath)
+       ;("julia-parameters" ,julia-parameters)
+       ;("julia-positivefactorizations" ,julia-positivefactorizations)
+       ;("julia-statsbase" ,julia-statsbase)
+       ))
+    (native-inputs
+     `(
+       ("julia-dataframes" ,julia-dataframes)
+       ))
+    (home-page "https://github.com/JuliaIO/BSON.jl")
+    (synopsis "Binary JSON serialisation format")
+    (description "BSON.jl is a Julia package for working with the Binary JSON serialisation format.  It can be used as a general store for Julia data structures.")
+    (license license:expat)))
+
+(define-public julia-dataframes
+  (package
+    (name "julia-dataframes")
+    (version "1.1.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/DataFrames.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0ab03l9q9vmc176711hp0adc456fphh0d762fv6hcvzvhms4xjkz"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ;#:julia-package-name "SortingAlgorithms"
+       ))
+    (propagated-inputs
+     `(
+       ("julia-reexport" ,julia-reexport)
+       ("julia-sortingalgorithms" ,julia-sortingalgorithms-0.2)
+       ))
+    (native-inputs
+     `(
+       ;("julia-dataframes" ,julia-dataframes)
+       ))
+    (home-page "https://dataframes.juliadata.org/stable/")
+    (synopsis "In-memory tabular data")
+    (description "Tools for working with tabular data in Julia.")
+    (license license:expat)))
+
+(define-public julia-parameters
+  (package
+    (name "julia-parameters")
+    (version "0.12.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/mauro3/Parameters.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0b8lawi7kcws4axfsdf023gyxca15irl648ciyi1kw3wghz3pfi2"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-orderedcollections" ,julia-orderedcollections)
+       ("julia-unpack" ,julia-unpack)))
+    (home-page "https://github.com/mauro3/Parameters.jl")
+    (synopsis " Types with default field values, keyword constructors and (un-)pack macros")
+    (description "This is a package I use to handle numerical-model parameters, thus the name.  However, it should be useful otherwise too.")
+    (license license:expat)))
+
+(define-public julia-unpack
+  (package
+    (name "julia-unpack")
+    (version "1.0.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/mauro3/UnPack.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "066v1px72zidnvhl0rczhh07rcfwvli0jx5nprrgyi1dvj3mps2a"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/mauro3/UnPack.jl")
+    (synopsis "`@pack` and `@unpack` macros")
+    (description "The @unpack and @pack! macros work to unpack types, modules, and dictionaries (and can be customized for other types too, see next section).")
     (license license:expat)))
