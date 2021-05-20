@@ -10,6 +10,7 @@
   #:use-module (guix build-system ant)
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system meson)
   #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (guix build-system waf)
@@ -1767,3 +1768,59 @@ to the user.")
                (license:non-copyleft    ; Blat, In-Silico PCR
                  "http://www.kentinformatics.com/index.html"
                  "Free for universities and non-profit institutions.")))))
+
+(define-public bam2fastx
+  (package
+    (name "bam2fastx")
+    (version "1.3.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/PacificBiosciences/bam2fastx")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0pyfmvh874w29kaq6gbb1bd86135qs2jc4f8giw98kxw1b2gjdh0"))))
+    (build-system meson-build-system)
+    (arguments
+     `(#:configure-flags '("-Dtests=true")))
+    (inputs
+     `(("boost" ,boost)
+       ;("htslib" ,htslib)
+       ("pbbam" ,pbbam)
+       ("pbcopper" ,pbcopper)
+       ("zlib" ,zlib)))
+    (native-inputs
+     `(("pkg-config" ,pkg-config)
+       ("python-cram" ,python-cram)
+       ("python-wrapper" ,python-wrapper)))
+    (home-page "https://github.com/PacificBiosciences/bam2fastx")
+    (synopsis "Converting and demultiplexing of PacBio BAM files into gzipped fasta and fastq files")
+    (description "Conversion of PacBio BAM files into gzipped fasta and fastq files, including splitting of barcoded data.")
+    (license license:bsd-3)))
+
+(define-public pbcopper
+  (package
+    (name "pbcopper")
+    (version "1.9.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/PacificBiosciences/pbcopper")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1pphklil5kn1ds796ch41bgvdf7yq03z6w5rgi572s8xg8k5b0xn"))))
+    (build-system meson-build-system)
+    (inputs
+     `(("boost" ,boost)))
+    (native-inputs
+     `(("googletest" ,googletest)))
+    (home-page "https://github.com/PacificBiosciences/pbcopper")
+    (synopsis "Core C++ library for data structures, algorithms, and utilities")
+    (description "The pbcopper library provides a suite of data structures, algorithms, and utilities for PacBio C++ applications.")
+    (license license:bsd-3)))
