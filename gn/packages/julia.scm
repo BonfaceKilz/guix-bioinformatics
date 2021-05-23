@@ -4,6 +4,8 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix build-system cmake)
+  #:use-module (guix build-system gnu)
   #:use-module (guix build-system julia)
   #:use-module (gn packages cran)
   #:use-module (gnu packages bioinformatics)
@@ -12,6 +14,7 @@
   #:use-module (gnu packages julia-xyz)
   #:use-module (gnu packages python)
   #:use-module (gnu packages statistics)
+  #:use-module (gnu packages video)
   #:use-module (ice-9 match))
 
 (define-public julia-liteqtl
@@ -679,23 +682,48 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
           "1bw76zzrq4zlwglhr7nkr1h0w0wl1i49rp35nnbbdqkdj46bz52y"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
+     `(#:tests? #f  ; for now
        ))
     (propagated-inputs
      `(
-       ;("julia-compat" ,julia-compat)
-       ;("julia-fillarrays" ,julia-fillarrays)
-       ;("julia-linesearches" ,julia-linesearches)
-       ;("julia-nlsolversbase" ,julia-nlsolversbase)
-       ;("julia-nanmath" ,julia-nanmath)
-       ;("julia-parameters" ,julia-parameters)
-       ;("julia-positivefactorizations" ,julia-positivefactorizations)
-       ;("julia-statsbase" ,julia-statsbase)
+       ;("julia-contour" ,julia-contour)
+       ("julia-ffmpeg" ,julia-ffmpeg)
+       ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
+       ("julia-gr" ,julia-gr)
+       ("julia-geometrybasics" ,julia-geometrybasics)
+       ("julia-json" ,julia-json)
+       ;("julia-latexify" ,julia-latexify)
+       ("julia-measures" ,julia-measures)
+       ("julia-nanmath" ,julia-nanmath)
+       ("julia-plotthemes" ,julia-plotthemes)
+       ("julia-plotutils" ,julia-plotutils)
+       ("julia-recipesbase" ,julia-recipesbase)
+       ("julia-recipespipeline" ,julia-recipespipeline)
+       ("julia-reexport" ,julia-reexport)
+       ("julia-requires" ,julia-requires)
+       ("julia-scratch" ,julia-scratch)
+       ("julia-showoff" ,julia-showoff)
+       ("julia-statsbase" ,julia-statsbase)
        ))
     (native-inputs
      `(
+       ;("julia-distributions" ,julia-distributions)
+       ;("julia-fileio" ,julia-fileio)
+       ;("julia-gtk" ,julia-gtk)
+       ;("julia-hdf5" ,julia-hdf5)
        ("julia-imagemagick" ,julia-imagemagick)
-       ("julia-visualregressiontests" ,julia-visualregressiontests)
+       ;("julia-images" ,julia-images)
+       ;("julia-libgit2" ,julia-libgit2)
+       ;("julia-offsetarrays" ,julia-offsetarrays)
+       ;("julia-pgfplotsx" ,julia-pgfplotsx)
+       ;("julia-plotlyjs" ,julia-plotlyjs)
+       ;("julia-rdatasets" ,julia-rdatasets)
+       ;("julia-stablerngs" ,julia-stablerngs)
+       ;("julia-staticarrays" ,julia-staticarrays)
+       ;("julia-statsplots" ,julia-statsplots)
+       ;("julia-testimages" ,julia-testimages)
+       ;("julia-unicodeplots" ,julia-unicodeplots)
+       ;("julia-visualregressiontests" ,julia-visualregressiontests)
        ))
     (home-page "http://docs.juliaplots.org/")
     (synopsis "Powerful convenience for Julia visualizations and data analysis")
@@ -1369,29 +1397,30 @@ it with the @code{@@bind} macro in Pluto.")
     (license license:expat)))
 
 (define-public julia-tableshowutils
-  (package
-    (name "julia-tableshowutils")
-    (version "0.2.5")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/queryverse/TableShowUtils.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1x1ivz35xbc38x4zm720a6wycqb5gl8dfsxz83ss5gc5rdrcxm2j"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:julia-package-name "TableShowUtils"))
-    (propagated-inputs
-     `(("julia-datavalues" ,julia-datavalues)
-       ("julia-json" ,julia-json)))
-    (home-page "https://github.com/queryverse/TableShowUtils.jl")
-    (synopsis "helpers for implementing show for TableTraits.jl types")
-    (description "This package provides some common helper functions that make it easier to implement various Base.show functions for types that participate in the TableTraits.jl ecosystem.")
-    (license license:expat)))
+  ;; The 0.2.5 release is not fully compatable with newer versions of Julia.
+  (let ((commit "c4e02d8b9bbb31fc81ed6618955e9b1c7cb04460")
+        (revision "1"))
+    (package
+      (name "julia-tableshowutils")
+      (version "0.2.5")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/queryverse/TableShowUtils.jl")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32
+            "0gp3hpj3jvzfhkp9r345vfic2j2n2s60729wv38hwn75csp74cg5"))))
+      (build-system julia-build-system)
+      (propagated-inputs
+       `(("julia-datavalues" ,julia-datavalues)
+         ("julia-json" ,julia-json)))
+      (home-page "https://github.com/queryverse/TableShowUtils.jl")
+      (synopsis "helpers for implementing show for TableTraits.jl types")
+      (description "This package provides some common helper functions that make it easier to implement various Base.show functions for types that participate in the TableTraits.jl ecosystem.")
+      (license license:expat))))
 
 (define-public julia-missings
   (package
@@ -3460,4 +3489,1310 @@ polynomials.")
     (home-page "https://github.com/JuliaPlots/VisualRegressionTests.jl")
     (synopsis "Automated integrated regression tests for graphics libraries")
     (description "Easy regression testing for visual packages.  Automated tests compare similarity between a newly generated image and a reference image using the Images package.  While in interactive mode, the tests can optionally pop up a Gtk GUI window showing a side-by-side comparison of the test and reference image, and then optionally overwrite the reference image with the test image.  This allows for straightforward regression testing of image data, even when the \"correct\" images change over time.")
+    (license license:expat)))
+
+(define-public julia-geometrybasics
+  (package
+    (name "julia-geometrybasics")
+    (version "0.3.12")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGeometry/GeometryBasics.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1wsx287i1hlzkw7ljfc929ssla6b4qn647nsa3j32v2f8gzd86ag"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'remove-earcut
+           (lambda _
+             (substitute* '("Project.toml"
+                            "src/GeometryBasics.jl")
+               ((".*EarCut.*") ""))
+             #t)))
+     ))
+    (propagated-inputs
+     `(
+       ;("julia-earcut-jll" ,julia-earcut-jll)
+       ("julia-itertools" ,julia-itertools)
+       ("julia-staticarrays" ,julia-staticarrays)
+       ("julia-structarrays" ,julia-structarrays)
+       ("julia-tables" ,julia-tables)
+       ))
+    (native-inputs
+     `(
+       ("julia-offsetarrays" ,julia-offsetarrays)
+       ))
+    (home-page "https://github.com/JuliaGeometry/GeometryBasics.jl")
+    (synopsis "Basic Geometry Types")
+    (description "This package aims to offer a standard set of Geometry types, which easily work with metadata, query frameworks on geometries and different memory layouts.  The aim is to create a solid basis for Graphics/Plotting, finite elements analysis, Geo applications, and general geometry manipulations - while offering a julian API, that still allows performant C-interop.")
+    (license license:expat)))
+
+(define-public julia-structarrays
+  (package
+    (name "julia-structarrays")
+    (version "0.5.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaArrays/StructArrays.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0i1h3pbjp04dwic786yjnx81ifppgcbdysvgjs00cd9zmpn3xnqw"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
+    (propagated-inputs
+     `(
+       ("julia-dataapi" ,julia-dataapi)
+       ("julia-tables" ,julia-tables)
+       ))
+    (native-inputs
+     `(
+       ("julia-documenter" ,julia-documenter)
+       ("julia-offsetarrays" ,julia-offsetarrays)
+       ("julia-pooledarrays" ,julia-pooledarrays)
+       ("julia-typedtables" ,julia-typedtables)
+       ("julia-weakrefstrings" ,julia-weakrefstrings)
+       ))
+    (home-page "https://github.com/JuliaArrays/StructArrays.jl")
+    (synopsis "Efficient implementation of struct arrays in Julia")
+    (description "This package introduces the type @code{StructArray} which is an @code{AbstractArray} whose elements are @code{struct} (for example @code{NamedTuples}, or @code{ComplexF64}, or a custom user defined @code{struct}).  While a @code{StructArray} iterates @code{structs}, the layout is column based (meaning each field of the @code{struct} is stored in a separate @code{Array}).")
+    (license license:expat)))
+
+(define-public julia-pooledarrays
+  (package
+    (name "julia-pooledarrays")
+    (version "1.2.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/PooledArrays.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0ihvhzkxdw4qf0i6sbrickhdcwkmlin9zyixxn9xvgzm8nc0iwqy"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-dataapi" ,julia-dataapi)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/JuliaData/PooledArrays.jl")
+    (synopsis "A pooled representation of arrays for purposes of compression when there are few unique elements")
+    (description "A pooled representation of arrays for purposes of compression when there are few unique elements.")
+    (license license:expat)))
+
+(define-public julia-weakrefstrings
+  (package
+    (name "julia-weakrefstrings")
+    (version "0.6.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/WeakRefStrings.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0129mf1axxycb1ans3idlvw8ch0hmdrl80q98jw63f99zz3ddipr"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-dataapi" ,julia-dataapi)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/JuliaData/WeakRefStrings.jl")
+    (synopsis "a minimal String type for Julia that allows for efficient string representation and transfer")
+    (description "A string type for minimizing data-transfer costs in Julia")
+    (license license:expat)))
+
+(define-public julia-typedtables
+  (package
+    (name "julia-typedtables")
+    (version "1.2.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/TypedTables.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "06k5h7ybsh29b6kiy0p62rp9b2q3xi9jk8p9wf0kq907p5kvfnfy"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-splitapplycombine" ,julia-splitapplycombine)
+       ("julia-tables" ,julia-tables)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/JuliaData/TypedTables.jl")
+    (synopsis "Simple, fast, column-based storage for data analysis in Julia")
+    (description "@code{TypedTables.jl} provides two column-based storage containers: @code{Table} and @code{FlexTable}, both of which represent an array of @code{NamedTuples}.  This package is designed to be lightweight, easy-to-use and fast, and presents a very minimal new interface to learn.")
+    (license license:expat)))
+
+(define-public julia-splitapplycombine
+  (package
+    (name "julia-splitapplycombine")
+    (version "1.1.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/SplitApplyCombine.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1qzaqvk57b0s5krzn8bxkzmr5kz6hi9dm3jbf2sl7z4vznsgbn9x"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-dictionaries" ,julia-dictionaries)
+       ("julia-indexing" ,julia-indexing)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/JuliaData/SplitApplyCombine.jl")
+    (synopsis "Split-apply-combine strategies for Julia")
+    (description "@code{SplitApplyCombine.jl} provides high-level, generic tools for manipulating data - particularly focussing on data in nested containers.  An emphasis is placed on ensuring split-apply-combine strategies are easy to apply, and work reliably for arbitrary iterables and in an optimized way with the data structures included in Julia's standard library.")
+    (license license:expat)))
+
+(define-public julia-indexing
+  (package
+    (name "julia-indexing")
+    (version "1.1.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/andyferris/Indexing.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1s7bz5aaj9sx753pcaixq83jgbk33adxgybpinjgzb9lzdv1ddgx"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ;("julia-indexing" ,julia-indexing)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/andyferris/Indexing.jl")
+    (synopsis "Generalized indexing for Julia")
+    (description "This package defines functions for getting multiple indices out of dictionaries, tuples, etc, extending this ability beyond @code{AbstractArray}.")
+    (license license:expat)))
+
+(define-public julia-dictionaries
+  (package
+    (name "julia-dictionaries")
+    (version "0.3.8")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/andyferris/Dictionaries.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1j88f6qa5hqm64n5q3jy08a02gwp7by401s03n5x7575p58iqqh2"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-indexing" ,julia-indexing)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/andyferris/Dictionaries.jl")
+    (synopsis "An alternative interface for dictionaries in Julia, for improved productivity and performance")
+    (description "An alternative interface for dictionaries in Julia, for improved productivity and performance.")
+    (license license:expat)))
+
+(define-public julia-earcut-jll
+  ;; Only release tag contains just a license file.
+  (let ((commit "b234ae0c064af12eb5482c7474a64af8be0f511e")
+        (revision "1"))
+  (package
+    (name "julia-earcut-jll")
+    (version (git-version "2.1.5+1" revision commit))
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/JuliaBinaryWrappers/EarCut_jll.jl")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0x1zjmsm4kcccwhd1fmnz0w4m0f2na1d2vcc0pj2cf5ccprx7miw"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f                      ; no runtests.jl
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+              (lambda (wrapper)
+                (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                    "generate_wrapper_header(\"EarCut\", \""
+                    (assoc-ref inputs "earcut") "\")\n"))))
+              ;; There's a Julia file for each platform, override them all
+              (find-files "src/wrappers/" "\\.jl$"))
+             #t)))))
+    (inputs                             ;required by artifacts
+     `(("earcut" ,earcut)))
+    (propagated-inputs
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
+    (home-page "https://github.com/JuliaBinaryWrappers/EarCut_jll.jl")
+    (synopsis "")
+    (description "")
+    (license license:expat))))
+
+(define-public earcut
+  (package
+    (name "earcut")
+    (version "0.12.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/mapbox/earcut.hpp")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1lfvh7shr82g10z3ydw7rll80nyi8nba41ykkgrghh95gvr6m3k7"))
+        (modules '((guix build utils)))
+        (snippet
+         '(begin
+            (substitute* "CMakeLists.txt"
+              ((".*add_subdirectory.*") ""))
+            #t))))
+    (build-system cmake-build-system)
+    (arguments
+     `(;#:tests? #f
+       #:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
+                           "-DEARCUT_BUILD_VIZ=OFF"
+                           )
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "./tests"))
+             #t))
+         ;; no install target, but no shared library either
+         ;(replace 'install
+         ;  (lambda* (#:key outputs #:allow-other-keys)
+         ;    (let ((out (assoc-ref outputs "out")))
+         )
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-indexing" ,julia-indexing)
+       ))
+    (inputs
+     `(
+       ;("glfw" ,(@ (gnu packages gl) glfw))    ; for VIZ
+       ))
+    (native-inputs
+     `(
+       ;("boost" ,(@ (gnu packages boost) boost))   ; not needed for tests?
+       ;;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/mapbox/earcut.hpp")
+    (synopsis "")
+    (description "")
+    (license license:expat)))
+
+(define-public julia-ffmpeg
+  (package
+    (name "julia-ffmpeg")
+    (version "0.4.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaIO/FFMPEG.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1kwqixwhnnxs59xsw2k44xxnkx5fn4y49g58l5snfbszycxq7lls"))))
+    (build-system julia-build-system)
+    ;(arguments
+    ; `(#:tests? #f))
+    (propagated-inputs
+     `(
+       ("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
+       ("julia-x264-jll" ,julia-x264-jll)
+       ))
+    (native-inputs
+     `(
+       ;("julia-pooledarrays" ,julia-pooledarrays)
+       ))
+    (home-page "https://github.com/JuliaIO/FFMPEG.jl")
+    (synopsis "Julia Package for the FFMPEG builder binaries")
+    (description "This package is made to be included into packages that just need the ffmpeg binaries + executables, and don't want to take on the 3.6 second load time of VideoIO.")
+    (license license:expat)))
+
+(define-public julia-x264-jll
+  (package
+    (name "julia-x264-jll")
+    (version "2020.7.14+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/x264_jll.jl")
+               (commit (string-append "x264-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "131srmmcwhp9f2x4dq3dw4pzv2z0428mdrb923yzzlm7a89nf28p"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   ;; Make sure we match the current library.
+                   (("libx264.so.157") "libx264.so.161")
+                   (("artifact\"x264\"")
+                    (string-append "\"" (assoc-ref inputs "x264") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (inputs
+     `(("x264" ,libx264)))
+    (home-page "https://github.com/JuliaBinaryWrappers/x264_jll.jl")
+    (synopsis "x264 library wrappers")
+    (description "This package provides a wrapper for the x264 video library.")
+    (license license:expat)))
+
+(define-public julia-ffmpeg-jll
+  (package
+    (name "julia-ffmpeg-jll")
+    (version "4.3.1+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/FFMPEG_jll.jl")
+               (commit (string-append "FFMPEG-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1f8pq9nxiiqay9qcsly1wkfpyz9nbxakf78ryi2c7g8p5v80k6d3"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"FFMPEG\"")
+                    (string-append "\"" (assoc-ref inputs "ffmpeg") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+
+       ("julia-bzip2-jll" ,julia-bzip2-jll)
+       ("julia-freetype2-jll" ,julia-freetype2-jll)
+       ("julia-fribidi-jll" ,julia-fribidi-jll)
+       ("julia-lame-jll" ,julia-lame-jll)
+       ("julia-libass-jll" ,julia-libass-jll)
+       ("julia-libfdk-aac-jll" ,julia-libfdk-aac-jll)
+       ("julia-libvorbis-jll" ,julia-libvorbis-jll)
+       ("julia-openssl-jll" ,julia-openssl-jll)
+       ("julia-opus-jll" ,julia-opus-jll)
+       ("julia-ogg-jll" ,julia-ogg-jll)
+       ("julia-x264-jll" ,julia-x264-jll)
+       ("julia-x265-jll" ,julia-x265-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (inputs
+     `(("ffmpeg" ,ffmpeg)))
+    (home-page "https://github.com/JuliaBinaryWrappers/FFMPEG_jll.jl")
+    (synopsis "ffmpeg library wrappers")
+    (description "This package provides a wrapper for ffmpeg.")
+    (license license:expat)))
+
+(define-public julia-libass-jll
+  (package
+    (name "julia-libass-jll")
+    (version "0.14.0+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/libass_jll.jl")
+               (commit (string-append "libass-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "05nvis5ifmaq1g0c98hcpnl0ky22qgp64d4lb6g6r4yrrn6kqlsc"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"libass\"")
+                    (string-append "\"" (assoc-ref inputs "libass") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+
+       ("julia-bzip2-jll" ,julia-bzip2-jll)
+       ("julia-freetype2-jll" ,julia-freetype2-jll)
+       ("julia-fribidi-jll" ,julia-fribidi-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (inputs
+     `(("libass" ,libass)))
+    (home-page "https://github.com/JuliaBinaryWrappers/libass_jll.jl")
+    (synopsis "Libass library wrappers")
+    (description "This package provides a wrapper for libass.")
+    (license license:expat)))
+
+(define-public julia-freetype2-jll
+  (package
+    (name "julia-freetype2-jll")
+    (version "2.10.4+0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/JuliaBinaryWrappers/FreeType2_jll.jl")
+             (commit (string-append "FreeType2-v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "03lgmb59lipc3bi7z22j4a53bbjmcwkf0xzpwan889p1ix3ry1lr"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f                      ; No runtests.jl
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+              (lambda (wrapper)
+                (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                    "generate_wrapper_header(\"FreeType2\", \""
+                    (assoc-ref inputs "freetype") "\")\n"))))
+              ;; There's a Julia file for each platform, override them all
+              (find-files "src/wrappers/" "\\.jl$"))
+             #t)))))
+    (inputs
+     `(
+       ("freetype" ,(@ (gnu packages fontutils) freetype))
+       ))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-bzip2-jll" ,julia-bzip2-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/FreeType2_jll.jl")
+    (synopsis "Freetype2 binary wrappers")
+    (description "This Julia module provides @code{FreeType2} libraries and
+wrappers.")
+    (license license:expat)))
+
+(define-public julia-bzip2-jll
+  (package
+    (name "julia-bzip2-jll")
+    (version "1.0.7+0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/JuliaBinaryWrappers/Bzip2_jll.jl")
+             (commit (string-append "Bzip2-v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "188ngx4axdqr55ahv2xssl3cf699l1sxi41j336m9sw8plf4hhk8"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f                      ; No runtests.jl
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+              (lambda (wrapper)
+                (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                    "generate_wrapper_header(\"Bzip2\", \""
+                    (assoc-ref inputs "bzip2") "\")\n"))))
+              ;; There's a Julia file for each platform, override them all
+              (find-files "src/wrappers/" "\\.jl$"))
+             #t)))))
+    (inputs
+     `(
+       ("bzip2" ,bzip2)
+       ))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Bzip2_jll.jl")
+    (synopsis "Bzip2 binary wrappers")
+    (description "This Julia module provides @code{Bzip2} libraries and
+wrappers.")
+    (license license:expat)))
+
+(define-public julia-fribidi-jll
+  (package
+    (name "julia-fribidi-jll")
+    (version "1.0.5+5")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/FriBidi_jll.jl")
+               (commit (string-append "FriBidi-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1nmaqhsnm51hyvnbr9riqfp3f636xyxn2ybych598xpkhhjqldwh"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"FriBidi\"")
+                    (string-append "\"" (assoc-ref inputs "fribidi") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+
+       ("julia-bzip2-jll" ,julia-bzip2-jll)
+       ("julia-freetype2-jll" ,julia-freetype2-jll)
+       ;("julia-fribidi-jll" ,julia-fribidi-jll)
+       ;("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (inputs
+     `(("fribidi" ,(@ (gnu packages fribidi) fribidi))))
+    (home-page "https://github.com/JuliaBinaryWrappers/FriBidi_jll.jl")
+    (synopsis "fribidi library wrappers")
+    (description "This package provides a wrapper for fribidi.")
+    (license license:expat)))
+
+(define-public julia-libfdk-aac-jll
+  (package
+    (name "julia-libfdk-aac-jll")
+    (version "0.1.6+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/libfdk_aac_jll.jl")
+               (commit (string-append "libfdk_aac-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0jinb205dn1yfvl0mx7dsah4xj3r8vc3ig8yl72langjc7vrwdn0"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"libfdk_aac\"")
+                    (string-append "\"" (assoc-ref inputs "libfdk") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (inputs
+     `(("libfdk" ,(@ (gnu packages audio) libfdk))))
+    (home-page "https://github.com/JuliaBinaryWrappers/libfdk_aac_jll.jl")
+    (synopsis "libfdk library wrappers")
+    (description "This package provides a wrapper for libfdk.")
+    (license license:expat)))
+
+(define-public julia-lame-jll
+  (package
+    (name "julia-lame-jll")
+    (version "3.100.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/LAME_jll.jl")
+               (commit (string-append "LAME-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1ck14hwrapcn5wiazf4m2brkqmlpiqpyr0468p467418av837y1c"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"LAME\"")
+                    (string-append "\"" (assoc-ref inputs "lame") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (inputs
+     `(("lame" ,(@ (gnu packages mp3) lame))))
+    (home-page "https://github.com/JuliaBinaryWrappers/LAME_jll.jl")
+    (synopsis "lame library wrappers")
+    (description "This package provides a wrapper for lame")
+    (license license:expat)))
+
+(define-public julia-libvorbis-jll
+  (package
+    (name "julia-libvorbis-jll")
+    (version "1.3.6+4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/libvorbis_jll.jl")
+               (commit (string-append "libvorbis-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1zmwhpjy6gr865psjn600g6ickskp4sq34qf1qg8ji6x4v09pzrh"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"libvorbis\"")
+                    (string-append "\"" (assoc-ref inputs "libvorbis") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-ogg-jll" ,julia-ogg-jll)
+       ))
+    (inputs
+     `(("libvorbis" ,(@ (gnu packages xiph) libvorbis))))
+    (home-page "https://github.com/JuliaBinaryWrappers/libvorbis_jll.jl")
+    (synopsis "libvorbis library wrappers")
+    (description "This package provides a wrapper for libvorbis")
+    (license license:expat)))
+
+(define-public julia-ogg-jll
+  (package
+    (name "julia-ogg-jll")
+    (version "1.3.4+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Ogg_jll.jl")
+               (commit (string-append "Ogg-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0p27wgy48gfw8g0hzlvcxrp0346nqnyxa88pydm87ll3sfx9b4ww"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Ogg\"")
+                    (string-append "\"" (assoc-ref inputs "libogg") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ;("julia-ogg-jll" ,julia-ogg-jll)
+       ))
+    (inputs
+     `(("libogg" ,(@ (gnu packages xiph) libogg))))
+    (home-page "https://github.com/JuliaBinaryWrappers/Ogg_jll.jl")
+    (synopsis "libogg library wrappers")
+    (description "This package provides a wrapper for libogg")
+    (license license:expat)))
+
+(define-public julia-x265-jll
+  (package
+    (name "julia-x265-jll")
+    (version "3.0.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/x265_jll.jl")
+               (commit (string-append "x265-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "082jgjlc2zm9rzg8p7l9nd4hlg17ziwp2b8rrcpicpb6fxb7sjh4"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"x265\"")
+                    (string-append "\"" (assoc-ref inputs "x265") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ;("julia-ogg-jll" ,julia-ogg-jll)
+       ))
+    (inputs
+     `(("x265" ,(@ (gnu packages video) x265))))
+    (home-page "https://github.com/JuliaBinaryWrappers/x265_jll.jl")
+    (synopsis "x265 library wrappers")
+    (description "This package provides a wrapper for x265")
+    (license license:expat)))
+
+(define-public julia-openssl-jll
+  (package
+    (name "julia-openssl-jll")
+    (version "1.1.1+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/OpenSSL_jll.jl")
+               (commit (string-append "OpenSSL-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0qly9pjhah95jdgvckkj615yfbsavvsygpfq9sqz4716q4zv0d5z"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"OpenSSL\"")
+                    (string-append "\"" (assoc-ref inputs "openssl") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ;("julia-ogg-jll" ,julia-ogg-jll)
+       ))
+    (inputs
+     `(("openssl" ,(@ (gnu packages tls) openssl))))
+    (home-page "https://github.com/JuliaBinaryWrappers/OpenSSL_jll.jl")
+    (synopsis "openssl library wrappers")
+    (description "This package provides a wrapper for openssl")
+    (license license:expat)))
+
+(define-public julia-opus-jll
+  (package
+    (name "julia-opus-jll")
+    (version "1.3.1+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Opus_jll.jl")
+               (commit (string-append "Opus-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1zm0rnr3pi83bzza1azlrv8l7l0mjpykc3qz4b5p9zcdzf7aw4vn"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Opus\"")
+                    (string-append "\"" (assoc-ref inputs "opus") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ;("julia-ogg-jll" ,julia-ogg-jll)
+       ))
+    (inputs
+     `(("opus" ,(@ (gnu packages xiph) opus))))
+    (home-page "https://github.com/JuliaBinaryWrappers/Opus_jll.jl")
+    (synopsis "opus library wrappers")
+    (description "This package provides a wrapper for opus")
+    (license license:expat)))
+
+(define-public julia-plotutils
+  (package
+    (name "julia-plotutils")
+    (version "1.0.10")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPlots/PlotUtils.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1jimdkp590g7s33w7i431nn7mp1phjy9gdjs88zyqsmq5hxldacg"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ("julia-colors" ,julia-colors)
+       ("julia-colorschemes" ,julia-colorschemes)
+       ("julia-reexport" ,julia-reexport)
+       ))
+    (native-inputs
+     `(
+       ("julia-stablerngs" ,julia-stablerngs)
+       ))
+    (home-page "https://github.com/JuliaPlots/PlotUtils.jl")
+    (synopsis "Generic helper algorithms for building plotting components")
+    (description "Generic helper algorithms for building plotting components")
+    (license license:expat)))
+
+(define-public julia-colorschemes
+  (package
+    (name "julia-colorschemes")
+    (version "3.12.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGraphics/ColorSchemes.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "08k39hbdf3jn0001f7qxa99xvagrnh9764911hs6cmxkvp061sa4"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ("julia-colors" ,julia-colors)
+       ("julia-colortypes" ,julia-colortypes)
+       ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
+       ("julia-staticarrays" ,julia-staticarrays)
+       ))
+    (native-inputs
+     `(
+       ;("julia-aqua" ,julia-aqua)
+       ))
+    (home-page "https://github.com/JuliaGraphics/ColorSchemes.jl")
+    (synopsis "colorschemes, colormaps, gradients, and palettes")
+    (description "This package provides a collection of colorschemes.")
+    (license license:expat)))
+
+(define-public julia-plotthemes
+  (package
+    (name "julia-plotthemes")
+    (version "2.0.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPlots/PlotThemes.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1fd27w9z1vhz0d1bzrs5vcavpb5r5jviyh27d9c4ka37phz4xvmh"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ("julia-plotutils" ,julia-plotutils)
+       ("julia-requires" ,julia-requires)
+       ))
+    (native-inputs
+     `(
+       ;("julia-aqua" ,julia-aqua)
+       ))
+    (home-page "https://github.com/JuliaPlots/PlotThemes.jl")
+    (synopsis "Themes for the Julia plotting package Plots.jl")
+    (description "PlotThemes is a package to spice up the plots made with Plots.jl.")
+    (license license:expat)))
+
+(define-public julia-showoff
+  (package
+    (name "julia-showoff")
+    (version "1.0.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGraphics/Showoff.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "1g4hqvjjpwbrs7fnllyl5w66yj6qlvpvzpygym2nvf01m1ps6m53"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-requires" ,julia-requires)
+       ))
+    (native-inputs
+     `(
+       ;("julia-aqua" ,julia-aqua)
+       ))
+    (home-page "https://github.com/JuliaGraphics/Showoff.jl")
+    (synopsis "Nicely format an array of n things for tables and plots")
+    (description "Showoff provides an interface for consistently formatting an array of n things, e.g.  numbers, dates, unitful values.  It's used in Gadfly, Plots and Makie to label axes and keys.")
+    (license license:expat)))
+
+(define-public julia-measures
+  (package
+    (name "julia-measures")
+    (version "0.3.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGraphics/Measures.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0j34psrdijnqqn9zv0r2sknr1p9q0mmbjvjhmjra37bb5fh2gk8l"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-requires" ,julia-requires)
+       ))
+    (native-inputs
+     `(
+       ;("julia-aqua" ,julia-aqua)
+       ))
+    (home-page "https://github.com/JuliaGraphics/Measures.jl")
+    (synopsis "Unified measure and coordinates types")
+    (description "This library generalizes and unifies the notion of measures used in Compose, Compose3D, and Escher.  It allows building up and representing expressions involving differing types of units that are then evaluated, resolving them into absolute units.")
+    (license license:expat)))
+
+(define-public julia-recipespipeline
+  (package
+    (name "julia-recipespipeline")
+    (version "0.3.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPlots/RecipesPipeline.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0wa342m2d9k4kihr6g9i0wpbsipp0n11kh9jmlw4pc5msmz4rxr0"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f  ; Cycle with Plots.jl
+       ))
+    (propagated-inputs
+     `(
+       ("julia-nanmath" ,julia-nanmath)
+       ("julia-plotutils" ,julia-plotutils)
+       ("julia-recipesbase" ,julia-recipesbase)
+       ))
+    (native-inputs
+     `(
+       ;("julia-distributions" ,julia-distributions)
+       ))
+    (home-page "http://juliaplots.org/RecipesPipeline.jl/dev/")
+    (synopsis "Utilities for processing recipes")
+    (description "This package was factored out of Plots.jl to allow any other plotting package to use the recipe pipeline.  In short, the extremely lightweight RecipesBase.jl package can be depended on by any package to define \"recipes\": plot specifications of user-defined types, as well as custom plot types.  RecipePipeline.jl contains the machinery to translate these recipes to full specifications for a plot.")
+    (license license:expat)))
+
+(define-public julia-scratch
+  (package
+    (name "julia-scratch")
+    (version "1.0.3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPackaging/Scratch.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "06n0rc7grlg9igkdlrql83q0zpc97bh2hfzj5mw4spfik8ahw2aa"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f  ; Test suite tries to access the internet.
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-nanmath" ,julia-nanmath)
+       ))
+    (native-inputs
+     `(
+       ;("julia-distributions" ,julia-distributions)
+       ))
+    (home-page "https://github.com/JuliaPackaging/Scratch.jl")
+    (synopsis "Scratch spaces for all your persistent mutable data needs")
+    (description "This repository implements the scratch spaces API for package-specific mutable containers of data.  These spaces can contain datasets, text, binaries, or any other kind of data that would be convenient to store in a location specific to your package.  As compared to Artifacts, these containers of data are mutable.  Because the scratch space location on disk is not very user-friendly, scratch spaces should, in general, not be used for a storing files that the user must interact with through a file browser.  In that event, packages should simply write out to disk at a location given by the user.  Scratch spaces are designed for data caches that are completely managed by a package and should be removed when the package itself is uninstalled.  In the current implementation, scratch spaces are removed during Pkg garbage collection if the owning package has been removed.  Users can also request a full wipe of all scratch spaces to clean up unused disk space through @code{clear_scratchspaces!()}, or a more targeted wipe of a particular package through @code{clear_scratchspaces!(pkg)}.")
+    (license license:expat)))
+
+(define-public julia-gr
+  (package
+    (name "julia-gr")
+    (version "0.57.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/jheinen/GR.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0hwzxwnak3sixm8jlm2zz6578gn713sbbznq49s11h38n0aczjx2"))))
+    (build-system julia-build-system)
+    (arguments
+     `(;#:tests? #f
+       ))
+    (propagated-inputs
+     `(
+       ("julia-gr-jll" ,julia-gr-jll)
+       ))
+    (native-inputs
+     `(
+       ;("julia-distributions" ,julia-distributions)
+       ))
+    (home-page "https://github.com/jheinen/GR.jl")
+    (synopsis "Plotting for Julia based on GR, a framework for visualisation applications")
+    (description "This module provides a Julia interface to GR, a framework for visualisation applications.")
+    (license license:expat)))
+
+;; TODO: Unbundle fonts, add inputs?
+(define-public gr-framework
+  (package
+    (name "gr-framework")
+    (version "0.57.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/sciapp/gr")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "05qch57acgj6bs1l634wczj0agj2v0b3j221iyk47zqhbimhk45y"))
+        ))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:tests? #f  ; no test target
+       ;#:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
+       ;                    "-DEARCUT_BUILD_VIZ=OFF"
+       ;                    )
+       #:phases
+       (modify-phases %standard-phases
+          ;(delete 'configure)   ; no configure script
+          (add-after 'unpack 'patch-source
+            (lambda* (#:key outputs #:allow-other-keys)
+              ;; Force using the shared library, -fPIC errors otherwise
+              (substitute* "cmake/FindQhull.cmake"
+                (("qhullstatic") "qhull_r"))
+              #t))
+       ;  (replace 'check
+       ;    (lambda* (#:key tests? #:allow-other-keys)
+       ;      (when tests?
+       ;        (invoke "./tests"))
+       ;      #t))
+         ;; no install target, but no shared library either
+         ;(replace 'install
+         ;  (lambda* (#:key outputs #:allow-other-keys)
+         ;    (let ((out (assoc-ref outputs "out")))
+         )
+       ))
+    (propagated-inputs
+     `(
+       ;("julia-indexing" ,julia-indexing)
+       ))
+    (inputs
+     `(
+       ;("glfw" ,(@ (gnu packages gl) glfw))    ; for VIZ
+       ))
+    (native-inputs
+     `(
+       ;("boost" ,(@ (gnu packages boost) boost))   ; not needed for tests?
+       ;;("julia-pooledarrays" ,julia-pooledarrays)
+       ("freetype" ,(@ (gnu packages fontutils) freetype))
+       ("libjpeg-turbo" ,(@ (gnu packages image) libjpeg-turbo))
+       ("libpng" ,(@ (gnu packages image) libpng))
+       ;("libx11" ,(@ (gnu packages xorg) libx11))
+       ;("libxft" ,(@ (gnu packages xorg) libxft))
+       ;("libxt" ,(@ (gnu packages xorg) libxt))
+       ("qhull" ,(@ (gnu packages maths) qhull))
+       ("qtbase" ,(@ (gnu packages qt) qtbase))
+       ("zlib" ,zlib)
+       ))
+    (home-page "https://gr-framework.org/")
+    (synopsis "")
+    (description "")
+    (license license:expat)))
+
+(define-public julia-gr-jll
+  (package
+    (name "julia-gr-jll")
+    (version "0.57.2+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/GR_jll.jl")
+               (commit (string-append "GR-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1fqm531s5pm8q2rqz0gmrbj2qsivmc6x04sgn8gzfpz9jrmglbzq"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("generate_wrapper_header.*")
+                    (string-append
+                      "generate_wrapper_header(\"GR\", \""
+                      (assoc-ref inputs "gr-framework") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("gr-framework" ,gr-framework)))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+
+       ("julia-bzip2-jll" ,julia-bzip2-jll)
+       ;("julia-cairo-jll" ,julia-cairo-jll)
+       ("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
+       ;("julia-fontconfig-jll" ,julia-fontconfig-jll)
+       ;("julia-glfw-jll" ,julia-glfw-jll)
+       ("julia-jpegturbo-jll" ,julia-jpegturbo-jll)
+       ;("julia-libtiff-jll" ,julia-libtiff-jll)
+       ("julia-libpng-jll" ,julia-libpng-jll)
+       ;("julia-pixman-jll" ,julia-pixman-jll)
+       ;("julia-qt5base-jll" ,julia-qt5base-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/GR_jll.jl")
+    (synopsis "GR framework library wrappers")
+    (description "This package provides a wrapper for the GR framework.")
     (license license:expat)))
