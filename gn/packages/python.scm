@@ -9,6 +9,7 @@
   #:use-module (gnu packages image)
   #:use-module (gnu packages libffi)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages monitoring)
   #:use-module (gnu packages pcre)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-build)
@@ -1669,3 +1670,172 @@ sorted order.")
        (sha256
         (base32
          "0l4fvm58fyz044hxpaw3a8w1nlki1n8iikrg9bdd7imz04kqd671"))))))
+
+(define-public python-jupyter-server-proxy
+  (package
+    (name "python-jupyter-server-proxy")
+    (version "3.0.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "jupyter-server-proxy" version))
+        (sha256
+         (base32 "0vglj7v7wq73a9dya60q2vrxxpglg11w66l7crkzzrfpbblr814p"))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-aiohttp" ,python-aiohttp)
+       ("python-jupyter-server" ,python-jupyter-server)
+       ("python-simpervisor" ,python-simpervisor)))
+    (home-page "https://jupyter-server-proxy.readthedocs.io/")
+    (synopsis "Jupyter server extension to supervise and proxy web services")
+    (description
+     "Jupyter Server Proxy lets you run arbitrary external processes (such as RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc) alongside your notebook server and provide authenticated web access to them using a path like @code{/rstudio} next to others like @code{/lab}.  Alongside the python package that provides the main functionality, the JupyterLab extension (@code{@@jupyterlab/server-proxy}) provides buttons in the JupyterLab launcher window to get to RStudio for example.")
+    (license license:bsd-3)))
+
+(define-public python-jupyter-server-proxy-1
+  (package
+    (inherit python-jupyter-server-proxy)
+    (name "python-jupyter-server-proxy")
+    (version "1.6.0")
+    (source
+      (origin
+        ;(method url-fetch)
+        ;(uri (pypi-uri "jupyter-server-proxy" version))
+        ;(sha256
+        ; (base32 "0sdiywnymdqsmdddj1gszb8fj1z3p1njy419q0i921ib4rmdc22y"))))
+        ;; Tests not included in release.
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/jupyterhub/jupyter-server-proxy")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "03yry0jz6xlvy28h3w514pw0q9w51lnr1lpcigqmhnf5x7g9bfyy"))))
+    (arguments
+     `(#:tests? #f  ; Running the test suite isn't fully documented.
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (setenv "JUPYTER_TOKEN" "secret")
+               (setenv "HOME" (getcwd))
+               (system "jupyter-notebook --config=./tests/resources/jupyter_server_config.py &")
+               (sleep 5)
+               (invoke "pytest" "--verbose"))
+             #t)))))
+    (propagated-inputs
+     `(("python-aiohttp" ,python-aiohttp)
+       ("python-notebook" ,python-notebook)
+       ("python-simpervisor" ,python-simpervisor)))
+    (native-inputs
+     `(("python-pytest" ,python-pytest)))))
+
+(define-public python-simpervisor   ; upstream ready
+  (package
+    (name "python-simpervisor")
+    (version "0.4")
+    (source
+      (origin
+        ;; Tests not included in release.
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/yuvipanda/simpervisor")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1brsisx7saf4ic0dih1n5y7rbdbwn1ywv9pl32bch3061r46prvv"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:tests? #f  ; Test suite can't find aiohttp.
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (invoke "pytest" "--maxfail" "3" "--verbose"))
+             #t)))))
+    (native-inputs
+     `(("python-aiohttp" ,python-aiohttp)
+       ("python-pytest" ,python-pytest)
+       ("python-pytest-asyncio" ,python-pytest-asyncio)))
+    (home-page "https://github.com/yuvipanda/simpervisor")
+    (synopsis "Simple async process supervisor")
+    (description
+     "This package provides a simple async process supervisor in Python.")
+    (license license:bsd-3)))
+
+(define-public python-jupyter-server
+  (package
+    (name "python-jupyter-server")
+    (version "1.8.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "jupyter-server" version))
+        (sha256
+         (base32
+          "0dqj51fj5ikklbl0gnb939pp80ngnzml5932mljn2lvplph7a34g"))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-anyio" ,python-anyio)
+       ("python-argon2-cffi" ,python-argon2-cffi)
+       ("python-ipython-genutils" ,python-ipython-genutils)
+       ("python-jinja2" ,python-jinja2)
+       ("python-jupyter-client" ,python-jupyter-client)
+       ("python-jupyter-core" ,python-jupyter-core)
+       ("python-nbconvert" ,python-nbconvert)
+       ("python-nbformat" ,python-nbformat)
+       ("python-prometheus-client" ,python-prometheus-client)
+       ("python-pyzmq" ,python-pyzmq)
+       ("python-send2trash" ,python-send2trash)
+       ("python-terminado" ,python-terminado)
+       ("python-tornado" ,python-tornado)
+       ("python-traitlets" ,python-traitlets)
+       ("python-websocket-client" ,python-websocket-client)))
+    (native-inputs
+     `(("python-coverage" ,python-coverage)
+       ("python-ipykernel" ,python-ipykernel)
+       ("python-pytest" ,python-pytest)
+       ("python-pytest-console-scripts" ,python-pytest-console-scripts)
+       ("python-pytest-cov" ,python-pytest-cov)
+       ("python-pytest-mock" ,python-pytest-mock)
+       ("python-pytest-tornasync" ,python-pytest-tornasync)
+       ("python-requests" ,python-requests)))
+    (home-page "https://jupyter.org")
+    (synopsis
+      "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications.")
+    (description
+      "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications.")
+    (license #f)))
+
+(define-public python-anyio
+  (package
+    (name "python-anyio")
+    (version "3.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "anyio" version))
+        (sha256
+         (base32 "03mdklsgm4ik7hqr0lnc7k085as4vib27hclsrcdh0yhm48hgqj3"))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-idna" ,python-idna)
+       ("python-sniffio" ,python-sniffio)))
+    (native-inputs
+     `(("python-coverage" ,python-coverage)
+       ("python-hypothesis" ,python-hypothesis)
+       ("python-mock" ,python-mock)
+       ("python-pytest" ,python-pytest)
+       ("python-pytest-mock" ,python-pytest-mock)
+       ("python-trustme" ,python-trustme)
+       ("python-uvloop" ,python-uvloop)))
+    (home-page "")
+    (synopsis
+      "High level compatibility layer for multiple asynchronous event loop implementations")
+    (description
+      "High level compatibility layer for multiple asynchronous event loop implementations")
+    (license license:expat)))

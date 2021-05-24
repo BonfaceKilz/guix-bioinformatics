@@ -17,6 +17,77 @@
   #:use-module (gnu packages video)
   #:use-module (ice-9 match))
 
+(define-public julia-visuals
+  (let ((commit "e7d670eb045a9f8e3a839476dc166318da7fe9dc")
+        (revision "1"))
+    (package
+      (name "julia-visuals")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/sens/visuals")
+                       (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "15hshm5qrig5qbj02xy4ji79kfc72n93nna5nvxkhvb8gw3vvx07"))))
+      (build-system julia-build-system)
+      (arguments
+       `(#:tests? #f    ; no test suite
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'patch-source
+             (lambda* (#:key inputs #:allow-other-keys)
+               (chmod "runpluto.sh" #o755)  ; it starts as #o444
+               (substitute* "runpluto.sh"
+                 ;(("julia")
+                 ; (string-append (assoc-ref inputs "julia") "/bin/julia"))
+                 ;(("basename")
+                 ; (string-append (assoc-ref inputs "coreutils") "/bin/basename"))
+                 ;; The arguments don't pass through the wrapper
+                 (("\\$\\{1\\}") "4343")
+                 )
+               #t))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (copy-recursively "." (assoc-ref outputs "out"))
+               #t))
+           (add-after 'install 'wrap-program
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (wrap-script (string-append out "/runpluto.sh")
+                   `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
+                                        ,(string-append (assoc-ref inputs "coreutils") "/bin")))
+                   `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH"))))
+                 #t)))
+           (replace 'precompile
+             (lambda _
+               (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\"")
+               #t))
+           )
+         ))
+      (propagated-inputs
+       `(
+         ("julia" ,(@ (gnu packages julia) julia))
+         ("julia-latexstrings" ,julia-latexstrings)
+         ("julia-optim" ,julia-optim)
+         ("julia-plots" ,julia-plots)
+         ("julia-pluto" ,julia-pluto)
+         ("julia-plutoui" ,julia-plutoui)
+         ;; Additional packages in generate.jl
+         ;("julia-markdown" ,julia-markdown)
+         ;("julia-interactiveutils" ,julia-interactiveutils)
+         ;("julia-distributions" ,julia-distributions)
+         ;; and from setup.py
+         ("python-jupyter-server-proxy" ,(@ (gn packages python) python-jupyter-server-proxy-1))
+         ))
+      (inputs
+       `(("guile" ,(@ (gnu packages guile) guile-3.0))))    ; for wrap-script
+      (home-page "https://github.com/senresearch/LiteQTL.jl")
+      (synopsis "Visualizations using Pluto.jl notebooks")
+      (description "Visualizations using Pluto.jl notebooks.")
+      (license #f))))
+
 (define-public julia-liteqtl
   (let ((commit "321a9e0aa87fb4524bec8278e64de76d1a4072b0")
         (revision "1"))
