@@ -16,42 +16,21 @@
   pluto-configuration?
   (package  pluto-configuration-package     ; package
             (default julia-visuals))
+  ;; TODO: Currently port 4343 is hardcoded in the package definition.
   (port     pluto-configuration-port        ; integer
             (default 80)))
 
 (define %julia-account
   (list (user-group
           (name "julia")
-          ;(system? #t)
-          )
+          (system? #t))
         (user-account
           (name "julia")
           (group "julia")
-          ;(system? #t)
+          (system? #t)
           (comment "Julia User")
           (home-directory "/home/jovyan")
-          ;(shell (file-append shadow "/sbin/nologin"))
-          )))
-
-;(define pluto-activation
-;  (match-lambda
-;    (($ <ratspub-configuration> package)
-;     #~(begin
-;         (let ((nltk_data "/var/cache/nltk_data/tokenizers")
-;               (data_dir "/export/ratspub"))
-;           (unless (file-exists? "/export2/PubMed")
-;             (mkdir-p "/export2/PubMed"))
-;           (unless (file-exists? nltk_data)
-;             (begin
-;               ;; The correct way would be to use python-nltk to download the data
-;               ;; python3 -m nltk.downloader -d /var/cache/nltk_data punkt
-;               (mkdir-p nltk_data)
-;               (chdir nltk_data)
-;               (invoke #$(file-append unzip "/bin/unzip") "-q" #$%punkt.zip)))
-;           (unless (file-exists? (string-append data_dir "/userspub.sqlite"))
-;             (begin
-;               (install-file #$(file-append package "/userspub.sqlite") data_dir)
-;               (chmod (string-append data_dir "/userspub.sqlite") #o554))))))))
+          (shell (file-append shadow "/sbin/nologin")))))
 
 (define pluto-shepherd-service
   (match-lambda
@@ -66,22 +45,15 @@
                           (gnu system file-systems)))
                (start #~(make-forkexec-constructor/container
                           (list #$(file-append package "/runpluto.sh") #$port)
-                          ;; Needs to run from the directory it is located in.
-                          ;#:directory #$package
                           #:log-file "/var/log/pluto.log"
-                          ;; We don't need to set TMPDIR because we're inside a container.
                           #:user "julia"
                           #:group "julia"
-                          #:environment-variables
-                          '(;"JULIA_PROJECT=/home/jovyan"
-                            ;"JULIA_LOAD_PATH=/run/current-system/profile/share/julia/packages/"
-                            )
+                          ;; This needs to exist. Unclear why.
+                          #:environment-variables '()
                           #:mappings (list (file-system-mapping
                                              (source "/home/jovyan")
                                              (target source)
-                                             (writable? #t))
-                                           )
-                          ))
+                                             (writable? #t)))))
                (stop  #~(make-kill-destructor))))))))
 
 (define pluto-service-type
@@ -91,13 +63,8 @@
       (list
         (service-extension shepherd-root-service-type
                            pluto-shepherd-service)
-        ;(service-extension activation-service-type
-        ;                   ratspub-activation)
         (service-extension account-service-type
-                           (const %julia-account))
-        ;; Make sure we get all the dependencies of julia-visuals.
-        (service-extension profile-service-type
-                           (compose list pluto-configuration-package))))
+                           (const %julia-account))))
     (default-value (pluto-configuration))
     (description
      "Run a Pluto Jupyter Webserver.")))
@@ -118,9 +85,7 @@
   ;; (kernel linux-libre-vm)
   ;; No firmware for VMs.
   (firmware '())
-  (packages ;(list nss-certs)
-    %base-packages
-            )
+  (packages (list nss-certs))
 
   (services (list (service pluto-service-type
                            (pluto-configuration
@@ -130,5 +95,5 @@
 ;; For docker it isn't necessary to list the shared folders at build time.
 ;; guix system docker-image -L /path/to/guix-bioinformatics/ -L /path/to/guix-past/modules/ /path/to/guix-bioinformatics/gn/services/pluto.scm --network
 ;; Docker instructions:
-;; docker load --input pluto-docker-image.tar.gz
+;; docker load --input guix-docker-image.tar.gz
 ;; docker run -d --privileged --net=host --name pluto guix

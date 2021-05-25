@@ -7,6 +7,7 @@
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system julia)
+  #:use-module (gnu packages)
   #:use-module (gn packages cran)
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages compression)
@@ -16,6 +17,8 @@
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages video)
   #:use-module (ice-9 match))
+
+(define S specification->package)
 
 (define-public julia-visuals
   (let ((commit "e7d670eb045a9f8e3a839476dc166318da7fe9dc")
@@ -38,23 +41,30 @@
          (modify-phases %standard-phases
            (add-after 'unpack 'patch-source
              (lambda* (#:key inputs #:allow-other-keys)
-               (chmod "runpluto.sh" #o755)  ; it starts as #o444
+               (chmod "runpluto.sh" #o555)  ; it starts as #o444
                (substitute* "runpluto.sh"
-                 ;(("julia")
-                 ; (string-append (assoc-ref inputs "julia") "/bin/julia"))
-                 ;(("basename")
-                 ; (string-append (assoc-ref inputs "coreutils") "/bin/basename"))
-                 ;; The arguments don't pass through the wrapper
-                 (("\\$\\{1\\}") "4343")
-                 )
+                 ;; The arguments don't pass through the wrapper so we hardcode the port.
+                 (("\\$\\{1\\}") "4343"))
                #t))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
-               (copy-recursively "." (assoc-ref outputs "out"))
-               #t))
+               (let ((out (assoc-ref outputs "out")))
+                 ;; Copied from the Dockerfile.
+                 (for-each
+                   (lambda (file)
+                     (copy-recursively file (string-append out "/" file)))
+                   (list "plutoserver"
+                         "environment.yml"
+                         "setup.py"
+                         "runpluto.sh"
+                         "notebooks"
+                         "Project.toml"
+                         "Manifest.toml"))
+                 #t)))
            (add-after 'install 'wrap-program
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
+                 ;; Do we need to wrap this with PYTHONPATH too?
                  (wrap-script (string-append out "/runpluto.sh")
                    `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
                                         ,(string-append (assoc-ref inputs "coreutils") "/bin")))
@@ -63,26 +73,23 @@
            (replace 'precompile
              (lambda _
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\"")
-               #t))
-           )
-         ))
+               #t)))))
       (propagated-inputs
        `(
-         ("julia" ,(@ (gnu packages julia) julia))
-         ("julia-latexstrings" ,julia-latexstrings)
-         ("julia-optim" ,julia-optim)
-         ("julia-plots" ,julia-plots)
-         ("julia-pluto" ,julia-pluto)
-         ("julia-plutoui" ,julia-plutoui)
-         ;; Additional packages in generate.jl
-         ;("julia-markdown" ,julia-markdown)
-         ;("julia-interactiveutils" ,julia-interactiveutils)
-         ;("julia-distributions" ,julia-distributions)
          ;; and from setup.py
          ("python-jupyter-server-proxy" ,(@ (gn packages python) python-jupyter-server-proxy-1))
          ))
       (inputs
-       `(("guile" ,(@ (gnu packages guile) guile-3.0))))    ; for wrap-script
+       `(
+         ;("julia-distributions" ,julia-distributions)
+         ;("julia-interactiveutils" ,julia-interactiveutils)    ; Part of stdlib as of XXXX
+         ("julia-latexstrings" ,julia-latexstrings)
+         ;("julia-markdown" ,julia-markdown)    ; Part of stdlib as of XXXX
+         ("julia-optim" ,julia-optim)
+         ("julia-plots" ,julia-plots)
+         ("julia-pluto" ,julia-pluto)
+         ("julia-plutoui" ,julia-plutoui)
+         ("guile" ,(@ (gnu packages guile) guile-3.0))))    ; for wrap-script
       (home-page "https://github.com/senresearch/LiteQTL.jl")
       (synopsis "Visualizations using Pluto.jl notebooks")
       (description "Visualizations using Pluto.jl notebooks.")
@@ -368,7 +375,7 @@ distributed computing.")
        ))
     (native-inputs
      `(
-       ("conda" ,(@ (gnu packages package-management) conda))
+       ("conda" ,(S "conda"))
        ("python" ,(@ (gnu packages python) python-wrapper))
        ))
     (propagated-inputs
@@ -406,7 +413,7 @@ distributed computing.")
 (define-public julia-distributions
   (package
     (name "julia-distributions")
-    (version "0.25.0")
+    (version "0.25.1")
     (source
       (origin
         (method git-fetch)
@@ -415,8 +422,7 @@ distributed computing.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1rxv9cml5r8gp0qgqdp61hqbgvv55ncyfzbim4iqfmbaj4ji9fmp"))))
+         (base32 "0p3998sh667f1bskd011z9hfdkbdw5kgh9n1771jx4madxscy7dq"))))
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
@@ -429,7 +435,7 @@ distributed computing.")
        ;("julia-quadgk" ,julia-quadgk)
        ;("julia-specialfunctions" ,julia-specialfunctions)
        ("julia-statsbase" ,julia-statsbase)
-       ("julia-statsfuns" ,julia-statsfuns)
+       ("julia-statsfuns" ,julia-statsfuns)    ; fix Rmath.jl
        ))
     (home-page "https://github.com/JuliaStats/Distributions.jl")
     (synopsis "probability distributions and associated functions")
@@ -1550,6 +1556,10 @@ it with the @code{@@bind} macro in Pluto.")
        ("julia-rmath" ,julia-rmath)
        ("julia-specialfunctions" ,julia-specialfunctions)
        ))
+    (native-inputs
+     `(
+       ("julia-forwarddiff" ,julia-forwarddiff)
+       ))
     (home-page "https://github.com/JuliaStats/StatsFuns.jl")
     (synopsis "Mathematical functions related to statistics")
     (description "This package provides a collection of mathematical constants and numerical functions for statistical computing.")
@@ -1622,6 +1632,7 @@ it with the @code{@@bind} macro in Pluto.")
   (package
     (name "julia-rmath")
     (version "0.7.0")
+    ;(version "0.6.1")
     (source
       (origin
         (method git-fetch)
@@ -1631,6 +1642,7 @@ it with the @code{@@bind} macro in Pluto.")
         (file-name (git-file-name name version))
         (sha256
          (base32 "0cam16ff4v2fl7c9j1wx2ahgjhwba9mk2q6qv3zdknnnqj6w664s"))))
+         ;(base32 "1745xajy5c8hdcy1hgi2rr9lrapr55hp0jm2dcb1ksyskvm5drsr"))))
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f  ; Test not defined
@@ -1639,6 +1651,7 @@ it with the @code{@@bind} macro in Pluto.")
          ;(add-after 'unpack 'patch-source
          ;  (lambda _
          ;    ;; see upstream julia bug
+         ;    ;; ERROR: LoadError: InitError: UndefVarError: libRmath_path not defined
          ;    (substitute* "src/Rmath.jl"
          ;      (("libRmath\\)") "libRmath_path)"))
          ;    #t))
@@ -1647,6 +1660,7 @@ it with the @code{@@bind} macro in Pluto.")
     (propagated-inputs
      `(
        ("julia-rmath-jll" ,julia-rmath-jll)
+       ;("julia-rmath-jll" ,julia-rmath-jll-0.2)
        ))
     (native-inputs
      `(
@@ -1680,12 +1694,53 @@ it with the @code{@@bind} macro in Pluto.")
          (add-after 'unpack 'override-binary-path
            (lambda* (#:key inputs #:allow-other-keys)
              (map
+              (lambda (wrapper)
+                (substitute* wrapper
+                  ;(("libRmath-julia") "libRmath")
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"Rmath\", \""
+                     (assoc-ref inputs "rmath") "\")\n"))))
+              ;; There's a Julia file for each platform, override them all
+              (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(
+       ;; It wants the custom rmath.
+       ("rmath" ,rmath-julia)
+       ;("rmath" ,(S "rmath-standalone"))
+       ))
+    (propagated-inputs
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
+    (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
+    (synopsis "Rmath library wrappers")
+    (description "This package provides a wrapper for Rmath.")
+    (license license:expat)))
+
+(define-public julia-rmath-jll-0.2
+  (package
+    (name "julia-rmath-jll")
+    (version "0.2.2+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
+               (commit (string-append "Rmath-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "13wvx4n0ai7bsda3rvlw8xbqwdbdwhjijbgjgl0k2yzq5l8x5dmh"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
                (lambda (wrapper)
                  (substitute* wrapper
-                   (("generate_wrapper_header.*")
-                    (string-append
-                      "generate_wrapper_header(\"Rmath\", \""
-                      (assoc-ref inputs "rmath") "\")\n"))))
+                   (("artifact\"Rmath\"")
+                    (string-append "\"" (assoc-ref inputs "rmath") "\""))))
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs
@@ -3766,16 +3821,6 @@ polynomials.")
         (sha256
          (base32 "1s7bz5aaj9sx753pcaixq83jgbk33adxgybpinjgzb9lzdv1ddgx"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ;("julia-indexing" ,julia-indexing)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
     (home-page "https://github.com/andyferris/Indexing.jl")
     (synopsis "Generalized indexing for Julia")
     (description "This package defines functions for getting multiple indices out of dictionaries, tuples, etc, extending this ability beyond @code{AbstractArray}.")
@@ -3795,16 +3840,8 @@ polynomials.")
         (sha256
          (base32 "1j88f6qa5hqm64n5q3jy08a02gwp7by401s03n5x7575p58iqqh2"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-indexing" ,julia-indexing)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+     `(("julia-indexing" ,julia-indexing)))
     (home-page "https://github.com/andyferris/Dictionaries.jl")
     (synopsis "An alternative interface for dictionaries in Julia, for improved productivity and performance")
     (description "An alternative interface for dictionaries in Julia, for improved productivity and performance.")
@@ -3922,17 +3959,9 @@ polynomials.")
         (sha256
          (base32 "1kwqixwhnnxs59xsw2k44xxnkx5fn4y49g58l5snfbszycxq7lls"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
-       ("julia-x264-jll" ,julia-x264-jll)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+     `(("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
+       ("julia-x264-jll" ,julia-x264-jll)))
     (home-page "https://github.com/JuliaIO/FFMPEG.jl")
     (synopsis "Julia Package for the FFMPEG builder binaries")
     (description "This package is made to be included into packages that just need the ffmpeg binaries + executables, and don't want to take on the 3.6 second load time of VideoIO.")
@@ -3969,9 +3998,7 @@ polynomials.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("x264" ,libx264)))
     (home-page "https://github.com/JuliaBinaryWrappers/x264_jll.jl")
@@ -4195,14 +4222,7 @@ wrappers.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-
-       ("julia-bzip2-jll" ,julia-bzip2-jll)
-       ("julia-freetype2-jll" ,julia-freetype2-jll)
-       ;("julia-fribidi-jll" ,julia-fribidi-jll)
-       ;("julia-zlib-jll" ,julia-zlib-jll)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("fribidi" ,(@ (gnu packages fribidi) fribidi))))
     (home-page "https://github.com/JuliaBinaryWrappers/FriBidi_jll.jl")
@@ -4357,10 +4377,7 @@ wrappers.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-       ;("julia-ogg-jll" ,julia-ogg-jll)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("libogg" ,(@ (gnu packages xiph) libogg))))
     (home-page "https://github.com/JuliaBinaryWrappers/Ogg_jll.jl")
@@ -4728,24 +4745,14 @@ wrappers.")
          (base32
           "0hwzxwnak3sixm8jlm2zz6578gn713sbbznq49s11h38n0aczjx2"))))
     (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f
-       ))
     (propagated-inputs
-     `(
-       ;; Only commented out to keep down the build times.
-       ;("julia-gr-jll" ,julia-gr-jll)
-       ))
-    (native-inputs
-     `(
-       ;("julia-distributions" ,julia-distributions)
-       ))
+     `(("julia-gr-jll" ,julia-gr-jll)))
     (home-page "https://github.com/jheinen/GR.jl")
     (synopsis "Plotting for Julia based on GR, a framework for visualisation applications")
     (description "This module provides a Julia interface to GR, a framework for visualisation applications.")
     (license license:expat)))
 
-;; TODO: Unbundle fonts, add inputs?
+;; TODO: Unbundle fonts
 (define-public gr-framework
   (package
     (name "gr-framework")
@@ -4759,58 +4766,35 @@ wrappers.")
         (file-name (git-file-name name version))
         (sha256
          (base32 "05qch57acgj6bs1l634wczj0agj2v0b3j221iyk47zqhbimhk45y"))
+        (modules '((guix build utils)))
+        (snippet
+         '(begin
+            (delete-file-recursively "3rdparty")
+            #t))
         ))
     (build-system cmake-build-system)
     (arguments
-     `(#:tests? #f  ; no test target
-       ;#:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
-       ;                    "-DEARCUT_BUILD_VIZ=OFF"
-       ;                    )
-       #:phases
-       (modify-phases %standard-phases
-          ;(delete 'configure)   ; no configure script
-          (add-after 'unpack 'patch-source
-            (lambda* (#:key outputs #:allow-other-keys)
-              ;; Force using the shared library, -fPIC errors otherwise
-              (substitute* "cmake/FindQhull.cmake"
-                (("qhullstatic") "qhull_r"))
-              #t))
-       ;  (replace 'check
-       ;    (lambda* (#:key tests? #:allow-other-keys)
-       ;      (when tests?
-       ;        (invoke "./tests"))
-       ;      #t))
-         ;; no install target, but no shared library either
-         ;(replace 'install
-         ;  (lambda* (#:key outputs #:allow-other-keys)
-         ;    (let ((out (assoc-ref outputs "out")))
-         )
-       ))
-    (propagated-inputs
-     `(
-       ;("julia-indexing" ,julia-indexing)
-       ))
+     `(#:tests? #f))    ; no test target
     (inputs
      `(
-       ;("glfw" ,(@ (gnu packages gl) glfw))    ; for VIZ
-       ))
-    (native-inputs
-     `(
-       ;("boost" ,(@ (gnu packages boost) boost))   ; not needed for tests?
-       ;;("julia-pooledarrays" ,julia-pooledarrays)
+       ("cairo" ,(S "cairo"))
+       ("ffmpeg" ,(S "ffmpeg"))
        ("freetype" ,(@ (gnu packages fontutils) freetype))
+       ("glfw" ,(S "glfw"))
        ("libjpeg-turbo" ,(@ (gnu packages image) libjpeg-turbo))
        ("libpng" ,(@ (gnu packages image) libpng))
-       ;("libx11" ,(@ (gnu packages xorg) libx11))
-       ;("libxft" ,(@ (gnu packages xorg) libxft))
-       ;("libxt" ,(@ (gnu packages xorg) libxt))
-       ("qhull" ,(@ (gnu packages maths) qhull))
+       ("libtiff" ,(S "libtiff"))
+       ("libx11" ,(@ (gnu packages xorg) libx11))
+       ("libxft" ,(@ (gnu packages xorg) libxft))
+       ("libxt" ,(@ (gnu packages xorg) libxt))
+       ("pixman" ,(S "pixman"))
        ("qtbase" ,(@ (gnu packages qt) qtbase))
+       ("qhull" ,(@ (gnu packages maths) qhull))
        ("zlib" ,zlib)
        ))
     (home-page "https://gr-framework.org/")
-    (synopsis "")
-    (description "")
+    (synopsis "Graphics library for visualisation applications")
+    (description "GR is a universal framework for cross-platform visualization applications.  It offers developers a compact, portable and consistent graphics library for their programs.  Applications range from publication quality 2D graphs to the representation of complex 3D scenes.  GR is essentially based on an implementation of a @acronym{GKS, Graphical Kernel System}.  As a self-contained system it can quickly and easily be integrated into existing applications (i.e. using the @code{ctypes} mechanism in Python or @code{ccall} in Julia).")
     (license license:expat)))
 
 (define-public julia-gr-jll
@@ -4852,12 +4836,12 @@ wrappers.")
        ("julia-cairo-jll" ,julia-cairo-jll)
        ("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
        ("julia-fontconfig-jll" ,julia-fontconfig-jll)
-       ;("julia-glfw-jll" ,julia-glfw-jll)
+       ("julia-glfw-jll" ,julia-glfw-jll)
        ("julia-jpegturbo-jll" ,julia-jpegturbo-jll)
-       ;("julia-libtiff-jll" ,julia-libtiff-jll)
        ("julia-libpng-jll" ,julia-libpng-jll)
+       ("julia-libtiff-jll" ,julia-libtiff-jll)
        ("julia-pixman-jll" ,julia-pixman-jll)
-       ;("julia-qt5base-jll" ,julia-qt5base-jll)
+       ("julia-qt5base-jll" ,julia-qt5base-jll)
        ("julia-zlib-jll" ,julia-zlib-jll)
        ))
     (home-page "https://github.com/JuliaBinaryWrappers/GR_jll.jl")
@@ -4903,9 +4887,9 @@ wrappers.")
        ("julia-fontconfig-jll" ,julia-fontconfig-jll)
        ("julia-glib-jll" ,julia-glib-jll)
        ("julia-libpng-jll" ,julia-libpng-jll)
-       ;("julia-lzo-jll" ,julia-lzo-jll)
+       ("julia-lzo-jll" ,julia-lzo-jll)
        ("julia-pixman-jll" ,julia-pixman-jll)
-       ;("julia-xorg-libxrender-jll" ,julia-xorg-libxrender-jll)
+       ("julia-xorg-libxrender-jll" ,julia-xorg-libxrender-jll)
        ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
        ("julia-zlib-jll" ,julia-zlib-jll)
        ))
@@ -5444,7 +5428,7 @@ wrappers.")
      `(
        ("julia-jllwrappers" ,julia-jllwrappers)
        ("julia-xorg-libxcb-jll" ,julia-xorg-libxcb-jll)
-       ;("julia-xorg-xtrans-jll" ,julia-xorg-xtrans-jll)
+       ("julia-xorg-xtrans-jll" ,julia-xorg-xtrans-jll)
        ))
     (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libX11_jll.jl")
     (synopsis "LibX11 library wrappers")
@@ -5454,7 +5438,7 @@ wrappers.")
 (define-public julia-xorg-libxcb-jll
   (package
     (name "julia-xorg-libxcb-jll")
-    (version "1.13.0+1")
+    (version "1.13.0+2")
     (source
       (origin
         (method git-fetch)
@@ -5463,7 +5447,7 @@ wrappers.")
                (commit (string-append "Xorg_libxcb-v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0ahqkn7d4kjg929iy124pzz3w0r9kvz1nz0sy4d7a048i3r1ajwh"))))
+         (base32 "109m4r4v6ww31rq0klyqd3rf3j1yiycvld82d514d040w5027ssk"))))
     (build-system julia-build-system)
     (arguments
      '(#:tests? #f  ; no runtests
@@ -5483,12 +5467,1210 @@ wrappers.")
     (propagated-inputs
      `(
        ("julia-jllwrappers" ,julia-jllwrappers)
-       ;("julia-xorg-libxau-jll" ,julia-xorg-libxau-jll)
-       ;("julia-xorg-libpthreads-stubs-jll" ,julia-xorg-libpthreads-stubs-jll)
-       ;("julia-xorg-libxdcmp-jll" ,julia-xorg-libxdcmp-jll)
-       ;("julia-xslt-jll" ,julia-xslt-jll)
+       ("julia-xorg-libxau-jll" ,julia-xorg-libxau-jll)
+       ("julia-xorg-libpthread-stubs-jll" ,julia-xorg-libpthread-stubs-jll)
+       ("julia-xorg-libxdmcp-jll" ,julia-xorg-libxdmcp-jll)
+       ("julia-xslt-jll" ,julia-xslt-jll)
        ))
     (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libxcb_jll.jl")
     (synopsis "Libxcb library wrappers")
     (description "This package provides a wrapper for the libxcb library.")
+    (license license:expat)))
+
+(define-public julia-binaryprovider
+  (package
+    (name "julia-binaryprovider")
+    (version "0.5.10")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPackaging/BinaryProvider.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "00kin10n3fv5352fx3a4wh8l581702iqqhfz2sng773hkljndi9v"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; test suite attempts to download packages
+       ))
+    (inputs
+     `(
+       ("busybox" ,(S "busybox"))
+       ))
+    (propagated-inputs
+     `(
+       ))
+    (home-page "https://github.com/JuliaPackaging/BinaryProvider.jl")
+    (synopsis "binary provider for Julia")
+    (description "Packages are installed to a Prefix; a folder that acts similar to the /usr/local directory on Unix-like systems, containing a bin folder for binaries, a lib folder for libraries, etc... Prefix objects can have tarballs install()'ed within them, uninstall()'ed from them, etc...")
+    (license license:expat)))
+
+(define-public julia-xorg-libxau-jll
+  (package
+    (name "julia-xorg-libxau-jll")
+    (version "1.0.9+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXau_jll.jl")
+               (commit (string-append "Xorg_libXau-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1bc59hzg4jgdy0lwykp6avxsb87fq9j79c30yxprwjvxq8xm3p8z"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXau\"")
+                    (string-append "\"" (assoc-ref inputs "libxau") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxau" ,(@ (gnu packages xorg) libxau))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXau_jll.jl")
+    (synopsis "Libxau library wrappers")
+    (description "This package provides a wrapper for the libxau library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxdmcp-jll
+  (package
+    (name "julia-xorg-libxdmcp-jll")
+    (version "1.1.3+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXdmcp_jll.jl")
+               (commit (string-append "Xorg_libXdmcp-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1ghw8c7ibkm2hv4h38qyhbxfmyizxszqv6fv8qzlb5031dmshnap"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXdmcp\"")
+                    (string-append "\"" (assoc-ref inputs "libxdmcp") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxdmcp" ,(@ (gnu packages xorg) libxdmcp))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXdmcp_jll.jl")
+    (synopsis "Libxdmcp library wrappers")
+    (description "This package provides a wrapper for the libxdmcp library.")
+    (license license:expat)))
+
+(define-public julia-xslt-jll
+  (package
+    (name "julia-xslt-jll")
+    (version "1.1.34+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/XSLT_jll.jl")
+               (commit (string-append "XSLT-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0wjkfnrgpd7c6i4ga5xzsqqmfrxcdkr1kjsxmd9bff8cqvyknnhq"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"XSLT\", \""
+                     (assoc-ref inputs "libxslt") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxslt" ,(S "libxslt"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-libiconv-jll" ,julia-libiconv-jll)
+       ("julia-libgcrypt-jll" ,julia-libgcrypt-jll)
+       ("julia-libgpg-error-jll" ,julia-libgpg-error-jll)
+       ("julia-xml2-jll" ,julia-xml2-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/XSLT_jll.jl")
+    (synopsis "Xslt library wrappers")
+    (description "This package provides a wrapper for the libxslt library.")
+    (license license:expat)))
+
+(define-public julia-libgpg-error-jll
+  (package
+    (name "julia-libgpg-error-jll")
+    (version "1.42.0+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Libgpg_error_jll.jl")
+               (commit (string-append "Libgpg_error-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0jmsn0mhn6b35b5awbrlpjjszknsplr62li574fkgwfxlfixb8iy"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"Libgpg_error\", \""
+                     (assoc-ref inputs "libgpg-error") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libgpg-error" ,(S "libgpg-error"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Libgpg_error_jll.jl")
+    (synopsis "libgpg-error library wrappers")
+    (description "This package provides a wrapper for the libgpg-error library.")
+    (license license:expat)))
+
+(define-public julia-libgcrypt-jll
+  (package
+    (name "julia-libgcrypt-jll")
+    (version "1.8.7+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Libgcrypt_jll.jl")
+               (commit (string-append "Libgcrypt-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "06fsdwrfw3f4cdbg1ssswznvj8ar3w5w4vxxag1hacs14pxlm5gi"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"Libgcrypt\", \""
+                     (assoc-ref inputs "libgcrypt") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libgcrypt" ,(S "libgcrypt"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-libgpg-error-jll" ,julia-libgpg-error-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Libgcrypt_jll.jl")
+    (synopsis "libgcrypt library wrappers")
+    (description "This package provides a wrapper for the libgcrypt library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libpthread-stubs-jll
+  (package
+    (name "julia-xorg-libpthread-stubs-jll")
+    (version "0.1.0+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libpthread_stubs_jll.jl")
+               (commit (string-append "Xorg_libpthread_stubs-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "161f4111xsb8xq4zs59jw95s94xfn1yxpii0p0dhn3yqgligggvx"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libpthread_stubs\"")
+                    (string-append "\"" (assoc-ref inputs "libpthread-stubs") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libpthread-stubs" ,(@ (gnu packages xorg) libpthread-stubs))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xslt-jll" ,julia-xslt-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libpthread_stubs_jll.jl")
+    (synopsis "Libpthread_stubs library wrappers")
+    (description "This package provides a wrapper for the libpthread_stubs library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xtrans-jll
+  (package
+    (name "julia-xorg-xtrans-jll")
+    (version "1.4.0+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xtrans_jll.jl")
+               (commit (string-append "Xorg_xtrans-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "16rzkgc7l1j57l43v5ffrak164bdff7h1amm0y3mcnwjqmkig9dn"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xtrans\"")
+                    (string-append "\"" (assoc-ref inputs "xtrans") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xtrans" ,(@ (gnu packages xorg) xtrans))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xtrans_jll.jl")
+    (synopsis "xtrans library wrappers")
+    (description "This package provides a wrapper for the xtrans library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxrender-jll
+  (package
+    (name "julia-xorg-libxrender-jll")
+    (version "0.9.10+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXrender_jll.jl")
+               (commit (string-append "Xorg_libXrender-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "041kjqpkgcjf72msg4zm4wja623wfsy9gmkqjvsj46lj885qizz7"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXrender\"")
+                    (string-append "\"" (assoc-ref inputs "libxrender") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxrender" ,(@ (gnu packages xorg) libxrender))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libx11-jll" ,julia-xorg-libx11-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXrender_jll.jl")
+    (synopsis "libXrender library wrappers")
+    (description "This package provides a wrapper for the libXrender library.")
+    (license license:expat)))
+
+(define-public julia-lzo-jll
+  (package
+    (name "julia-lzo-jll")
+    (version "2.10.1+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/LZO_jll.jl")
+               (commit (string-append "LZO-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1gy57znz3b6pk902vgdzlrwrxib0bcfl0zr1prinfbr9vfmiv1h0"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"LZO\", \""
+                     (assoc-ref inputs "lzo") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("lzo" ,(S "lzo"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/LZO_jll.jl")
+    (synopsis "lzo library wrappers")
+    (description "This package provides a wrapper for the lzo library.")
+    (license license:expat)))
+
+(define-public julia-glfw-jll
+  (package
+    (name "julia-glfw-jll")
+    (version "3.3.4+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/GLFW_jll.jl")
+               (commit (string-append "GLFW-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "12r4g8x1pgfrx53wq1a2q0rj4p08q352mmci2px1j4bd0pwi8rc4"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"GLFW\", \""
+                     (assoc-ref inputs "glfw") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("glfw" ,(S "glfw"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-libglvnd-jll" ,julia-libglvnd-jll)
+       ("julia-xorg-libxcursor-jll" ,julia-xorg-libxcursor-jll)
+       ("julia-xorg-libxinerama-jll" ,julia-xorg-libxinerama-jll)
+       ("julia-xorg-libxrandr-jll" ,julia-xorg-libxrandr-jll)
+       ("julia-xorg-libxi-jll" ,julia-xorg-libxi-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/GLFW_jll.jl")
+    (synopsis "glfw library wrappers")
+    (description "This package provides a wrapper for the glfw library.")
+    (license license:expat)))
+
+(define-public julia-libglvnd-jll
+  (package
+    (name "julia-libglvnd-jll")
+    (version "1.3.0+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Libglvnd_jll.jl")
+               (commit (string-append "Libglvnd-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1lrppqj836saryqxj9xrqn0cih513qhijkhgqdww5azw8w917d3w"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Libglvnd\"")
+                    (string-append "\"" (assoc-ref inputs "libglvnd") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libglvnd" ,(S "libglvnd"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libx11-jll" ,julia-xorg-libx11-jll)
+       ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Libglvnd_jll.jl")
+    (synopsis "libglvnd library wrappers")
+    (description "This package provides a wrapper for the libglvnd library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxcursor-jll
+  (package
+    (name "julia-xorg-libxcursor-jll")
+    (version "1.2.0+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXcursor_jll.jl")
+               (commit (string-append "Xorg_libXcursor-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0hxhpsjw1zk30qphrp90g1wvqfs1hr47qifn1gqgx73ci5nmq0y7"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXcursor\"")
+                    (string-append "\"" (assoc-ref inputs "libxcursor") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxcursor" ,(S "libxcursor"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxfixes-jll" ,julia-xorg-libxfixes-jll)
+       ("julia-xorg-libxrender-jll" ,julia-xorg-libxrender-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXcursor_jll.jl")
+    (synopsis "xorg-libxcursor library wrappers")
+    (description "This package provides a wrapper for the xorg-libxcursor library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxfixes-jll
+  (package
+    (name "julia-xorg-libxfixes-jll")
+    (version "5.0.3+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXfixes_jll.jl")
+               (commit (string-append "Xorg_libXfixes-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0sjpclxinbcq3msnaqdfqlpfhnlvl15qn7dam968i4qwrpyv43dv"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXfixes\"")
+                    (string-append "\"" (assoc-ref inputs "libxfixes") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxfixes" ,(S "libxfixes"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libx11-jll" ,julia-xorg-libx11-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXfixes_jll.jl")
+    (synopsis "xorg-libxfixes library wrappers")
+    (description "This package provides a wrapper for the xorg-libxfixes library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxi-jll
+  (package
+    (name "julia-xorg-libxi-jll")
+    (version "1.7.10+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXi_jll.jl")
+               (commit (string-append "Xorg_libXi-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1jhrng5sf44880x3pnw1gpb88z21c7nznfyzhs4a5z910ndrynd7"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXi\"")
+                    (string-append "\"" (assoc-ref inputs "libxi") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxi" ,(S "libxi"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
+       ("julia-xorg-libxfixes-jll" ,julia-xorg-libxfixes-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXi_jll.jl")
+    (synopsis "xorg-libxi library wrappers")
+    (description "This package provides a wrapper for the xorg-libxi library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxinerama-jll
+  (package
+    (name "julia-xorg-libxinerama-jll")
+    (version "1.1.4+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXinerama_jll.jl")
+               (commit (string-append "Xorg_libXinerama-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0jybxbqxd4jc9ka3rk3v5yh8ps2fapdibldr7bymllzw1w2i25rn"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXinerama\"")
+                    (string-append "\"" (assoc-ref inputs "libxinerama") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxinerama" ,(S "libxinerama"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXinerama_jll.jl")
+    (synopsis "xorg-libxinerama library wrappers")
+    (description "This package provides a wrapper for the xorg-libxinerama library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxrandr-jll
+  (package
+    (name "julia-xorg-libxrandr-jll")
+    (version "1.5.2+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libXrandr_jll.jl")
+               (commit (string-append "Xorg_libXrandr-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0y4gsw5x643qdamf932agzdlyayzp63pn8j7j0lckd6dzqfdz46g"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libXrandr\"")
+                    (string-append "\"" (assoc-ref inputs "libxrandr") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxrandr" ,(S "libxrandr"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
+       ("julia-xorg-libxrender-jll" ,julia-xorg-libxrender-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libXrandr_jll.jl")
+    (synopsis "xorg-libxrandr library wrappers")
+    (description "This package provides a wrapper for the xorg-libxrandr library.")
+    (license license:expat)))
+
+(define-public julia-libtiff-jll
+  (package
+    (name "julia-libtiff-jll")
+    (version "4.1.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Libtiff_jll.jl")
+               (commit (string-append "Libtiff-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "07zzhmwmh2g4645ghv76z40hza2ghlb7sw15b1pii7f9kfcsgf45"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Libtiff\"")
+                    (string-append "\"" (assoc-ref inputs "libtiff") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libtiff" ,(S "libtiff"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-jpegturbo-jll" ,julia-jpegturbo-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ("julia-zstd-jll" ,julia-zstd-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Libtiff_jll.jl")
+    (synopsis "libtiff library wrappers")
+    (description "This package provides a wrapper for the libtiff library.")
+    (license license:expat)))
+
+(define-public julia-qt5base-jll
+  (package
+    (name "julia-qt5base-jll")
+    (version "5.15.2+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Qt5Base_jll.jl")
+               (commit (string-append "Qt5Base-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1hhs316dl2jy56y2j4809vwpfj6ffbjchl1a27x44mmh9bj7vxzy"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                  (("generate_wrapper_header.*")
+                   (string-append
+                     "generate_wrapper_header(\"Qt5Base\", \""
+                     (assoc-ref inputs "qtbase") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("qtbase" ,(S "qtbase"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-libglvnd-jll" ,julia-libglvnd-jll)
+       ("julia-compilersupportlibraries-jll" ,julia-compilersupportlibraries-jll)
+       ("julia-fontconfig-jll" ,julia-fontconfig-jll)
+       ("julia-glib-jll" ,julia-glib-jll)
+       ("julia-openssl-jll" ,julia-openssl-jll)
+       ("julia-xkbcommon-jll" ,julia-xkbcommon-jll)
+       ("julia-xorg-libxcb-jll" ,julia-xorg-libxcb-jll)
+       ("julia-xorg-libxext-jll" ,julia-xorg-libxext-jll)
+       ("julia-xorg-xcb-util-image-jll" ,julia-xorg-xcb-util-image-jll)
+       ("julia-xorg-xcb-util-keysyms-jll" ,julia-xorg-xcb-util-keysyms-jll)
+       ("julia-xorg-xcb-util-renderutil-jll" ,julia-xorg-xcb-util-renderutil-jll)
+       ("julia-xorg-xcb-util-wm-jll" ,julia-xorg-xcb-util-wm-jll)
+       ("julia-zlib-jll" ,julia-zlib-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Qt5Base_jll.jl")
+    (synopsis "qt5base library wrappers")
+    (description "This package provides a wrapper for the qt5base library.")
+    (license license:expat)))
+
+(define-public julia-xkbcommon-jll
+  (package
+    (name "julia-xkbcommon-jll")
+    (version "0.9.1+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/xkbcommon_jll.jl")
+               (commit (string-append "xkbcommon-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1g2gmd3mj1p369kzvrd02ldgr9s712vs9774v1phb59jxlshc0zc"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"xkbcommon\"")
+                    (string-append "\"" (assoc-ref inputs "libxkbcommon") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxkbcommon" ,(S "libxkbcommon"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xkeyboard-config-jll" ,julia-xorg-xkeyboard-config-jll)
+       ("julia-xorg-libxcb-jll" ,julia-xorg-libxcb-jll)
+       ("julia-wayland-jll" ,julia-wayland-jll)
+       ("julia-wayland-protocols-jll" ,julia-wayland-protocols-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/xkbcommon_jll.jl")
+    (synopsis "xkbcommon library wrappers")
+    (description "This package provides a wrapper for the xkbcommon library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xkeyboard-config-jll
+  (package
+    (name "julia-xorg-xkeyboard-config-jll")
+    (version "2.27.0+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xkeyboard_config_jll.jl")
+               (commit (string-append "Xorg_xkeyboard_config-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1lgynzxd0mn64zbf0njqkd1hz1illqnl3p7hi9abwh5vbdf4pwhw"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xkeyboard_config\"")
+                    (string-append "\"" (assoc-ref inputs "xkeyboard-config") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xkeyboard-config" ,(S "xkeyboard-config"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xkbcomp-jll" ,julia-xorg-xkbcomp-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xkeyboard_config_jll.jl")
+    (synopsis "xkeyboard-config library wrappers")
+    (description "This package provides a wrapper for the xkeyboard-config library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xkbcomp-jll
+  (package
+    (name "julia-xorg-xkbcomp-jll")
+    (version "1.4.2+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xkbcomp_jll.jl")
+               (commit (string-append "Xorg_xkbcomp-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1rkb9525iq0jjpq8v333b728kfillgixxsim37mqdplad85l36wl"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xkbcomp\"")
+                    (string-append "\"" (assoc-ref inputs "xkbcomp") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xkbcomp" ,(S "xkbcomp"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxkbfile-jll" ,julia-xorg-libxkbfile-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xkbcomp_jll.jl")
+    (synopsis "libxkbcomp library wrappers")
+    (description "This package provides a wrapper for the libxkbcomp library.")
+    (license license:expat)))
+
+(define-public julia-xorg-libxkbfile-jll
+  (package
+    (name "julia-xorg-libxkbfile-jll")
+    (version "1.1.0+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_libxkbfile_jll.jl")
+               (commit (string-append "Xorg_libxkbfile-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0zrnrixz34h54n0c06ziaxcajvndydzgxxh5jbvqx1xrij5rw5gy"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_libxkbfile\"")
+                    (string-append "\"" (assoc-ref inputs "libxkbfile") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("libxkbfile" ,(S "libxkbfile"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libx11-jll" ,julia-xorg-libx11-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_libxkbfile_jll.jl")
+    (synopsis "libxkbfile library wrappers")
+    (description "This package provides a wrapper for the libxkbfile library.")
+    (license license:expat)))
+
+(define-public julia-wayland-jll
+  (package
+    (name "julia-wayland-jll")
+    (version "1.17.0+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Wayland_jll.jl")
+               (commit (string-append "Wayland-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1w53inz62va3f022pgw3rfw5z5vgiv8z9dg3lfzpjrdb0lcd6ab6"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Wayland\"")
+                    (string-append "\"" (assoc-ref inputs "wayland") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("wayland" ,(S "wayland"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-expat-jll" ,julia-expat-jll)
+       ("julia-libffi-jll" ,julia-libffi-jll)
+       ("julia-xml2-jll" ,julia-xml2-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Wayland_jll.jl")
+    (synopsis "wayland library wrappers")
+    (description "This package provides a wrapper for the wayland library.")
+    (license license:expat)))
+
+(define-public julia-wayland-protocols-jll
+  (package
+    (name "julia-wayland-protocols-jll")
+    (version "1.18.0+3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Wayland_protocols_jll.jl")
+               (commit (string-append "Wayland_protocols-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1dc9d2wzgybqjlg8l7f4ridkv2d66dg3lb3zihnl0k64psibn4x9"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Wayland_protocols\"")
+                    (string-append "\"" (assoc-ref inputs "wayland-protocols") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("wayland-protocols" ,(S "wayland-protocols"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-wayland-jll" ,julia-wayland-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Wayland_protocols_jll.jl")
+    (synopsis "wayland-protocols library wrappers")
+    (description "This package provides a wrapper for the wayland-protocols library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xcb-util-wm-jll
+  (package
+    (name "julia-xorg-xcb-util-wm-jll")
+    (version "0.4.1+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_wm_jll.jl")
+               (commit (string-append "Xorg_xcb_util_wm-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0g6jhfb3l04lrx3cm3b8wc0pp5271dpncwin5pg94nljdj4mgj53"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xcb_util_wm\"")
+                    (string-append "\"" (assoc-ref inputs "xcb-util-wm") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xcb-util-wm" ,(S "xcb-util-wm"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xcb-util-jll" ,julia-xorg-xcb-util-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_wm_jll.jl")
+    (synopsis "xcb-util-wm library wrappers")
+    (description "This package provides a wrapper for the xcb-util-wm library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xcb-util-jll
+  (package
+    (name "julia-xorg-xcb-util-jll")
+    (version "0.4.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_jll.jl")
+               (commit (string-append "Xorg_xcb_util-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0jywbxwf9x2naqsh9hh231bqpphh15v7cdhijcspjfggwkyq1npi"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xcb_util\"")
+                    (string-append "\"" (assoc-ref inputs "xcb-util") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xcb-util" ,(S "xcb-util"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-libxcb-jll" ,julia-xorg-libxcb-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_jll.jl")
+    (synopsis "xcb-util library wrappers")
+    (description "This package provides a wrapper for the xcb-util library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xcb-util-image-jll
+  (package
+    (name "julia-xorg-xcb-util-image-jll")
+    (version "0.4.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_image_jll.jl")
+               (commit (string-append "Xorg_xcb_util_image-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1f9xx094nylg7dcfxm0qmph4xy492rd3yxa8arijqyi6rs8zrgxz"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xcb_util_image\"")
+                    (string-append "\"" (assoc-ref inputs "xcb-util-image") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xcb-util-image" ,(S "xcb-util-image"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xcb-util-jll" ,julia-xorg-xcb-util-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_image_jll.jl")
+    (synopsis "xcb-util-image library wrappers")
+    (description "This package provides a wrapper for the xcb-util-image library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xcb-util-keysyms-jll
+  (package
+    (name "julia-xorg-xcb-util-keysyms-jll")
+    (version "0.4.0+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_keysyms_jll.jl")
+               (commit (string-append "Xorg_xcb_util_keysyms-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "03i3fw9p16rpjnki80w4rhmaiqvjlfsr94bf9yizndqsw1lcq42l"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xcb_util_keysyms\"")
+                    (string-append "\"" (assoc-ref inputs "xcb-util-keysyms") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xcb-util-keysyms" ,(S "xcb-util-keysyms"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xcb-util-jll" ,julia-xorg-xcb-util-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_keysyms_jll.jl")
+    (synopsis "xcb-util-keysyms library wrappers")
+    (description "This package provides a wrapper for the xcb-util-keysyms library.")
+    (license license:expat)))
+
+(define-public julia-xorg-xcb-util-renderutil-jll
+  (package
+    (name "julia-xorg-xcb-util-renderutil-jll")
+    (version "0.3.9+1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_renderutil_jll.jl")
+               (commit (string-append "Xorg_xcb_util_renderutil-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1zxz459sxma7cv32x2y8fnvwdz1f37fq0xhkihdsnkfdl761gn1a"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("artifact\"Xorg_xcb_util_renderutil\"")
+                    (string-append "\"" (assoc-ref inputs "xcb-util-renderutil") "\""))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     `(("xcb-util-renderutil" ,(S "xcb-util-renderutil"))))
+    (propagated-inputs
+     `(
+       ("julia-jllwrappers" ,julia-jllwrappers)
+       ("julia-xorg-xcb-util-jll" ,julia-xorg-xcb-util-jll)
+       ))
+    (home-page "https://github.com/JuliaBinaryWrappers/Xorg_xcb_util_renderutil_jll.jl")
+    (synopsis "xcb-util-renderutil library wrappers")
+    (description "This package provides a wrapper for the xcb-util-renderutil library.")
     (license license:expat)))
