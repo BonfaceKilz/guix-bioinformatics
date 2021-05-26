@@ -1801,6 +1801,44 @@ to the user.")
     (description "Conversion of PacBio BAM files into gzipped fasta and fastq files, including splitting of barcoded data.")
     (license license:bsd-3)))
 
+(define-public pbbam-1
+  (package
+    (name "pbbam")
+    (version "1.6.0")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/PacificBiosciences/pbbam")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1z3sh9cmrap37ijrm0cv85j92r1xkq6kba2j10mrr4fv7fc9zzfb"))))
+    (build-system meson-build-system)
+    ;; These libraries are listed as "Required" in the pkg-config file.
+    (propagated-inputs
+     `(("htslib" ,htslib)
+       ("pbcopper" ,pbcopper)
+       ("zlib" ,zlib)))
+    (inputs
+     `(("boost" ,boost)
+       ("samtools" ,samtools)))
+    (native-inputs
+     `(("cram" ,python-cram)
+       ("googletest" ,googletest)
+       ("pkg-config" ,pkg-config)
+       ("python" ,python-wrapper))) ; for tests
+    (home-page "https://github.com/PacificBiosciences/pbbam")
+    (synopsis "Work with PacBio BAM files")
+    (description
+     "The pbbam software package provides components to create, query, and
+edit PacBio BAM files and associated indices.  These components include a core
+C++ library, bindings for additional languages, and command-line utilities.
+This library is not intended to be used as a general-purpose BAM utility - all
+input and output BAMs must adhere to the PacBio BAM format specification.
+Non-PacBio BAMs will cause exceptions to be thrown.")
+    (license license:bsd-3)))
+
 (define-public pbcopper
   (package
     (name "pbcopper")
@@ -1816,11 +1854,94 @@ to the user.")
          (base32
           "1pphklil5kn1ds796ch41bgvdf7yq03z6w5rgi572s8xg8k5b0xn"))))
     (build-system meson-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'patch-source
+           (lambda _
+             (substitute* "meson.build"
+               ;; uncomment when upstreaming
+               ;(("sse4\\.1") "nosse4.1")
+               (("v8\\.2-a") "v8-a"))
+             #t)))))
     (inputs
      `(("boost" ,boost)))
     (native-inputs
      `(("googletest" ,googletest)))
     (home-page "https://github.com/PacificBiosciences/pbcopper")
-    (synopsis "Core C++ library for data structures, algorithms, and utilities")
-    (description "The pbcopper library provides a suite of data structures, algorithms, and utilities for PacBio C++ applications.")
+    (synopsis "Data structures, algorithms, and utilities for C++ applications")
+    (description "The pbcopper library provides a suite of data structures,
+algorithms, and utilities for PacBio C++ applications.")
     (license license:bsd-3)))
+
+(define-public pbmm2
+  (package
+    (name "pbmm2")
+    (version "1.4.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/PacificBiosciences/pbmm2")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "0c01c647c7wvq5jzkf68xsf0bn8mlyw0hbz2fiyirxg7hj05jyac"))))
+    (build-system meson-build-system)
+    (arguments
+     `(#:tests? #f))    ; TODO: Fix later.
+    (inputs
+     `(("boost" ,boost)
+       ("htslib" ,htslib)
+       ("minimap2" ,minimap2-for-pbmm2)
+       ("pbbam" ,pbbam-1)
+       ("pbcopper" ,pbcopper)))
+    (native-inputs
+     `(("cram" ,python-cram)
+       ("googletest" ,googletest)
+       ("pkg-config" ,pkg-config)
+       ("samtools" ,samtools)
+       ("util-linux" ,util-linux)
+       ("zlib" ,zlib)))
+    (home-page "https://github.com/PacificBiosciences/pbmm2")
+    (synopsis "minimap2 frontend for PacBio native data formats")
+    (description "pbmm2 is a SMRT C++ wrapper for minimap2's C API.  Its purpose is to support native PacBio in- and output, provide sets of recommended parameters, generate sorted output on-the-fly, and postprocess alignments.  Sorted output can be used directly for polishing using GenomicConsensus, if BAM has been used as input to pbmm2.  Benchmarks show that pbmm2 outperforms BLASR in sequence identity, number of mapped bases, and especially runtime.  pbmm2 is the official replacement for BLASR.")
+    (license license:bsd-3)))
+
+(define minimap2-for-pbmm2
+  (package
+    (name "minimap2")
+    (version "2.17")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/pacificbiosciences/minimap2")
+              (commit (string-append version "-meson"))))
+       (file-name (git-file-name "minimap2-for-pbmm2" version))
+       (sha256
+        (base32
+         "1833y6xdcblz7k4fyclryd6lwibsisp4svp2mk9w6ivk64icl6jq"))))
+    (build-system meson-build-system)
+    (inputs
+     `(("zlib" ,zlib)))
+    (native-inputs
+     `(("pkg-config" ,pkg-config)))
+    (home-page "https://lh3.github.io/minimap2/")
+    (synopsis "Pairwise aligner for genomic and spliced nucleotide sequences")
+    (description "Minimap2 is a versatile sequence alignment program that
+aligns DNA or mRNA sequences against a large reference database.  Typical use
+cases include:
+
+@enumerate
+@item mapping PacBio or Oxford Nanopore genomic reads to the human genome;
+@item finding overlaps between long reads with error rate up to ~15%;
+@item splice-aware alignment of PacBio Iso-Seq or Nanopore cDNA or Direct RNA
+  reads against a reference genome;
+@item aligning Illumina single- or paired-end reads;
+@item assembly-to-assembly alignment;
+@item full-genome alignment between two closely related species with
+  divergence below ~15%.
+@end enumerate\n")
+    (license license:expat)))
