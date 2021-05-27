@@ -11,6 +11,7 @@
   #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-crypto)
+  #:use-module (gnu packages python-science)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)
   #:use-module (gn packages javascript)
@@ -139,7 +140,7 @@
        ("jquery" ,web-jquery)
        ("js-filesaver" ,js-filesaver-1.3.2)
        ("js-popper" ,js-popper-1.12.9)))
-    (home-page "http://rats.pub/")
+    (home-page "https://rats.pub/")
     (synopsis "Relationship with Addiction Through Searches of PubMed")
     (description
      "RatsPub is a tool to efficiently and comprehensively answer the question
@@ -266,3 +267,142 @@ if __name__ == '__main__':
     (synopsis "")
     (description "")
     (license license:expat)))
+
+(define-public genecup
+  (package
+    (name "genecup")
+    (version "1.0")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/hakangunturkun/GeneCup")
+                     (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              ;; Change the port for running the service.
+              (modules '((guix build utils)))
+              (snippet
+               '(begin (substitute* "server.py"
+                         (("4200") "4204"))
+                       #t))
+              (sha256
+               (base32 "0ddgqjiacr0f33x0f9s10v3rqr3mmr92jwniprk22a167ncvfgx3"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:tests? #f  ; no test suite
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         (delete 'build)
+         (add-after 'unpack 'make-files-writable
+           (lambda _
+             (for-each make-file-writable (find-files "."))))
+         (add-after 'unpack 'patch-datadir
+           (lambda _
+             (substitute* "server.py"
+               (("^datadir.*") "datadir = \"/export/ratspub/\"\n"))
+             #t))
+         (add-after 'unpack 'patch-sources
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out       (assoc-ref outputs "out"))
+                   (inetutils (assoc-ref inputs "inetutils")))
+               (substitute* '("templates/cytoscape.html"
+                              "templates/tableview.html"
+                              "templates/tableview0.html"
+                              "templates/userarchive.html")
+                 (("https.*FileSaver.js.*\\\">") "/static/FileSaver.js\">")
+                 (("https.*cytoscape-svg.js.*\\\">") "/static/cytoscape-svg.js\">")
+                 (("https.*cytoscape.min.js.*\\\">") "/static/cytoscape.min.js\">"))
+               (substitute* "templates/layout.html"
+                 (("https.*bootstrap.min.css.*\\\">") "/static/bootstrap.min.css\">")
+                 (("https.*4.*bootstrap.min.js.*\\\">") "/static/bootstrap.min.js\">")
+                 (("https.*4.7.0/css/font-awesome.min.css") "/static/font-awesome.min.css")
+                 (("https.*jquery-3.2.1.slim.min.js.*\\\">") "/static/jquery.slim.min.js\">")
+                 (("https.*1.12.9/umd/popper.min.js.*\\\">") "/static/popper.min.js\">"))
+               (substitute* "ratspub.py"
+                 (("hostname") (string-append inetutils "/bin/hostname"))))
+             #t))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (copy-recursively "." out))
+             #t))
+         (add-after 'install 'install-javascript
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out       (assoc-ref outputs "out"))
+                   (awesome   (assoc-ref inputs "font-awesome"))
+                   (bootstrap (assoc-ref inputs "bootstrap"))
+                   (cytoscape (assoc-ref inputs "cytoscape"))
+                   (cytoscape-svg (assoc-ref inputs "cytoscape-svg"))
+                   (jquery    (assoc-ref inputs "jquery"))
+                   (js-filesaver (assoc-ref inputs "js-filesaver"))
+                   (js-popper (assoc-ref inputs "js-popper")))
+               (symlink (string-append awesome
+                                       "/share/web/font-awesomecss/font-awesome.min.css")
+                        (string-append out "/static/font-awesome.min.css"))
+               (symlink (string-append bootstrap
+                                       "/share/web/bootstrap/css/bootstrap.min.css")
+                        (string-append out "/static/bootstrap.min.css"))
+               (symlink (string-append bootstrap
+                                       "/share/web/bootstrap/js/bootstrap.min.js")
+                        (string-append out "/static/bootstrap.min.js"))
+               (symlink (string-append cytoscape
+                                       "/share/genenetwork2/javascript/cytoscape/cytoscape.min.js")
+                        (string-append out "/static/cytoscape.min.js"))
+               (symlink (string-append cytoscape-svg
+                                       "/share/javascript/cytoscape-svg.js")
+                        (string-append out "/static/cytoscape-svg.js"))
+               (symlink (string-append jquery
+                                       "/share/web/jquery/jquery.slim.min.js")
+                        (string-append out "/static/jquery.slim.min.js"))
+               (symlink (string-append js-filesaver
+                                       "/share/javascript/FileSaver.js")
+                        (string-append out "/static/FileSaver.js"))
+               (symlink (string-append js-popper
+                                       "/share/javascript/popper.min.js")
+                        (string-append out "/static/popper.min.js")))
+             #t))
+         (add-after 'install 'wrap-executable
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out  (assoc-ref outputs "out"))
+                   (path (getenv "PYTHONPATH")))
+               (wrap-program (string-append out "/server.py")
+                `("PATH" ":" prefix (,(dirname (which "edirect.pl"))
+                                      ,(dirname (which "dirname"))
+                                      ,(dirname (which "grep"))
+                                      ,(dirname (which "sed"))))
+                `("PYTHONPATH" ":" prefix (,path))))
+             #t)))))
+    (inputs
+     `(("edirect" ,edirect)
+       ("inetutils" ,inetutils)
+       ("python-bcrypt" ,python-bcrypt)
+       ("python-flask-sqlalchemy" ,python-flask-sqlalchemy)
+       ("python-keras" ,python-keras-for-ratspub)
+       ("python-nltk" ,python-nltk)
+       ("python-pandas" ,python-pandas)
+       ("python-regex" ,python-regex)
+       ("tensorflow" ,tensorflow)))
+    (native-inputs
+     `(("bootstrap" ,web-bootstrap)
+       ("cytoscape" ,javascript-cytoscape-3.17)
+       ;("cytoscape-svg" ,js-cytoscape-svg-0.3.1)   ; TODO
+       ("cytoscape-svg" ,js-cytoscape-svg-vendor-0.3.1)
+       ("font-awesome" ,web-font-awesome)
+       ("jquery" ,web-jquery)
+       ("js-filesaver" ,js-filesaver-1.3.2)
+       ("js-popper" ,js-popper-1.12.9)))
+    (home-page "http://genecut.org")
+    (synopsis "Using PubMed to find out how a gene contributes to addiction")
+    (description "GeneCup automatically extracts information from PubMed and
+@url{https://www.ebi.ac.uk/gwas/, @acronym{NHGRI-EBI GWAS, European
+Bioinformatics Institute Genome-Wide Association Studies}} catalog on the
+relationship of any gene with a custom list of keywords hierarchically organized
+into an ontology.  The users create an ontology by identifying categories of
+concepts and a list of keywords for each concept.")
+    (license license:expat)))
+
+(define-public genecup-with-tensorflow-native
+  (package
+    (inherit
+      (tensowflow-native-instead-of-tensorflow genecup))
+    (name "genecup-with-tensorflow-native")))
