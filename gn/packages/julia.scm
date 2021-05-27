@@ -82,9 +82,9 @@
       (inputs
        `(
          ;("julia-distributions" ,julia-distributions)
-         ;("julia-interactiveutils" ,julia-interactiveutils)    ; Part of stdlib as of XXXX
+         ;("julia-interactiveutils" ,julia-interactiveutils) ; Part of stdlib as of XXXX
          ("julia-latexstrings" ,julia-latexstrings)
-         ;("julia-markdown" ,julia-markdown)    ; Part of stdlib as of XXXX
+         ;("julia-markdown" ,julia-markdown)                 ; Part of stdlib as of XXXX
          ("julia-optim" ,julia-optim)
          ("julia-plots" ,julia-plots)
          ("julia-pluto" ,julia-pluto)
@@ -182,7 +182,6 @@ can be sent and run on other machines without Julia being installed on that mach
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
-       ;#:julia-package-name "PackageCompiler"
        ))
     (propagated-inputs
      `(
@@ -221,7 +220,6 @@ distributed computing.")
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
-       ;#:julia-package-name "PackageCompiler"
        ))
     (propagated-inputs
      `(
@@ -252,7 +250,6 @@ distributed computing.")
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
-       ;#:julia-package-name "PackageCompiler"
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'remove-conda
@@ -316,26 +313,6 @@ distributed computing.")
     (description "This package provides the ability to directly call and fully interoperate with Python from the Julia language.  You can import arbitrary Python modules from Julia, call Python functions (with automatic conversion of types between Julia and Python), define Python classes from Julia methods, and share large data structures between Julia and Python without copying them.")
     (license license:expat)))
 
-(define-public julia-versionparsing
-  (package
-    (name "julia-versionparsing")
-    (version "1.2.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaInterop/VersionParsing.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "060s72dsnpavgilf7f7315lw2sn4npk8lkndmj6bg7i23hppiwva"))))
-    (build-system julia-build-system)
-    (home-page "https://github.com/JuliaInterop/VersionParsing.jl")
-    (synopsis "Flexible VersionNumber parsing in Julia")
-    (description "The @code{VersionParsing} package implements flexible parsing of version-number strings into Julia's built-in @code{VersionNumber} type, via the @code{vparse(string)} function.  Unlike the @code{VersionNumber(string){ constructor, @code{vparse(string)} can handle version-number strings in a much wider range of formats than are encompassed by the semver standard. This is useful in order to support @code{VersionNumber} comparisons applied to \"foreign\" version numbers from external packages.")
-    (license license:expat)))
-
 (define-public julia-conda
   (package
     (name "julia-conda")
@@ -353,7 +330,6 @@ distributed computing.")
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
-       ;#:julia-package-name "PackageCompiler"
        #:phases
        (modify-phases %standard-phases
          (add-before 'check 'pre-check
@@ -388,6 +364,7 @@ distributed computing.")
     (description "This package allows one to use @code{conda} as a cross-platform binary provider for Julia for other Julia packages, especially to install binaries that have complicated dependencies like Python.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-latexstrings
   (package
     (name "julia-latexstrings")
@@ -400,14 +377,14 @@ distributed computing.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "117z27krcf8fydgp6mb0pgn75r4gng9qs7v90qb4bqzsry3faadp"))))
+         (base32 "117z27krcf8fydgp6mb0pgn75r4gng9qs7v90qb4bqzsry3faadp"))))
     (build-system julia-build-system)
     (native-inputs
-     `(("julia-documenter" ,julia-documenter-0.24)))
+     `(("julia-documenter" ,julia-documenter)))
     (home-page "https://github.com/stevengj/LaTeXStrings.jl")
     (synopsis "Input and display of LaTeX equation strings")
-    (description "This is a small package to make it easier to type LaTeX equations in string literals in the Julia language.")
+    (description "This is a small package to make it easier to type LaTeX
+equations in string literals in the Julia language.")
     (license license:expat)))
 
 (define-public julia-distributions
@@ -449,6 +426,7 @@ distributed computing.")
 @end enumerate")
     (license license:expat)))
 
+;; TODO: Unbundle extra assets? assets/html/
 (define-public julia-documenter
   (package
     (name "julia-documenter")
@@ -464,44 +442,36 @@ distributed computing.")
          (base32
           "1d4mdjc56w0hrc50qia361zfp8zapq163cqgagkbbjn0k83zp21x"))))
     (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
     (propagated-inputs
      `(("julia-docstringextensions" ,julia-docstringextensions)
-       ("julia-iocapture" ,julia-iocapture)
+       ;; TODO: Switch to julia-iocapture after 0.27.
+       ("julia-iocapture" ,julia-iocapture-0.1)
        ("julia-json" ,julia-json)))
     (native-inputs
-     `(("julia-documentermarkdown" ,julia-documentermarkdown)))
+     `(("git" ,(S "git-minimal"))
+       ("julia-documentermarkdown" ,julia-documentermarkdown)))
     (home-page "https://juliadocs.github.io/Documenter.jl")
     (synopsis "Documentation generator for Julia")
     (description "This package provides a documentation generator for Julia.")
     (license license:expat)))
 
-(define-public julia-documenter-0.24
+;; Upstream with julia-documenter
+(define-public julia-iocapture-0.1
   (package
-    (inherit julia-documenter)
-    (name "julia-documenter")
-    (version "0.24.11")
+    (inherit julia-iocapture)
+    (name "julia-iocapture")
+    (version "0.1.1")
     (source
       (origin
         (method git-fetch)
         (uri (git-reference
-               (url "https://github.com/JuliaDocs/Documenter.jl")
+               (url "https://github.com/JuliaDocs/IOCapture.jl")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0s3di48bwc08lhsqhqkgsxg01fr39vp3j1hbnswcaq7f90v6lqhn"))))
-    (arguments
-     `(#:tests? #f  ; Some tests fail
-       ))
-    (propagated-inputs
-     `(("julia-docstringextensions" ,julia-docstringextensions)
-       ("julia-json" ,julia-json)))
-    (native-inputs
-     `(("julia-documentermarkdown" ,julia-documentermarkdown)))
-    (properties '((hidden? . #t)))))
+         (base32 "0wm8pag5mk46064h3qpvgz8m63138104rq0smx1za7lh7j32925h"))))))
 
+;; ready to upstream
 (define-public julia-documenter-0.22
   (package
     (inherit julia-documenter)
@@ -518,13 +488,24 @@ distributed computing.")
          (base32
           "1z8b7267y7yn5nx8sjwkmc0ph97vmv42q52jg7s89ghqb9xx3wv5"))))
     (arguments
-     `(#:tests? #f))    ; Some tests require network.
+     `(#:tests? #f      ; Some tests require network.
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'remove-javascript-downloads
+           (lambda _
+             ;; This isn't problematic because we only use
+             ;; this package for bootstrapping.
+             (substitute* '("assets/html/documenter.js"
+                            "assets/html/search.js")
+               (("https.*min") ""))
+             #t)))))
     (propagated-inputs
      `(("julia-docstringextensions" ,julia-docstringextensions)
        ("julia-json" ,julia-json)))
     (native-inputs `())
     (properties '((hidden? . #t)))))
 
+;; ready to upstream
 (define-public julia-documentermarkdown
   (package
     (name "julia-documentermarkdown")
@@ -540,8 +521,9 @@ distributed computing.")
          (base32
           "11l7yrifg8pdr4q6h75zydfw5i8vww07p5bci5mi8gwwcpi3jksb"))))
     (build-system julia-build-system)
-    (propagated-inputs
-      ;; Cycle with julia-documenter in later versions.
+    (inputs
+     ;; We don't want to propagate the bootstrap version.
+     ;; Cycle with julia-documenter in later versions.
      `(("julia-documenter" ,julia-documenter-0.22)))
     (home-page "https://github.com/JuliaDocs/DocumenterMarkdown.jl")
     (synopsis "Documenter's Markdown")
@@ -549,6 +531,7 @@ distributed computing.")
 @code{Documenter.jl}.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-statsbase
   (package
     (name "julia-statsbase")
@@ -580,6 +563,7 @@ functions, such as scalar statistics, high-order moment computation, counting,
 ranking, covariances, sampling, and empirical density estimation.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-dataapi
   (package
     (name "julia-dataapi")
@@ -592,12 +576,15 @@ ranking, covariances, sampling, and empirical density estimation.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "14sfvkz169zcbap3gdwpj16qsap783h86fd07flfxk822abam11w"))))
+         (base32 "14sfvkz169zcbap3gdwpj16qsap783h86fd07flfxk822abam11w"))))
     (build-system julia-build-system)
     (home-page "https://github.com/JuliaData/DataAPI.jl")
-    (synopsis "data-focused namespace for packages to share functions")
-    (description "This package provides a namespace for data-related generic function definitions to solve the optional dependency problem; packages wishing to share and/or extend functions can avoid depending directly on each other by moving the function definition to DataAPI.jl and each package taking a dependency on it.")
+    (synopsis "Data-focused namespace for packages to share functions")
+    (description "This package provides a namespace for data-related generic
+function definitions to solve the optional dependency problem; packages wishing
+to share and/or extend functions can avoid depending directly on each other by
+moving the function definition to DataAPI.jl and each package taking a
+dependency on it.")
     (license license:expat)))
 
 (define-public julia-optim
@@ -619,16 +606,14 @@ ranking, covariances, sampling, and empirical density estimation.")
      `(#:tests? #f  ; TODO: Fix test
        ))
     (propagated-inputs
-     `(
-       ("julia-compat" ,julia-compat)
+     `(("julia-compat" ,julia-compat)
        ("julia-fillarrays" ,julia-fillarrays)
        ("julia-linesearches" ,julia-linesearches)
        ("julia-nlsolversbase" ,julia-nlsolversbase)
        ("julia-nanmath" ,julia-nanmath)
        ("julia-parameters" ,julia-parameters)
        ("julia-positivefactorizations" ,julia-positivefactorizations)
-       ("julia-statsbase" ,julia-statsbase)
-       ))
+       ("julia-statsbase" ,julia-statsbase)))
     (native-inputs
      `(
        ("julia-optimtestproblems" ,julia-optimtestproblems)
@@ -639,6 +624,7 @@ ranking, covariances, sampling, and empirical density estimation.")
     (description "Optim.jl is a package for univariate and multivariate optimization of functions.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-nlsolversbase
   (package
     (name "julia-nlsolversbase")
@@ -668,6 +654,7 @@ hold objective related callables, information about the objectives, and an
 interface to interact with these types.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-finitediff
   (package
     (name "julia-finitediff")
@@ -680,16 +667,15 @@ interface to interact with these types.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0ndazn02wn8ddwgjh1i32y7pbaqpw06f42ccilz5ya78cyrjhq2m"))))
+         (base32 "0ndazn02wn8ddwgjh1i32y7pbaqpw06f42ccilz5ya78cyrjhq2m"))))
     (build-system julia-build-system)
     (arguments
      `(#:phases
        (modify-phases %standard-phases
          (add-before 'check 'pre-check
            (lambda _
-             ;; We don't want to run all the tests, the Downstream tests try
-             ;; to download the package registry.
+             ;; We don't want to run all the tests, the Downstream tests
+             ;; try to download the package registry.
              (setenv "GROUP" "Core")
              #t)))))
     (propagated-inputs
@@ -708,6 +694,7 @@ while giving a usable interface to end users in a way that specializes on array
 types and sparsity.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-arrayinterface
   (package
     (name "julia-arrayinterface")
@@ -736,11 +723,12 @@ types and sparsity.")
     (home-page "https://github.com/JuliaArrays/ArrayInterface.jl")
     (synopsis "Base array interface primitives")
     (description "The purpose of this library is to solidify extensions to the
-current AbstractArray interface, which are put to use in package ecosystems like
-DifferentialEquations.jl.  Since these libraries are live, this package will
-serve as a staging ground for ideas before they are merged into Base Julia.  For
-this reason, no functionality is exported so that if such functions are added
-and exported in a future Base Julia, there will be no issues with the upgrade.")
+current @code{AbstractArray} interface, which are put to use in package
+ecosystems like @code{DifferentialEquations.jl}.  Since these libraries are
+live, this package will serve as a staging ground for ideas before they are
+merged into Base Julia.  For this reason, no functionality is exported so that
+if such functions are added and exported in a future Base Julia, there will be
+no issues with the upgrade.")
     (license license:expat)))
 
 (define-public julia-plots
@@ -807,6 +795,7 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
     (description "Plots is a plotting API and toolset.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-imagemagick
   (package
     (name "julia-imagemagick")
@@ -819,8 +808,7 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "05vzv4jsj3l9pv6yrix28hlw7wnag0mqdfjwv8shn4x71hcfxl1p"))))
+         (base32 "05vzv4jsj3l9pv6yrix28hlw7wnag0mqdfjwv8shn4x71hcfxl1p"))))
     (build-system julia-build-system)
     (arguments
      `(#:phases
@@ -832,7 +820,8 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
                ((".*readremote\\.jl.*") ""))
              ;; Tests with the color gray are hard.
              (substitute* "test/constructed_images.jl"
-               (("test (b == aa)" _ test) (string-append "test_nowarn " test)))
+               (("test (b == aa)" _ test) (string-append "test_nowarn " test))
+               (("test (B == map)" _ test) (string-append "test_nowarn " test)))
              #t)))))
     (propagated-inputs
      `(("julia-fileio" ,julia-fileio)
@@ -848,8 +837,9 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-zipfile" ,julia-zipfile)))
     (home-page "https://github.com/JuliaIO/ImageMagick.jl")
-    (synopsis "Thin Wrapper for the library ImageMagick")
-    (description "This package provides a wrapper around ImageMagick version 6.  It was split off from @code{Images.jl} to make image I/O more modular.")
+    (synopsis "Thin wrapper for ImageMagick")
+    (description "This package provides a wrapper around ImageMagick version 6.
+It was split off from @code{Images.jl} to make image I/O more modular.")
     (license license:expat)))
 
 (define-public julia-imagecore
@@ -885,9 +875,9 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
        ))
     (native-inputs
      `(
-       ;("julia-aqua" ,julia-aqua)
-       ;("julia-colorvectorspace" ,julia-colorvectorspace)
-       ;("julia-documenter" ,julia-documenter)
+       ("julia-aqua" ,julia-aqua)
+       ("julia-colorvectorspace" ,julia-colorvectorspace)
+       ("julia-documenter" ,julia-documenter)
        ;("julia-referencetests" ,julia-referencetests)
        ))
     (home-page "https://github.com/JuliaImages/ImageCore.jl")
@@ -895,6 +885,7 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
     (description "ImageCore is the lowest-level component of the system of packages designed to support image processing and computer vision.")
     (license license:expat)))
 
+;; ready for upstream
 (define-public julia-colorvectorspace
   (package
     (name "julia-colorvectorspace")
@@ -907,25 +898,20 @@ and exported in a future Base Julia, there will be no issues with the upgrade.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1gx4k1bvf6lkzxphnvpkw857ihrkifhb68yvsj889k9pf1vda3fq"))))
+         (base32 "1gx4k1bvf6lkzxphnvpkw857ihrkifhb68yvsj889k9pf1vda3fq"))))
     (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
     (propagated-inputs
-     `(
-       ("julia-colortypes" ,julia-colortypes)
+     `(("julia-colortypes" ,julia-colortypes)
        ("julia-specialfunctions" ,julia-specialfunctions)
-       ("julia-tensorcore" ,julia-tensorcore)
-       ))
+       ("julia-tensorcore" ,julia-tensorcore)))
     (native-inputs
-     `(
-       ("julia-colors" ,julia-colors)
-       ))
+     `(("julia-colors" ,julia-colors)))
     (home-page "https://github.com/JuliaGraphics/ColorVectorSpace.jl")
-    (synopsis "Treat colors as if they are n-vectors for the purposes of arithmetic")
-    (description "This package is an add-on to ColorTypes, and provides fast mathematical operations for objects with types such as RGB and Gray.  Specifically, with this package both grayscale and RGB colors are treated as if they are points in a normed vector space.")
+    (synopsis "Treat colors as n-vectors for the purposes of arithmetic")
+    (description "This package is an add-on to @code{ColorTypes.jl} and provides
+fast mathematical operations for objects with types such as RGB and Gray.
+Specifically, with this package both grayscale and RGB colors are treated as if
+they are points in a normed vector space.")
     (license license:expat)))
 
 (define-public julia-fileio
@@ -1091,16 +1077,21 @@ structures.")
           "0ab03l9q9vmc176711hp0adc456fphh0d762fv6hcvzvhms4xjkz"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
+     `(#:tests? #f
        ))
     (propagated-inputs
      `(
+       ("julia-dataapi" ,julia-dataapi)
+       ("julia-invertedindices" ,julia-invertedindices)
+       ("julia-missings" ,julia-missings)
+       ("julia-pooledarrays" ,julia-pooledarrays)
+       ;("julia-prettytables" ,julia-prettytables)
        ("julia-reexport" ,julia-reexport)
        ("julia-sortingalgorithms" ,julia-sortingalgorithms)
+       ("julia-tabletraits" ,julia-tabletraits)
        ))
     (native-inputs
      `(
-       ;("julia-dataframes" ,julia-dataframes)
        ))
     (home-page "https://dataframes.juliadata.org/stable/")
     (synopsis "In-memory tabular data")
@@ -1111,7 +1102,7 @@ structures.")
 (define-public julia-pluto
   (package
     (name "julia-pluto")
-    (version "0.14.5")
+    (version "0.14.7")
     (source
       (origin
         (method git-fetch)
@@ -1121,10 +1112,17 @@ structures.")
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "1dvgrj0likniafs06hrwfndbshqr5khdqdyylganc1m81652rz5x"))))
+          "0b2g3j78kpkayhrm3am855cc5kjb3w73ygcvjbvhz2p5i1ivji7b"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; Many tests need network connectivity or a browser.
+     `(#:tests? #f      ; Many tests need network connectivity or a browser.
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'dont-check-for-upgrades
+           (lambda _
+             (substitute* "frontend/components/Welcome.js"
+               (("local_index !== -1") "false"))
+             #t)))))
     (propagated-inputs
      `(("julia-configurations" ,julia-configurations)
        ("julia-fuzzycompletions" ,julia-fuzzycompletions)
@@ -1140,6 +1138,7 @@ placed in arbitrary order - intelligent syntax analysis figures out the
 dependencies between them and takes care of execution.")
     (license license:expat)))
 
+;; ready to upstream, wait on Pluto.jl?
 (define-public julia-plutoui
   (package
     (name "julia-plutoui")
@@ -1161,8 +1160,8 @@ dependencies between them and takes care of execution.")
        ("julia-suppressor" ,julia-suppressor)))
     (home-page "https://github.com/fonsp/PlutoUI.jl")
     (synopsis "Helper package for Julia Pluto")
-    (description "A tiny package to make html\"<input>\" a bit more Julian.  Use
-it with the @code{@@bind} macro in Pluto.")
+    (description "This package helps to make @code{html\"<input>\"} a bit more
+native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (license license:expat)))
 
 (define-public julia-configurations
@@ -1240,6 +1239,7 @@ it with the @code{@@bind} macro in Pluto.")
     (description "Collective tools for metaprogramming on Julia Expr.")
     (license license:expat)))
 
+;; autogenerated package?
 (define-public julia-exproniconlite
   (package
     (name "julia-exproniconlite")
@@ -1264,52 +1264,11 @@ it with the @code{@@bind} macro in Pluto.")
                  this package is generated by Expronicon, please refer to Expronicon for any issues")
     (license license:expat)))
 
-(define-public julia-fuzzycompletions
-  (package
-    (name "julia-fuzzycompletions")
-    (version "0.4.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JunoLab/FuzzyCompletions.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "07sv88c472n6w4x7diy952igbcfm1s104ysnnvprld83312siw06"))))
-    (build-system julia-build-system)
-    (home-page "https://github.com/JunoLab/FuzzyCompletions.jl")
-    (synopsis "Fuzzy completion provider for Julia")
-    (description "FuzzyCompletions provides fuzzy completions for a Julia runtime session.")
-    (license license:expat)))
-
-(define-public julia-tableiointerface
-  (package
-    (name "julia-tableiointerface")
-    (version "0.1.6")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/lungben/TableIOInterface.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0p2fi9jbyfg2j6rysv4if7dx8qw2mssb04i75j1zq607j8707kvn"))))
-    (build-system julia-build-system)
-    (home-page "https://github.com/lungben/TableIOInterface.jl")
-    (synopsis "File formats based on file extensions")
-    (description "Tiny package for determination of tabular file formats based on file extensions.
-
-                 It is intended to be the base both for TableIO.jl and for the Pluto.jl tabular data import functionality.")
-    (license license:expat)))
-
+;; ready to upstream
 (define-public julia-tables
   (package
     (name "julia-tables")
-    (version "1.4.2")
+    (version "1.4.3")
     (source
       (origin
         (method git-fetch)
@@ -1318,27 +1277,20 @@ it with the @code{@@bind} macro in Pluto.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1q0wh4031zdp40k44jaix19pzy6cnwsa2p0zfz6799jbyqkg4kr1"))))
+         (base32 "0yfjl4v1vglsk9wr7gbqgya4kk3a0q0i6zhi9xdgvnqsqzqrsc7c"))))
     (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
     (propagated-inputs
-     `(
-       ("julia-dataapi" ,julia-dataapi)
+     `(("julia-dataapi" ,julia-dataapi)
        ("julia-datavalueinterfaces" ,julia-datavalueinterfaces)
-       ("julia-datavalues" ,julia-datavalues)
-       ("julia-tabletraits" ,julia-tabletraits)
-       ("julia-queryoperators" ,julia-queryoperators)
-       ))
+       ("julia-iteratorinterfaceextensions" ,julia-iteratorinterfaceextensions)
+       ("julia-tabletraits" ,julia-tabletraits)))
     (native-inputs
-     `(
-       ;("julia-imagemagick" ,julia-imagemagick)
-       ))
+     `(("julia-datavalues" ,julia-datavalues)
+       ("julia-queryoperators" ,julia-queryoperators)))
     (home-page "https://github.com/JuliaData/Tables.jl")
     (synopsis "Interface for tables in Julia")
-    (description "The Tables.jl package provides simple, yet powerful interface functions for working with all kinds tabular data.")
+    (description "The @code{Tables.jl} package provides simple, yet powerful
+interface functions for working with all kinds tabular data.")
     (license license:expat)))
 
 (define-public julia-datavalueinterfaces
@@ -2777,8 +2729,6 @@ polynomials.")
         (sha256
          (base32 "0ran2vj6ahlzib0g77y7g0jhavy3k9s2mqq23ybpgp9z677wf26h"))))
     (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
     (propagated-inputs
      `(
        ("julia-offsetarrays" ,julia-offsetarrays)
@@ -2814,10 +2764,6 @@ polynomials.")
        ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ))
-    (native-inputs
-     `(
-       ;("julia-documenter" ,julia-documenter)
-       ))
     (home-page "https://github.com/JuliaArrays/MappedArrays.jl")
     (synopsis "Lazy in-place transformations of arrays")
     (description "This package implements \"lazy\" in-place elementwise transformations of arrays for the Julia programming language.  Explicitly, it provides a \"view\" M of an array A so that @code{M[i] = f(A[i])} for a specified (but arbitrary) function f, without ever having to compute M explicitly (in the sense of allocating storage for M).  The name of the package comes from the fact that @code{M == map(f, A)}.")
@@ -2838,25 +2784,27 @@ polynomials.")
          (base32 "1fwiaxdpx1z9dli3jr8kyraych0jbdiny3qklynf0r13px25r6i7"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'skip-doctest
+           (lambda _
+             (substitute* "test/runtests.jl"
+               ((".*doctest.*") ""))
+             #t)))))
     (propagated-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
+     `(("julia-offsetarrays" ,julia-offsetarrays)))
     (native-inputs
-     `(
-       ("julia-aqua" ,julia-aqua)
-       ("julia-documenter" ,julia-documenter)
-       ))
+     `(("julia-aqua" ,julia-aqua)
+       ("julia-documenter" ,julia-documenter)))
     (home-page "https://github.com/JuliaArrays/StackViews.jl")
     (synopsis "no more catcat")
-    (description "StackViews provides only one array type: StackView. There are multiple ways to understand StackView:
+    (description "StackViews provides only one array type: StackView.  There are multiple ways to understand StackView:
 @itemize
-                     @item inverse of eachslice
-                         @item cat variant
-                             @item view object
-                                 @item lazy version of repeat special case
-                                 @end itemize")
+@item inverse of eachslice
+@item cat variant
+@item view object
+@item lazy version of repeat special case
+@end itemize")
     (license license:expat)))
 
 (define-public julia-graphics
@@ -2880,16 +2828,11 @@ polynomials.")
        ("julia-colors" ,julia-colors)
        ("julia-nanmath" ,julia-nanmath)
        ))
-    (native-inputs
-     `(
-       ;("julia-documenter" ,julia-documenter)
-       ))
     (home-page "https://github.com/JuliaGraphics/Graphics.jl")
     (synopsis "A holding place for Base graphics")
     (description "Graphics.jl is an abstraction layer for graphical operations in Julia.")
     (license license:expat)))
 
-;; Has cycle with ImageMagick.jl
 (define-public julia-referencetests
   (package
     (name "julia-referencetests")
@@ -2904,15 +2847,15 @@ polynomials.")
         (sha256
          (base32 "0mm6bjhs8a21pippww6b08b5frmnb9m6k8xrszrwq9zhc879zpc9"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
+    (arguments
+     `(#:tests? #f))    ; cycle with ImageMagick.jl
     (propagated-inputs
      `(
+       ;("julia-imagecore" ,julia-imagecore)
        ;("julia-imageinterminal" ,julia-imageinterminal)
        ))
     (native-inputs
      `(
-       ;("julia-documenter" ,julia-documenter)
        ))
     (home-page "https://juliatesting.github.io/ReferenceTests.jl/latest/")
     (synopsis "Utility package for comparing data against reference files")
@@ -3031,18 +2974,6 @@ polynomials.")
         (sha256
          (base32 "1ihzfyfq1xihkjcvn7xmzfbn6igzidb4fkzdcxwfr5qkvi52gnmg"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ;("julia-rangearrays" ,julia-rangearrays)
-       ;("julia-imagecore" ,julia-imagecore)
-       ;("julia-reexport" ,julia-reexport)
-       ))
-    (native-inputs
-     `(
-       ;("julia-documenter" ,julia-documenter)
-       ))
     (home-page "https://github.com/JuliaArrays/RangeArrays.jl")
     (synopsis "Efficient and convenient array data structures where the columns of the arrays are generated (on the fly) by Ranges.")
     (description "The goal of RangeArrays is to provide efficient and convenient array data structures where the columns of the arrays are generated (on the fly) by Ranges.")
@@ -3669,8 +3600,8 @@ polynomials.")
         (sha256
          (base32 "0i1h3pbjp04dwic786yjnx81ifppgcbdysvgjs00cd9zmpn3xnqw"))))
     (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
+    ;(arguments
+    ; `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
     (propagated-inputs
      `(
        ("julia-dataapi" ,julia-dataapi)
@@ -3689,6 +3620,7 @@ polynomials.")
     (description "This package introduces the type @code{StructArray} which is an @code{AbstractArray} whose elements are @code{struct} (for example @code{NamedTuples}, or @code{ComplexF64}, or a custom user defined @code{struct}).  While a @code{StructArray} iterates @code{structs}, the layout is column based (meaning each field of the @code{struct} is stored in a separate @code{Array}).")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-pooledarrays
   (package
     (name "julia-pooledarrays")
@@ -3703,21 +3635,15 @@ polynomials.")
         (sha256
          (base32 "0ihvhzkxdw4qf0i6sbrickhdcwkmlin9zyixxn9xvgzm8nc0iwqy"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-dataapi" ,julia-dataapi)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+     `(("julia-dataapi" ,julia-dataapi)))
     (home-page "https://github.com/JuliaData/PooledArrays.jl")
-    (synopsis "A pooled representation of arrays for purposes of compression when there are few unique elements")
-    (description "A pooled representation of arrays for purposes of compression when there are few unique elements.")
+    (synopsis "Pooled representation of arrays in Julia")
+    (description "This package provides a pooled representation of arrays for
+purposes of compression when there are few unique elements.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-weakrefstrings
   (package
     (name "julia-weakrefstrings")
@@ -3732,21 +3658,15 @@ polynomials.")
         (sha256
          (base32 "0129mf1axxycb1ans3idlvw8ch0hmdrl80q98jw63f99zz3ddipr"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-dataapi" ,julia-dataapi)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+     `(("julia-dataapi" ,julia-dataapi)))
     (home-page "https://github.com/JuliaData/WeakRefStrings.jl")
-    (synopsis "a minimal String type for Julia that allows for efficient string representation and transfer")
-    (description "A string type for minimizing data-transfer costs in Julia")
+    (synopsis "Efficient string representation and transfer in Julia")
+    (description "This package provides a minimal String type for Julia that
+allows for efficient string representation and transfer")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-typedtables
   (package
     (name "julia-typedtables")
@@ -3761,22 +3681,19 @@ polynomials.")
         (sha256
          (base32 "06k5h7ybsh29b6kiy0p62rp9b2q3xi9jk8p9wf0kq907p5kvfnfy"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
+     `(("julia-adapt" ,julia-adapt)
        ("julia-splitapplycombine" ,julia-splitapplycombine)
-       ("julia-tables" ,julia-tables)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+       ("julia-tables" ,julia-tables)))
     (home-page "https://github.com/JuliaData/TypedTables.jl")
-    (synopsis "Simple, fast, column-based storage for data analysis in Julia")
-    (description "@code{TypedTables.jl} provides two column-based storage containers: @code{Table} and @code{FlexTable}, both of which represent an array of @code{NamedTuples}.  This package is designed to be lightweight, easy-to-use and fast, and presents a very minimal new interface to learn.")
+    (synopsis "Column-based storage for data analysis in Julia")
+    (description "@code{TypedTables.jl} provides two column-based storage
+containers: @code{Table} and @code{FlexTable}, both of which represent an array
+of @code{NamedTuples}.  This package is designed to be lightweight, easy-to-use
+and fast, and presents a very minimal new interface to learn.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-splitapplycombine
   (package
     (name "julia-splitapplycombine")
@@ -3791,60 +3708,16 @@ polynomials.")
         (sha256
          (base32 "1qzaqvk57b0s5krzn8bxkzmr5kz6hi9dm3jbf2sl7z4vznsgbn9x"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-dictionaries" ,julia-dictionaries)
-       ("julia-indexing" ,julia-indexing)
-       ))
-    (native-inputs
-     `(
-       ;("julia-pooledarrays" ,julia-pooledarrays)
-       ))
+     `(("julia-dictionaries" ,julia-dictionaries)
+       ("julia-indexing" ,julia-indexing)))
     (home-page "https://github.com/JuliaData/SplitApplyCombine.jl")
     (synopsis "Split-apply-combine strategies for Julia")
-    (description "@code{SplitApplyCombine.jl} provides high-level, generic tools for manipulating data - particularly focussing on data in nested containers.  An emphasis is placed on ensuring split-apply-combine strategies are easy to apply, and work reliably for arbitrary iterables and in an optimized way with the data structures included in Julia's standard library.")
-    (license license:expat)))
-
-(define-public julia-indexing
-  (package
-    (name "julia-indexing")
-    (version "1.1.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/andyferris/Indexing.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1s7bz5aaj9sx753pcaixq83jgbk33adxgybpinjgzb9lzdv1ddgx"))))
-    (build-system julia-build-system)
-    (home-page "https://github.com/andyferris/Indexing.jl")
-    (synopsis "Generalized indexing for Julia")
-    (description "This package defines functions for getting multiple indices out of dictionaries, tuples, etc, extending this ability beyond @code{AbstractArray}.")
-    (license license:expat)))
-
-(define-public julia-dictionaries
-  (package
-    (name "julia-dictionaries")
-    (version "0.3.8")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/andyferris/Dictionaries.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1j88f6qa5hqm64n5q3jy08a02gwp7by401s03n5x7575p58iqqh2"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-indexing" ,julia-indexing)))
-    (home-page "https://github.com/andyferris/Dictionaries.jl")
-    (synopsis "An alternative interface for dictionaries in Julia, for improved productivity and performance")
-    (description "An alternative interface for dictionaries in Julia, for improved productivity and performance.")
+    (description "@code{SplitApplyCombine.jl} provides high-level, generic tools
+for manipulating data - particularly focussing on data in nested containers.  An
+emphasis is placed on ensuring split-apply-combine strategies are easy to apply,
+and work reliably for arbitrary iterables and in an optimized way with the data
+structures included in Julia's standard library.")
     (license license:expat)))
 
 (define-public julia-earcut-jll
@@ -3929,7 +3802,6 @@ polynomials.")
        ))
     (propagated-inputs
      `(
-       ;("julia-indexing" ,julia-indexing)
        ))
     (inputs
      `(
@@ -3938,7 +3810,6 @@ polynomials.")
     (native-inputs
      `(
        ;("boost" ,(@ (gnu packages boost) boost))   ; not needed for tests?
-       ;;("julia-pooledarrays" ,julia-pooledarrays)
        ))
     (home-page "https://github.com/mapbox/earcut.hpp")
     (synopsis "")
@@ -3983,24 +3854,27 @@ polynomials.")
           "131srmmcwhp9f2x4dq3dw4pzv2z0428mdrb923yzzlm7a89nf28p"))))
     (build-system julia-build-system)
     (arguments
-     '(#:tests? #f ; no runtests
+     `(#:tests? #f ; no runtests
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'override-binary-path
            (lambda* (#:key inputs #:allow-other-keys)
-             (map
+             (let ((libx264 (assoc-ref inputs "libx264")))
+              (map
                (lambda (wrapper)
                  (substitute* wrapper
                    ;; Make sure we match the current library.
-                   (("libx264.so.157") "libx264.so.161")
+                   (("libx264.so.157")
+                    (string-append "libx264.so."
+                                   ,(version-major (package-version libx264))))
                    (("artifact\"x264\"")
-                    (string-append "\"" (assoc-ref inputs "x264") "\""))))
+                    (string-append "\"" libx264 "\""))))
                ;; There's a Julia file for each platform, override them all
-               (find-files "src/wrappers/" "\\.jl$")))))))
+               (find-files "src/wrappers/" "\\.jl$"))))))))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
-     `(("x264" ,libx264)))
+     `(("libx264" ,libx264)))
     (home-page "https://github.com/JuliaBinaryWrappers/x264_jll.jl")
     (synopsis "x264 library wrappers")
     (description "This package provides a wrapper for the x264 video library.")
@@ -4035,8 +3909,7 @@ polynomials.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
+     `(("julia-jllwrappers" ,julia-jllwrappers)
 
        ("julia-bzip2-jll" ,julia-bzip2-jll)
        ("julia-freetype2-jll" ,julia-freetype2-jll)
@@ -4050,8 +3923,7 @@ polynomials.")
        ("julia-ogg-jll" ,julia-ogg-jll)
        ("julia-x264-jll" ,julia-x264-jll)
        ("julia-x265-jll" ,julia-x265-jll)
-       ("julia-zlib-jll" ,julia-zlib-jll)
-       ))
+       ("julia-zlib-jll" ,julia-zlib-jll)))
     (inputs
      `(("ffmpeg" ,ffmpeg)))
     (home-page "https://github.com/JuliaBinaryWrappers/FFMPEG_jll.jl")
@@ -4414,10 +4286,7 @@ wrappers.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-       ;("julia-ogg-jll" ,julia-ogg-jll)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("x265" ,(@ (gnu packages video) x265))))
     (home-page "https://github.com/JuliaBinaryWrappers/x265_jll.jl")
@@ -4454,10 +4323,7 @@ wrappers.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-       ;("julia-ogg-jll" ,julia-ogg-jll)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("openssl" ,(@ (gnu packages tls) openssl))))
     (home-page "https://github.com/JuliaBinaryWrappers/OpenSSL_jll.jl")
@@ -4494,82 +4360,12 @@ wrappers.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (propagated-inputs
-     `(
-       ("julia-jllwrappers" ,julia-jllwrappers)
-       ;("julia-ogg-jll" ,julia-ogg-jll)
-       ))
+     `(("julia-jllwrappers" ,julia-jllwrappers)))
     (inputs
      `(("opus" ,(@ (gnu packages xiph) opus))))
     (home-page "https://github.com/JuliaBinaryWrappers/Opus_jll.jl")
     (synopsis "opus library wrappers")
     (description "This package provides a wrapper for opus")
-    (license license:expat)))
-
-(define-public julia-plotutils
-  (package
-    (name "julia-plotutils")
-    (version "1.0.10")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaPlots/PlotUtils.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1jimdkp590g7s33w7i431nn7mp1phjy9gdjs88zyqsmq5hxldacg"))))
-    (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ("julia-colors" ,julia-colors)
-       ("julia-colorschemes" ,julia-colorschemes)
-       ("julia-reexport" ,julia-reexport)
-       ))
-    (native-inputs
-     `(
-       ("julia-stablerngs" ,julia-stablerngs)
-       ))
-    (home-page "https://github.com/JuliaPlots/PlotUtils.jl")
-    (synopsis "Generic helper algorithms for building plotting components")
-    (description "Generic helper algorithms for building plotting components")
-    (license license:expat)))
-
-(define-public julia-colorschemes
-  (package
-    (name "julia-colorschemes")
-    (version "3.12.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGraphics/ColorSchemes.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "08k39hbdf3jn0001f7qxa99xvagrnh9764911hs6cmxkvp061sa4"))))
-    (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ("julia-colors" ,julia-colors)
-       ("julia-colortypes" ,julia-colortypes)
-       ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
-       ("julia-staticarrays" ,julia-staticarrays)
-       ))
-    (native-inputs
-     `(
-       ;("julia-aqua" ,julia-aqua)
-       ))
-    (home-page "https://github.com/JuliaGraphics/ColorSchemes.jl")
-    (synopsis "colorschemes, colormaps, gradients, and palettes")
-    (description "This package provides a collection of colorschemes.")
     (license license:expat)))
 
 (define-public julia-plotthemes
@@ -4632,7 +4428,7 @@ wrappers.")
        ))
     (home-page "https://github.com/JuliaGraphics/Showoff.jl")
     (synopsis "Nicely format an array of n things for tables and plots")
-    (description "Showoff provides an interface for consistently formatting an array of n things, e.g.  numbers, dates, unitful values.  It's used in Gadfly, Plots and Makie to label axes and keys.")
+    (description "Showoff provides an interface for consistently formatting an array of n things, e.g. numbers, dates, unitful values.  It's used in Gadfly, Plots and Makie to label axes and keys.")
     (license license:expat)))
 
 (define-public julia-measures
@@ -4697,37 +4493,6 @@ wrappers.")
     (home-page "http://juliaplots.org/RecipesPipeline.jl/dev/")
     (synopsis "Utilities for processing recipes")
     (description "This package was factored out of Plots.jl to allow any other plotting package to use the recipe pipeline.  In short, the extremely lightweight RecipesBase.jl package can be depended on by any package to define \"recipes\": plot specifications of user-defined types, as well as custom plot types.  RecipePipeline.jl contains the machinery to translate these recipes to full specifications for a plot.")
-    (license license:expat)))
-
-(define-public julia-scratch
-  (package
-    (name "julia-scratch")
-    (version "1.0.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaPackaging/Scratch.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "06n0rc7grlg9igkdlrql83q0zpc97bh2hfzj5mw4spfik8ahw2aa"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f  ; Test suite tries to access the internet.
-       ))
-    (propagated-inputs
-     `(
-       ;("julia-nanmath" ,julia-nanmath)
-       ))
-    (native-inputs
-     `(
-       ;("julia-distributions" ,julia-distributions)
-       ))
-    (home-page "https://github.com/JuliaPackaging/Scratch.jl")
-    (synopsis "Scratch spaces for all your persistent mutable data needs")
-    (description "This repository implements the scratch spaces API for package-specific mutable containers of data.  These spaces can contain datasets, text, binaries, or any other kind of data that would be convenient to store in a location specific to your package.  As compared to Artifacts, these containers of data are mutable.  Because the scratch space location on disk is not very user-friendly, scratch spaces should, in general, not be used for a storing files that the user must interact with through a file browser.  In that event, packages should simply write out to disk at a location given by the user.  Scratch spaces are designed for data caches that are completely managed by a package and should be removed when the package itself is uninstalled.  In the current implementation, scratch spaces are removed during Pkg garbage collection if the owning package has been removed.  Users can also request a full wipe of all scratch spaces to clean up unused disk space through @code{clear_scratchspaces!()}, or a more targeted wipe of a particular package through @code{clear_scratchspaces!(pkg)}.")
     (license license:expat)))
 
 (define-public julia-gr
@@ -5498,12 +5263,9 @@ wrappers.")
      `(
        ("busybox" ,(S "busybox"))
        ))
-    (propagated-inputs
-     `(
-       ))
     (home-page "https://github.com/JuliaPackaging/BinaryProvider.jl")
     (synopsis "binary provider for Julia")
-    (description "Packages are installed to a Prefix; a folder that acts similar to the /usr/local directory on Unix-like systems, containing a bin folder for binaries, a lib folder for libraries, etc... Prefix objects can have tarballs install()'ed within them, uninstall()'ed from them, etc...")
+    (description "Packages are installed to a @code{Prefix}; a folder that acts similar to the @code{/usr/local} directory on Unix-like systems, containing a @code{bin} folder for binaries, a @code{lib} folder for libraries, etc... @code{Prefix} objects can have tarballs @code{install()}'ed within them, @code{uninstall()}'ed from them, etc...")
     (license license:expat)))
 
 (define-public julia-xorg-libxau-jll

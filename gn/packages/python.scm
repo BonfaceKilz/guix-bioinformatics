@@ -1692,17 +1692,12 @@ sorted order.")
      "Jupyter Server Proxy lets you run arbitrary external processes (such as RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc) alongside your notebook server and provide authenticated web access to them using a path like @code{/rstudio} next to others like @code{/lab}.  Alongside the python package that provides the main functionality, the JupyterLab extension (@code{@@jupyterlab/server-proxy}) provides buttons in the JupyterLab launcher window to get to RStudio for example.")
     (license license:bsd-3)))
 
-(define-public python-jupyter-server-proxy-1
+(define-public python-jupyter-server-proxy-1    ; bundled javascript?
   (package
-    (inherit python-jupyter-server-proxy)
     (name "python-jupyter-server-proxy")
     (version "1.6.0")
     (source
       (origin
-        ;(method url-fetch)
-        ;(uri (pypi-uri "jupyter-server-proxy" version))
-        ;(sha256
-        ; (base32 "0sdiywnymdqsmdddj1gszb8fj1z3p1njy419q0i921ib4rmdc22y"))))
         ;; Tests not included in release.
         (method git-fetch)
         (uri (git-reference
@@ -1711,6 +1706,7 @@ sorted order.")
         (file-name (git-file-name name version))
         (sha256
          (base32 "03yry0jz6xlvy28h3w514pw0q9w51lnr1lpcigqmhnf5x7g9bfyy"))))
+    (build-system python-build-system)
     (arguments
      `(#:tests? #f  ; Running the test suite isn't fully documented.
        #:phases
@@ -1719,8 +1715,10 @@ sorted order.")
            (lambda* (#:key inputs outputs tests? #:allow-other-keys)
              (when tests?
                (add-installed-pythonpath inputs outputs)
+               ;; see .github/workflows/test.yaml and CONTRIBUTING.md
                (setenv "JUPYTER_TOKEN" "secret")
                (setenv "HOME" (getcwd))
+               (invoke "jupyter" "serverextension" "enable" "jupyter_server_proxy")
                (system "jupyter-notebook --config=./tests/resources/jupyter_server_config.py &")
                (sleep 5)
                (invoke "pytest" "--verbose"))
@@ -1730,41 +1728,17 @@ sorted order.")
        ("python-notebook" ,python-notebook)
        ("python-simpervisor" ,python-simpervisor)))
     (native-inputs
-     `(("python-pytest" ,python-pytest)))))
-
-(define-public python-simpervisor   ; upstream ready
-  (package
-    (name "python-simpervisor")
-    (version "0.4")
-    (source
-      (origin
-        ;; Tests not included in release.
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/yuvipanda/simpervisor")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1brsisx7saf4ic0dih1n5y7rbdbwn1ywv9pl32bch3061r46prvv"))))
-    (build-system python-build-system)
-    (arguments
-     `(#:tests? #f  ; Test suite can't find aiohttp.
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'check
-           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
-             (when tests?
-               (add-installed-pythonpath inputs outputs)
-               (invoke "pytest" "--maxfail" "3" "--verbose"))
-             #t)))))
-    (native-inputs
-     `(("python-aiohttp" ,python-aiohttp)
-       ("python-pytest" ,python-pytest)
-       ("python-pytest-asyncio" ,python-pytest-asyncio)))
-    (home-page "https://github.com/yuvipanda/simpervisor")
-    (synopsis "Simple async process supervisor")
+     `(("python-pytest" ,python-pytest)))
+    (home-page "https://jupyter-server-proxy.readthedocs.io/")
+    (synopsis "Jupyter server extension to supervise and proxy web services")
     (description
-     "This package provides a simple async process supervisor in Python.")
+     "Jupyter Server Proxy lets you run arbitrary external processes (such as
+RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc) alongside your
+notebook server and provide authenticated web access to them using a path like
+@code{/rstudio} next to others like @code{/lab}.  Alongside the python package
+that provides the main functionality, the JupyterLab extension
+(@code{@@jupyterlab/server-proxy}) provides buttons in the JupyterLab launcher
+window to get to RStudio for example.")
     (license license:bsd-3)))
 
 (define-public python-jupyter-server
