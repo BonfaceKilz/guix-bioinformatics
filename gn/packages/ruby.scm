@@ -5939,3 +5939,24 @@ Simple gem that adds various color methods to String class, and can be used as f
     (home-page "https://github.com/discourse/rails_failover")
     (license license:expat)))
 
+(define-public ruby-regressiontest
+ (package
+  (name "ruby-regressiontest")
+  (version "0.0.3")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (rubygems-uri "regressiontest" version))
+      (sha256
+        (base32
+          "03y5ksab6ybd2d586zmihpn2hzvqrxb9pfzh5i6a8f2ivcrfqn9k"))))
+  (build-system ruby-build-system)
+  (propagated-inputs
+    `(("ruby-shoulda" ,ruby-shoulda)))
+  (synopsis
+    "Regression testing for the command line, and library API")
+  (description
+    "Regression testing for the command line, and library API")
+  (home-page
+    "http://github.com/pjotrp/regressiontest")
+  (license license:expat)))

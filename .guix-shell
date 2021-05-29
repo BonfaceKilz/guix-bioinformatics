@@ -1,0 +1,1 @@
+~/opt/guix/bin/guix environment -C guix --ad-hoc guile
