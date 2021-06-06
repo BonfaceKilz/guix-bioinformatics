@@ -90,7 +90,7 @@
                            genecup-shepherd-service)
         (service-extension activation-service-type
                            genecup-activation)
-        ;; Make sure we get all the dependencies of RatsPub.
+        ;; Make sure we get all the dependencies of Genecup.
         (service-extension profile-service-type
                            (compose list genecup-configuration-package))))
     (default-value (genecup-configuration))
