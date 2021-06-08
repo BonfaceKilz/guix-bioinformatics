@@ -76,13 +76,11 @@
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\"")
                #t)))))
       (propagated-inputs
-       `(
-         ;; and from setup.py
-         ("python-jupyter-server-proxy" ,(@ (gn packages python) python-jupyter-server-proxy-1))
-         ))
+       `(;; from setup.py
+         ("python-jupyter-server-proxy"
+          ,(@ (gn packages python) python-jupyter-server-proxy-1))))
       (inputs
-       `(
-         ;("julia-distributions" ,julia-distributions)
+       `(;("julia-distributions" ,julia-distributions)
          ;("julia-interactiveutils" ,julia-interactiveutils) ; Part of stdlib as of XXXX
          ("julia-latexstrings" ,julia-latexstrings)
          ;("julia-markdown" ,julia-markdown)                 ; Part of stdlib as of XXXX
@@ -91,41 +89,40 @@
          ("julia-pluto" ,julia-pluto)
          ("julia-plutoui" ,julia-plutoui)
          ("guile" ,(@ (gnu packages guile) guile-3.0))))    ; for wrap-script
-      (home-page "https://github.com/senresearch/LiteQTL.jl")
+      (home-page "https://github.com/sens/visuals")
       (synopsis "Visualizations using Pluto.jl notebooks")
       (description "Visualizations using Pluto.jl notebooks.")
       (license #f))))
 
 (define-public julia-liteqtl
-  (let ((commit "321a9e0aa87fb4524bec8278e64de76d1a4072b0")
+  (let ((commit "696218524a57a4ab5a933e516850c010915650d5")
         (revision "1"))
     (package
       (name "julia-liteqtl")
-      (version (git-version "0.2.0" revision commit))
+      ;(version (git-version "0.2.1" revision commit))
+      (version "0.2.1")
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
                        (url "https://github.com/senresearch/LiteQTL.jl")
-                       (commit commit)))
+                       ;(commit commit)))
+                       (commit (string-append "v" version))))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32
-                  "01fn552cafb73g86cg9ii9c0ch2llarzaz54zr66qsfd97kl6ify"))))
+                 (base32 "0hincjnr56wpcgnd9r1m939gng8ac46zw1fv99ij920w3dpxwhq3"))))
       (build-system julia-build-system)
       (propagated-inputs
-       `(
-         ;("julia-csv" ,julia-csv)
+       `(;("julia-csv" ,julia-csv)
          ;("julia-cuda" ,julia-cuda)
          ("julia-dataframes" ,julia-dataframes)
-         ("julia-docstringextensions" ,julia-docstringextensions)
-         ))
+         ;("julia-distributions" ,julia-distributions)
+         ("julia-docstringextensions" ,julia-docstringextensions)))
       (native-inputs
-       `(
-         ("julia-documenter" ,julia-documenter)
+       `(("julia-documenter" ,julia-documenter)
          ("julia-safetestsets" ,julia-safetestsets)
          ;("r" ,r-minimal)
          ;("r-data-table" ,r-data-table)
-         ;("r-mice" ,r-mice)
+         ;("r-parallel" ,r-parallel)    ; what is this package called?
          ;("r-qtl" ,r-qtl)
          ;("r-qtl2" ,r-qtl2)
          ;("r-tidyverse" ,r-tidyverse)
@@ -136,10 +133,11 @@
 LiteQTL uses new algorithms that enables near-real time whole genome QTL scans for up to 1 million traits. By using easily parallelizable operations including matrix multiplication, vectorized operations, and element-wise operations, our method is about 300 times faster than a R/qtl linear model genome scan using 16 threads.")
       (license license:expat))))
 
+;; contains bundled libraries?
 (define-public julia-packagecompiler
   (package
     (name "julia-packagecompiler")
-    (version "1.2.5")
+    (version "1.2.6")
     (source
       (origin
         (method git-fetch)
@@ -148,13 +146,10 @@ LiteQTL uses new algorithms that enables near-real time whole genome QTL scans f
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1yyvqfix7ys3p24hyxi75r6ifyw0mplbry8rvd0vp0h77g6q357i"))))
+         (base32 "1l0sc7dcx5zabvkjfzqjmni47c5w8fr5c6phkdcgrb1vqp90xvkx"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
-       ;#:julia-package-name "PackageCompiler"
-       ))
+     `(#:tests? #f))    ; Tries to contact package repository.
     (home-page "https://github.com/JuliaLang/PackageCompiler.jl")
     (synopsis "Compile your Julia Package")
     (description "PackageCompiler is a Julia package with two main purposes:
@@ -353,7 +348,7 @@ distributed computing.")
     (native-inputs
      `(
        ("conda" ,(S "conda"))
-       ("python" ,(@ (gnu packages python) python-wrapper))
+       ("python" ,(S "python-wrapper"))
        ))
     (propagated-inputs
      `(
@@ -428,6 +423,9 @@ equations in string literals in the Julia language.")
     (license license:expat)))
 
 ;; TODO: Unbundle extra assets? assets/html/
+;; see also: js inputs: src/Writers/HTMLWriter.jl
+;;           latex inputs: src/Writers/LaTeXWriter.jl
+;;           needs pip: src/Deps.jl
 (define-public julia-documenter
   (package
     (name "julia-documenter")
@@ -472,7 +470,7 @@ equations in string literals in the Julia language.")
         (sha256
          (base32 "0wm8pag5mk46064h3qpvgz8m63138104rq0smx1za7lh7j32925h"))))))
 
-;; ready to upstream
+;; ready to upstream with julia-documenter
 (define-public julia-documenter-0.22
   (package
     (inherit julia-documenter)
@@ -497,8 +495,9 @@ equations in string literals in the Julia language.")
              ;; This isn't problematic because we only use
              ;; this package for bootstrapping.
              (substitute* '("assets/html/documenter.js"
-                            "assets/html/search.js")
-               (("https.*min") ""))
+                            "assets/html/search.js"
+                            "src/Writers/HTMLWriter.jl")
+               (("https.*(min|css|js)$") ""))
              #t)))))
     (propagated-inputs
      `(("julia-docstringextensions" ,julia-docstringextensions)
@@ -506,7 +505,7 @@ equations in string literals in the Julia language.")
     (native-inputs `())
     (properties '((hidden? . #t)))))
 
-;; ready to upstream
+;; ready to upstream; depends on julia-documenter
 (define-public julia-documentermarkdown
   (package
     (name "julia-documentermarkdown")
@@ -530,38 +529,6 @@ equations in string literals in the Julia language.")
     (synopsis "Documenter's Markdown")
     (description "his package enables the Markdown / MkDocs backend of
 @code{Documenter.jl}.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-statsbase
-  (package
-    (name "julia-statsbase")
-    (version "0.33.8")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaStats/StatsBase.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "02y4pm5yvg713a2pn970bbcfkrn2h133rxbxk1da18svhqw3czhi"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-dataapi" ,julia-dataapi)
-       ("julia-datastructures" ,julia-datastructures)
-       ("julia-missings" ,julia-missings)
-       ("julia-sortingalgorithms" ,julia-sortingalgorithms)
-       ("julia-statsapi" ,julia-statsapi)))
-    (native-inputs
-     `(("julia-stablerngs" ,julia-stablerngs)))
-    (home-page "https://github.com/JuliaStats/StatsBase.jl")
-    (synopsis "Basic statistics for Julia")
-    (description "StatsBase.jl is a Julia package that provides basic support
-for statistics.  Particularly, it implements a variety of statistics-related
-functions, such as scalar statistics, high-order moment computation, counting,
-ranking, covariances, sampling, and empirical density estimation.")
     (license license:expat)))
 
 (define-public julia-optim
@@ -819,6 +786,7 @@ no issues with the upgrade.")
 It was split off from @code{Images.jl} to make image I/O more modular.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-imagecore
   (package
     (name "julia-imagecore")
@@ -831,15 +799,12 @@ It was split off from @code{Images.jl} to make image I/O more modular.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0d844lrilw7zjpax8zr5272a9s292wg4qk53mvm0n88yai598zd6"))))
+         (base32 "0d844lrilw7zjpax8zr5272a9s292wg4qk53mvm0n88yai598zd6"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f  ; ReferenceTests.jl not yet packaged
-       ))
+     `(#:tests? #f))    ; Cycle with ImageMagick.jl
     (propagated-inputs
-     `(
-       ("julia-abstractffts" ,julia-abstractffts)
+     `(("julia-abstractffts" ,julia-abstractffts)
        ("julia-colors" ,julia-colors)
        ("julia-colorvectorspace" ,julia-colorvectorspace)
        ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
@@ -848,47 +813,20 @@ It was split off from @code{Images.jl} to make image I/O more modular.")
        ("julia-mosaicviews" ,julia-mosaicviews)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-paddedviews" ,julia-paddedviews)
-       ("julia-reexport" ,julia-reexport)
-       ))
-    (native-inputs
-     `(
-       ("julia-aqua" ,julia-aqua)
-       ("julia-colorvectorspace" ,julia-colorvectorspace)
-       ("julia-documenter" ,julia-documenter)
-       ;("julia-referencetests" ,julia-referencetests)
-       ))
+       ("julia-reexport" ,julia-reexport)))
+    ;(native-inputs
+    ; `(("julia-aqua" ,julia-aqua)
+    ;   ("julia-colorvectorspace" ,julia-colorvectorspace)
+    ;   ("julia-documenter" ,julia-documenter)
+    ;   ("julia-fftw" ,julia-fftw)
+    ;   ("julia-imageinterminal" ,julia-imageinterminal)
+    ;   ("julia-imagemagick" ,julia-imagemagick)
+    ;   ("julia-referencetests" ,julia-referencetests)
+    ;   ("julia-statistics" ,julia-statistics)))
     (home-page "https://github.com/JuliaImages/ImageCore.jl")
     (synopsis "Julia types for representing images")
-    (description "ImageCore is the lowest-level component of the system of packages designed to support image processing and computer vision.")
-    (license license:expat)))
-
-;; ready for upstream
-(define-public julia-colorvectorspace
-  (package
-    (name "julia-colorvectorspace")
-    (version "0.9.5")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGraphics/ColorVectorSpace.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1gx4k1bvf6lkzxphnvpkw857ihrkifhb68yvsj889k9pf1vda3fq"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-colortypes" ,julia-colortypes)
-       ("julia-specialfunctions" ,julia-specialfunctions)
-       ("julia-tensorcore" ,julia-tensorcore)))
-    (native-inputs
-     `(("julia-colors" ,julia-colors)))
-    (home-page "https://github.com/JuliaGraphics/ColorVectorSpace.jl")
-    (synopsis "Treat colors as n-vectors for the purposes of arithmetic")
-    (description "This package is an add-on to @code{ColorTypes.jl} and provides
-fast mathematical operations for objects with types such as RGB and Gray.
-Specifically, with this package both grayscale and RGB colors are treated as if
-they are points in a normed vector space.")
+    (description "@code{ImageCore} is the lowest-level component of the system
+of packages designed to support image processing and computer vision.")
     (license license:expat)))
 
 (define-public julia-fileio
@@ -1273,29 +1211,6 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (description "This package provides a collection of mathematical constants and numerical functions for statistical computing.")
     (license license:expat)))
 
-(define-public julia-logexpfunctions
-  (package
-    (name "julia-logexpfunctions")
-    (version "0.2.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaStats/LogExpFunctions.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1dv4ghd23f96276wcc9ibkazbgx0y0xkr8na6z82r3b786vz974a"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-docstringextensions" ,julia-docstringextensions)))
-    (native-inputs
-     `(("julia-offsetarrays" ,julia-offsetarrays)))
-    (home-page "https://github.com/JuliaStats/LogExpFunctions.jl")
-    (synopsis "special functions based on `log` and `exp`")
-    (description "Various special functions based on log and exp moved from StatsFuns.jl into a separate package, to minimize dependencies. These functions only use native Julia code, so there is no need to depend on librmath or similar libraries.")
-    (license license:expat)))
-
 (define-public rmath-julia
   (package
     (name "rmath-julia")
@@ -1458,264 +1373,6 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
     (synopsis "Rmath library wrappers")
     (description "This package provides a wrapper for Rmath.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-bandedmatrices
-  (package
-    (name "julia-bandedmatrices")
-    (version "0.16.9")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaMatrices/BandedMatrices.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "105y5d3208s0byk3p0469sfy79lhjpdblk6karbwj8x7hl26na00"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-arraylayouts" ,julia-arraylayouts)
-       ("julia-fillarrays" ,julia-fillarrays)))
-    (native-inputs
-     `(("julia-genericlinearalgebra" ,julia-genericlinearalgebra)))
-    (home-page "https://github.com/JuliaMatrices/BandedMatrices.jl")
-    (synopsis "Julia package for representing banded matrices")
-    (description "This package supports representing banded matrices by only
-the entries on the bands.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-blockbandedmatrices
-  (package
-    (name "julia-blockbandedmatrices")
-    (version "0.10.6")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaMatrices/BlockBandedMatrices.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0q9ni4pgdkb00jb42fdzlhx745852xx2666vr96k0c4l0cn5mi0y"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-arraylayouts" ,julia-arraylayouts)
-       ("julia-bandedmatrices" ,julia-bandedmatrices)
-       ("julia-blockarrays" ,julia-blockarrays)
-       ("julia-fillarrays" ,julia-fillarrays)
-       ("julia-matrixfactorizations" ,julia-matrixfactorizations)))
-    (home-page "https://github.com/JuliaMatrices/BlockBandedMatrices.jl")
-    (synopsis "Block-banded matrices and banded-block-banded matrices")
-    (description "This package supports representing block-banded and
-banded-block-banded matrices by only storing the entries in the non-zero bands.
-A @code{BlockBandedMatrix} is a subtype of @code{BlockMatrix} of BlockArrays.jl
-whose layout of non-zero blocks is banded.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-blockarrays
-  (package
-    (name "julia-blockarrays")
-    (version "0.15.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaArrays/BlockArrays.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "15nd493bfkx92ihnr8dj8mb155dj44iqw266igv0qr5q0wad2bfr"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-arraylayouts" ,julia-arraylayouts)
-       ("julia-fillarrays" ,julia-fillarrays)))
-    (native-inputs
-     `(("julia-lazyarrays" ,julia-lazyarrays)
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-staticarrays" ,julia-staticarrays)))
-    (home-page "https://github.com/JuliaArrays/BlockArrays.jl")
-    (synopsis "BlockArrays for Julia")
-    (description "A block array is a partition of an array into blocks or
-subarrays.  This package has two purposes.  Firstly, it defines an interface for
-an @code{AbstractBlockArray} block arrays that can be shared among types
-representing different types of block arrays.  The advantage to this is that it
-provides a consistent API for block arrays.
-Secondly, it also implements two different type of block arrays that follow the
-@code{AbstractBlockArray} interface.  The type @code{BlockArray} stores each
-block contiguously while the type @code{PseudoBlockArray} stores the full matrix
-contiguously.  This means that @code{BlockArray} supports fast non copying
-extraction and insertion of blocks while @code{PseudoBlockArray} supports fast
-access to the full matrix to use in in for example a linear solver.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-lazyarrays
-  (package
-    (name "julia-lazyarrays")
-    (version "0.21.4")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaArrays/LazyArrays.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0l427zghlpwcr6zcfy28sw3wm3y5zm0ckl008cgf2pwrpjfrahyw"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-arraylayouts" ,julia-arraylayouts)
-       ("julia-fillarrays" ,julia-fillarrays)
-       ("julia-macrotools" ,julia-macrotools)
-       ("julia-matrixfactorizations" ,julia-matrixfactorizations)
-       ("julia-staticarrays" ,julia-staticarrays)))
-    (native-inputs
-     `(("julia-tracker" ,julia-tracker)))
-    (home-page "https://github.com/JuliaArrays/LazyArrays.jl")
-    (synopsis "Lazy arrays and linear algebra")
-    (description "This package supports lazy analogues of array operations like
-@code{vcat}, @code{hcat}, and multiplication.  This helps with the
-implementation of matrix-free methods for iterative solvers.")
-    (license license:expat)))
-
-(define-public julia-tracker
-  (package
-    (name "julia-tracker")
-    (version "0.2.12")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/FluxML/Tracker.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1s4mdywbp7nli7z985fqaj1rs4i6d92b1jx3lhg0qhk1s5wc0v8j"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-adapt" ,julia-adapt)
-       ("julia-diffrules" ,julia-diffrules)
-       ("julia-forwarddiff" ,julia-forwarddiff)
-       ("julia-macrotools" ,julia-macrotools)
-       ("julia-nanmath" ,julia-nanmath)
-       ("julia-nnlib" ,julia-nnlib)
-       ("julia-requires" ,julia-requires)
-       ("julia-specialfunctions" ,julia-specialfunctions)))
-    (native-inputs
-     `(("julia-pdmats" ,julia-pdmats)))
-    (home-page "https://github.com/FluxML/Tracker.jl")
-    (synopsis "Flux's ex AD")
-    (description "Flux's old AD, now replaced with Zygote.")
-    (license license:expat)))
-
-(define-public julia-nnlib
-  (package
-    (name "julia-nnlib")
-    (version "0.7.19")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/FluxML/NNlib.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "163v7hkmbxxgnq7qigmqjdqcdywi2njxbh54w8v0hf4bddnalbba"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; skip so we can drop CUDA.jl
-    (propagated-inputs
-     `(("julia-adapt" ,julia-adapt)
-       ("julia-chainrulescore" ,julia-chainrulescore)
-       ("julia-requires" ,julia-requires)))
-    (native-inputs
-     `(("julia-chainrulestestutils" ,julia-chainrulestestutils)
-       ;("julia-cuda" ,julia-cuda)
-       ("julia-stablerngs" ,julia-stablerngs)
-       ("julia-zygote" ,julia-zygote)))
-    (home-page "https://github.com/FluxML/NNlib.jl")
-    (synopsis "Neural Network primitives with multiple backends")
-    (description "This package will provide a library of functions useful for
-machine learning, such as softmax, sigmoid, convolutions and pooling.  It
-doesn't provide any other \"high-level\" functionality like layers or AD.")
-    (license license:expat)))
-
-(define-public julia-genericlinearalgebra
-  (package
-    (name "julia-genericlinearalgebra")
-    (version "0.2.5")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaLinearAlgebra/GenericLinearAlgebra.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0ndwypa397z3pwzdgc3s9plaqlqf63g3d4px5pvym5psgr6lnm3l"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; come back to this later
-    (native-inputs
-     `(("julia-quaternions" ,julia-quaternions)))
-    (home-page "https://github.com/JuliaLinearAlgebra/GenericLinearAlgebra.jl")
-    (synopsis "Generic numerical linear algebra")
-    (description "The purpose of this package is partly to extend linear algebra functionality in base to cover generic element types, e.g. @code{BigFloat} and @code{Quaternion}, and partly to be a place to experiment with fast linear algebra routines written in Julia (except for optimized BLAS). It is my hope that it is possible to have implementations that are generic, fast, and readable.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-quaternions
-  (package
-    (name "julia-quaternions")
-    (version "0.4.2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGeometry/Quaternions.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1zhynyvchc50hywws2jznpkwydr3njh8cv84d2ylyabhcwwmil9s"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-dualnumbers" ,julia-dualnumbers)))
-    (home-page "https://github.com/JuliaGeometry/Quaternions.jl")
-    (synopsis "Quaternion and dual-quaternion functionality")
-    (description "Quaternions are best known for their suitability as
-representations of 3D rotational orientation.  They can also be viewed as an
-extension of complex numbers.")
-    (license license:expat)))
-
-(define-public julia-dualnumbers
-  (package
-    (name "julia-dualnumbers")
-    (version "0.6.5")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaDiff/DualNumbers.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "05vr5wbzqpchnb96b3pmn67x196mbfnkv7r9bdlz3gm56if4awk5"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; fail hard on test/runtests.jl:4
-    (propagated-inputs
-     `(("julia-calculus" ,julia-calculus)
-       ("julia-nanmath" ,julia-nanmath)
-       ("julia-specialfunctions" ,julia-specialfunctions)))
-    (home-page "https://github.com/JuliaDiff/DualNumbers.jl")
-    (synopsis "representing dual numbers and for performing dual algebra")
-    (description "The @code{DualNumbers} Julia package defines the @code{Dual} type to represent dual numbers, and supports standard mathematical operations on them.  Conversions and promotions are defined to allow performing operations on combinations of dual numbers with predefined Julia numeric types.")
     (license license:expat)))
 
 (define-public julia-recursivearraytools
@@ -1920,6 +1577,7 @@ functions (or any callable object, really).")
     (description "This package provides type stable and efficient wrapper of arbitrary functions.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-linesearches
   (package
     (name "julia-linesearches")
@@ -1935,15 +1593,21 @@ functions (or any callable object, really).")
          (base32 "1qc4la07w6s1xhcyd0hvbnpr31zc1a2ssgyybc8biv5m00g0dnr0"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; Tests require Optim.jl, creating a cycle.
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'skip-optim-tests
+           (lambda _
+             (substitute* "test/examples.jl"
+               ;; Prevent a cycle with Optim.jl.
+               (("^    SKIPFILE.*") "")
+               (("^    #SKIPFILE") "    SKIPFILE"))
+             #t)))))
     (propagated-inputs
-     `(("julia-doublefloats" ,julia-doublefloats)
-       ("julia-nlsolversbase" ,julia-nlsolversbase)
+     `(("julia-nlsolversbase" ,julia-nlsolversbase)
        ("julia-nanmath" ,julia-nanmath)
        ("julia-parameters" ,julia-parameters)))
     (native-inputs
      `(("julia-doublefloats" ,julia-doublefloats)
-       ;("julia-optim" ,julia-optim)
        ("julia-optimtestproblems" ,julia-optimtestproblems)))
     (home-page "https://github.com/JuliaNLSolvers/LineSearches.jl")
     (synopsis "Line search methods for optimization and root-finding")
@@ -1951,6 +1615,7 @@ functions (or any callable object, really).")
 implemented in Julia.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-doublefloats
   (package
     (name "julia-doublefloats")
@@ -1966,8 +1631,7 @@ implemented in Julia.")
          (base32 "0bpx2y05mmnk77lsg3gnxcjvag5h75nk5pyv0xrw53a8b62ja57y"))))
     (build-system julia-build-system)
     (propagated-inputs
-     `(("julia-genericlinearalgebra" ,julia-genericlinearalgebra)
-       ("julia-polynomials" ,julia-polynomials)
+     `(("julia-polynomials" ,julia-polynomials)
        ("julia-quadmath" ,julia-quadmath)
        ("julia-requires" ,julia-requires)
        ("julia-specialfunctions" ,julia-specialfunctions)))
@@ -1981,6 +1645,7 @@ implemented in Julia.")
 floats and complex types.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-polynomials
   (package
     (name "julia-polynomials")
@@ -1995,18 +1660,13 @@ floats and complex types.")
         (sha256
          (base32 "0mz7ls281d6166w9808lwgn007dsk8pqi4qmdf0jiiipy5a0a4ji"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-intervals" ,julia-intervals)
+     `(("julia-intervals" ,julia-intervals)
        ("julia-mutablearithmetics" ,julia-mutablearithmetics)
-       ;("julia-recipesbase" ,julia-recipesbase)
-       ))
+       ("julia-recipesbase" ,julia-recipesbase)))
     (native-inputs
-     `(
-       ("julia-specialfunctions" ,julia-specialfunctions)
-       ))
+     `(("julia-offsetarrays" ,julia-offsetarrays)
+       ("julia-specialfunctions" ,julia-specialfunctions)))
     (home-page "https://github.com/JuliaMath/Polynomials.jl")
     (synopsis "Polynomial manipulations in Julia")
     (description "This package provides basic arithmetic, integration,
@@ -2075,6 +1735,7 @@ negative infinity in Julia.")
     (license license:gpl3)))
 
 ;; TODO: Keep this in sync with tzdata in base.scm
+;; Package can use more work
 (define-public julia-timezones
   (package
     (name "julia-timezones")
@@ -2156,68 +1817,7 @@ that want to use the @code{LazyArtifacts} stdlib as a dependency within packages
 that still support Julia versions older than 1.6.")
     (license license:expat)))
 
-(define-public julia-mutablearithmetics
-  (package
-    (name "julia-mutablearithmetics")
-    (version "0.2.19")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/jump-dev/MutableArithmetics.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1zjfq5sh0rc941pbc9kvnr6a2lpr4yd276mw62vbncbz9jg52rrg"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
-    (native-inputs
-     `(
-       ;("julia-sparsearrays" ,julia-sparsearrays)
-       ))
-    (home-page "https://github.com/jump-dev/MutableArithmetics.jl")
-    (synopsis "Interface for arithmetics on mutable types in Julia")
-    (description "MutableArithmetics (MA for short) is a Julia package which allows:
-
-                     for mutable types to implement mutable arithmetics;
-                         for algorithms that could exploit mutable arithmetics to exploit them while still being completely generic.
-                         ")
-    (license license:mpl2.0)))
-
-(define-public julia-genericschur
-  (package
-    (name "julia-genericschur")
-    (version "0.5.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/RalphAS/GenericSchur.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0kklc2niylvynhq0v49kdmy58m9jmr5jxjf287k1wr9r81fya3sz"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; TODO: Fix later
-    (propagated-inputs
-     `(
-       ;("julia-requires" ,julia-requires)
-       ))
-    (native-inputs
-     `(
-       ;("julia-specialfunctions" ,julia-specialfunctions)
-       ))
-    (home-page "https://github.com/RalphAS/GenericSchur.jl")
-    (synopsis "Julia package for Schur decomposition of matrices with generic element types")
-    (description "The Schur decomposition is the workhorse for eigensystem analysis of dense matrices. The diagonal eigen-decomposition of normal (especially Hermitian) matrices is an important special case, but for non-normal matrices the Schur form is often more useful.")
-    (license license:expat)))
-
+;; ready to upstream
 (define-public julia-mosaicviews
   (package
     (name "julia-mosaicviews")
@@ -2235,44 +1835,19 @@ that still support Julia versions older than 1.6.")
     (arguments
      `(#:tests? #f))    ; Cycle with ImageCore.jl
     (propagated-inputs
-     `(
-       ("julia-mappedarrays" ,julia-mappedarrays)
+     `(("julia-mappedarrays" ,julia-mappedarrays)
        ("julia-paddedviews" ,julia-paddedviews)
-       ("julia-stackviews" ,julia-stackviews)
-       ))
+       ("julia-stackviews" ,julia-stackviews)))
     ;(native-inputs
     ; `(("julia-colorvectorspace" ,julia-colorvectorspace)
     ;   ("julia-imagecore" ,julia-imagecore)))
     (home-page "https://github.com/JuliaArrays/MosaicViews.jl")
-    (synopsis "Julia package for lazily viewing a 3D or 4D array as an expanded 2D array in the form of a mosaic of matrix slices")
-    (description "When visualizing images, it is not uncommon to provide a 2D view of different image sources.  For example, comparing multiple images of different sizes, getting a preview of machine learning dataset.  This package aims to provide easy-to-use tools for such tasks.")
-    (license license:expat)))
-
-(define-public julia-paddedviews
-  (package
-    (name "julia-paddedviews")
-    (version "0.5.8")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaArrays/PaddedViews.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0ran2vj6ahlzib0g77y7g0jhavy3k9s2mqq23ybpgp9z677wf26h"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
-    (native-inputs
-     `(
-       ("julia-documenter" ,julia-documenter)
-       ))
-    (home-page "https://github.com/JuliaArrays/PaddedViews.jl")
-    (synopsis "Add virtual padding to the edges of an array")
-    (description "PaddedViews provides a simple wrapper type, @code{PaddedView}, to add \"virtual\" padding to any array without copying data.  Edge values not specified by the array are assigned a @code{fillvalue}.  Multiple arrays may be \"promoted\" to have common indices using the @code{paddedviews function.")
+    (synopsis
+     "Lazily view a 3D or 4D array as an expanded 2D array as a matrix of slices")
+    (description "When visualizing images, it is not uncommon to provide a 2D
+view of different image sources.  For example, comparing multiple images of
+different sizes, getting a preview of machine learning dataset.  This package
+aims to provide easy-to-use tools for such tasks.")
     (license license:expat)))
 
 ;; ready to upstream
@@ -2330,20 +1905,32 @@ There are multiple ways to understand @code{StackView}:
          (base32 "0mm6bjhs8a21pippww6b08b5frmnb9m6k8xrszrwq9zhc879zpc9"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; cycle with ImageMagick.jl
+     `(#:tests? #f))    ; Cycle with ImageCore.jl through ImageMagick.jl.
     (propagated-inputs
      `(
-       ;("julia-imagecore" ,julia-imagecore)
+       ;("julia-deepdiffs" ,julia-deepdiffs)
+       ("julia-distances" ,julia-distances)
+       ("julia-fileio" ,julia-fileio)
+       ("julia-imagecore" ,julia-imagecore)
        ;("julia-imageinterminal" ,julia-imageinterminal)
        ))
-    (native-inputs
-     `(
-       ))
+    ;(native-inputs
+    ; `(("julia-csvfiles" ,julia-csvfiles)
+    ;   ("julia-dataframes" ,julia-dataframes)
+    ;   ("julia-gr" ,julia-gr)
+    ;   ("julia-imagemagick" ,julia-imagemagick)
+    ;   ("julia-imagetransformations" ,julia-imagetransformations)
+    ;   ("julia-plots" ,julia-plots)
+    ;   ("julia-testimages" ,julia-testimages)))
     (home-page "https://juliatesting.github.io/ReferenceTests.jl/latest/")
     (synopsis "Utility package for comparing data against reference files")
-    (description "ReferenceTests.jl is a Julia package that adds a couple of additional macros to your testing toolbox.  In particular, it focuses on functionality for testing values against reference files, which in turn the package can help create and update if need be.")
+    (description "@code{ReferenceTests.jl} is a Julia package that adds a couple
+of additional macros to your testing toolbox.  In particular, it focuses on
+functionality for testing values against reference files, which in turn the
+package can help create and update if need be.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-imagemetadata
   (package
     (name "julia-imagemetadata")
@@ -2358,26 +1945,25 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "0iv154ms370xgcr56bwsjl13iwmy671cbxjl9ld5yfj85pclcwi1"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-axisarrays" ,julia-axisarrays)
+     `(("julia-axisarrays" ,julia-axisarrays)
        ("julia-imageaxes" ,julia-imageaxes)
        ("julia-imagecore" ,julia-imagecore)
-       ("julia-indirectarrays" ,julia-indirectarrays)
-       ))
+       ("julia-indirectarrays" ,julia-indirectarrays)))
     (native-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
+     `(("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-simpletraits" ,julia-simpletraits)
-       ("julia-unitful" ,julia-unitful)
-       ))
+       ("julia-unitful" ,julia-unitful)))
     (home-page "https://github.com/JuliaImages/ImageMetadata.jl")
     (synopsis "Julia package for images having metadata")
-    (description "ImageMetadata is a simple package providing utilities for working with images that have metadata attached.  For example, you might want to associate an image with the date on which the picture was taken, or an MRI scan with patient data, or an astronomical image with sky coordinates and information about the detector used to acquire the image.")
+    (description "ImageMetadata is a simple package providing utilities for
+working with images that have metadata attached.  For example, you might want to
+associate an image with the date on which the picture was taken, or an MRI scan
+with patient data, or an astronomical image with sky coordinates and information
+about the detector used to acquire the image.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-imageaxes
   (package
     (name "julia-imageaxes")
@@ -2392,24 +1978,21 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "15zqxani1jjh8849s7rdps6b6prqdwv8yxx893y536vkpk7i07qd"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-axisarrays" ,julia-axisarrays)
+     `(("julia-axisarrays" ,julia-axisarrays)
        ("julia-imagecore" ,julia-imagecore)
        ("julia-reexport" ,julia-reexport)
-       ("julia-simpletraits" ,julia-simpletraits)
-       ))
+       ("julia-simpletraits" ,julia-simpletraits)))
     (native-inputs
-     `(
-       ("julia-unitful" ,julia-unitful)
-       ))
+     `(("julia-unitful" ,julia-unitful)))
     (home-page "https://github.com/JuliaImages/ImageAxes.jl")
     (synopsis "Julia package for giving \"meaning\" to the axes of an image")
-    (description "This small package supports the representation of images as AxisArrays to endow the axes with \"meaning,\" and makes programming with such arrays easy via traits.")
+    (description "This small package supports the representation of images as
+@code{AxisArrays} to endow the axes with \"meaning,\" and makes programming with
+such arrays easy via traits.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-axisarrays
   (package
     (name "julia-axisarrays")
@@ -2424,24 +2007,24 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "079rj7wvh9ks293g2ih1yah5k0sg8wazw08z3vg2bxj4s16wr64p"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-rangearrays" ,julia-rangearrays)
+     `(("julia-rangearrays" ,julia-rangearrays)
        ("julia-intervalsets" ,julia-intervalsets)
-       ("julia-itertools" ,julia-itertools)
-       ))
+       ("julia-itertools" ,julia-itertools)))
     (native-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-unitful" ,julia-unitful)
-       ))
+     `(("julia-offsetarrays" ,julia-offsetarrays)
+       ("julia-unitful" ,julia-unitful)))
     (home-page "http://juliaarrays.github.io/AxisArrays.jl/latest/")
-    (synopsis "Performant arrays where each dimension can have a named axis with values")
-    (description "This package for the Julia language provides an array type (the AxisArray) that knows about its dimension names and axis values.  This allows for indexing by name without incurring any runtime overhead.  This permits one to implement algorithms that are oblivious to the storage order of the underlying arrays.  AxisArrays can also be indexed by the values along their axes, allowing column names or interval selections.")
+    (synopsis "Arrays where each dimension can have a named axis with values")
+    (description "This package for the Julia language provides an array type
+(the AxisArray) that knows about its dimension names and axis values.  This
+allows for indexing by name without incurring any runtime overhead.  This
+permits one to implement algorithms that are oblivious to the storage order of
+the underlying arrays.  AxisArrays can also be indexed by the values along their
+axes, allowing column names or interval selections.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-intervalsets
   (package
     (name "julia-intervalsets")
@@ -2456,21 +2039,19 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "0gsz89cd3iygbl5qr389k9vwpg7w1nk0s90g25nsmk34y9hifxag"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-ellipsisnotation" ,julia-ellipsisnotation)
-       ))
+     `(("julia-ellipsisnotation" ,julia-ellipsisnotation)))
     (native-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
+     `(("julia-offsetarrays" ,julia-offsetarrays)))
     (home-page "https://github.com/JuliaMath/IntervalSets.jl")
     (synopsis "Interval Sets for Julia")
-    (description "This package is intended to implement a \"minimal\" foundation for intervals upon which other packages might build. In particular, we encourage type-piracy for the reason that only one interval package can unambiguously define the .. and ± operators (see below).")
+    (description "This package is intended to implement a \"minimal\" foundation
+for intervals upon which other packages might build.  In particular, we
+encourage type-piracy for the reason that only one interval package can
+unambiguously define the @code{..} and @code{±} operators.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-ellipsisnotation
   (package
     (name "julia-ellipsisnotation")
@@ -2485,79 +2066,16 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "0py46kxl702r8pw3v7x4cqllf7yc91b0dr7vb60xh2qi7d6y3jc7"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-arrayinterface" ,julia-arrayinterface)
-       ))
-    (native-inputs
-     `(
-       ;("julia-documenter" ,julia-documenter)
-       ))
+     `(("julia-arrayinterface" ,julia-arrayinterface)))
     (home-page "https://github.com/ChrisRackauckas/EllipsisNotation.jl")
     (synopsis "Elipsis notation implementation")
-    (description "This implements the notation .. for indexing arrays. It's similar to the Python ... in that it means \"all of the columns before (or after)\".")
+    (description "This implements the notation @code{..} for indexing arrays.
+It's similar to the Python @code{...} in that it means \"all of the columns
+before (or after)\".")
     (license license:expat)))
 
-(define-public julia-itertools
-  (package
-    (name "julia-itertools")
-    (version "1.3.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaCollections/IterTools.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0haf974kcqj6arv4if97ahs4w3dmvslh6ab3hl57r9s41ic36xdq"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ;("julia-arrayinterface" ,julia-arrayinterface)
-       ))
-    (native-inputs
-     `(
-       ;("julia-sparsearrays" ,julia-sparsearrays)
-       ))
-    (home-page "https://github.com/JuliaCollections/IterTools.jl")
-    (synopsis "Common functional iterator patterns")
-    (description "Common functional iterator patterns (formerly Iterators.jl).")
-    (license license:expat)))
-
-(define-public julia-simpletraits
-  (package
-    (name "julia-simpletraits")
-    (version "0.9.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/mauro3/SimpleTraits.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1aaq91klwxb0r3ckwihf7rd7jvg70757nkhp5ip4cc3lspnnip23"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-macrotools" ,julia-macrotools)
-       ))
-    (native-inputs
-     `(
-       ;("julia-sparsearrays" ,julia-sparsearrays)
-       ))
-    (home-page "https://github.com/mauro3/SimpleTraits.jl")
-    (synopsis "Simple Traits for Julia")
-    (description "This package provides a macro-based implementation of traits, using Tim Holy's trait trick.  The main idea behind traits is to group types outside the type-hierarchy and to make dispatch work with that grouping.  The difference to Union-types is that types can be added to a trait after the creation of the trait, whereas Union types are fixed after creation.  The cool thing about Tim's trick is that there is no performance impact compared to using ordinary dispatch.  For a bit of background and a quick introduction to traits watch my 10min JuliaCon 2015 talk.")
-    (license license:expat)))
-
+;; ready to upstream
 (define-public julia-imagetransformations
   (package
     (name "julia-imagetransformations")
@@ -2575,8 +2093,7 @@ There are multiple ways to understand @code{StackView}:
     (arguments
      `(#:tests? #f))    ; cycle with ImageMagick.jl
     (propagated-inputs
-     `(
-       ("julia-axisalgorithms" ,julia-axisalgorithms)
+     `(("julia-axisalgorithms" ,julia-axisalgorithms)
        ("julia-colorvectorspace" ,julia-colorvectorspace)
        ("julia-coordinatetransformations" ,julia-coordinatetransformations)
        ("julia-imagecore" ,julia-imagecore)
@@ -2584,17 +2101,18 @@ There are multiple ways to understand @code{StackView}:
        ("julia-interpolations" ,julia-interpolations)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-rotations" ,julia-rotations)
-       ("julia-staticarrays" ,julia-staticarrays)
-       ))
+       ("julia-staticarrays" ,julia-staticarrays)))
     ;(native-inputs
     ; `(("julia-imagemagick" ,julia-imagemagick)
     ;   ("julia-referencetests" ,julia-referencetests)
     ;   ("julia-testimages" ,julia-testimages)))
     (home-page "https://github.com/JuliaImages/ImageTransformations.jl")
     (synopsis "Geometric transformations on images for Julia")
-    (description "This package provides support for image resizing, image rotation, and other spatial transformations of arrays.")
+    (description "This package provides support for image resizing, image
+rotation, and other spatial transformations of arrays.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-coordinatetransformations
   (package
     (name "julia-coordinatetransformations")
@@ -2609,52 +2127,23 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "15zbkn32v7xlz7559s0r5a0vkwmjwsswxaqpzijly4lky4jnp33d"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
     (propagated-inputs
-     `(
-       ("julia-staticarrays" ,julia-staticarrays)
-       ))
+     `(("julia-staticarrays" ,julia-staticarrays)))
     (native-inputs
-     `(
-       ("julia-documenter" ,julia-documenter)
+     `(("julia-documenter" ,julia-documenter)
        ("julia-forwarddiff" ,julia-forwarddiff)
-       ("julia-unitful" ,julia-unitful)
-       ))
+       ("julia-unitful" ,julia-unitful)))
     (home-page "https://github.com/JuliaGeometry/CoordinateTransformations.jl")
     (synopsis "A fresh approach to coordinate transformations")
-    (description "CoordinateTransformations is a Julia package to manage simple or complex networks of coordinate system transformations.  Transformations can be easily applied, inverted, composed, and differentiated (both with respect to the input coordinates and with respect to transformation parameters such as rotation angle).  Transformations are designed to be light-weight and efficient enough for, e.g., real-time graphical applications, while support for both explicit and automatic differentiation makes it easy to perform optimization and therefore ideal for computer vision applications such as SLAM (simultaneous localization and mapping).")
-    (license license:expat)))
-
-(define-public julia-rotations
-  (package
-    (name "julia-rotations")
-    (version "1.0.2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGeometry/Rotations.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1l1a3bnrpv9qdksnk3c8j82ik3yrnpsmnyxyiy3gc1yjya5pajqj"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-staticarrays" ,julia-staticarrays)
-       ))
-    (native-inputs
-     `(
-       ("julia-benchmarktools" ,julia-benchmarktools)
-       ("julia-forwarddiff" ,julia-forwarddiff)
-       ("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/JuliaGeometry/Rotations.jl")
-    (synopsis "Julia implementations for different rotation parameterisations")
-    (description "This package implements various 3D rotation parameterizations and defines conversions between them.  At their heart, each rotation parameterization is a 3×3 unitary (orthogonal) matrix (based on the StaticArrays.jl package), and acts to rotate a 3-vector about the origin through matrix-vector multiplication.")
+    (description "@code{CoordinateTransformations} is a Julia package to manage
+simple or complex networks of coordinate system transformations.
+Transformations can be easily applied, inverted, composed, and differentiated
+(both with respect to the input coordinates and with respect to transformation
+parameters such as rotation angle).  Transformations are designed to be
+light-weight and efficient enough for, e.g., real-time graphical applications,
+while support for both explicit and automatic differentiation makes it easy to
+perform optimization and therefore ideal for computer vision applications such
+as SLAM (simultaneous localization and mapping).")
     (license license:expat)))
 
 (define-public julia-testimages
@@ -2693,65 +2182,6 @@ There are multiple ways to understand @code{StackView}:
     (description "This package provides a convenient Julia interface for loading standard named test images and example images for the internal usage in JuliaImages.  This can be used in conjunction with the Images package.")
     (license license:expat)))
 
-(define-public julia-stringdistances
-  (package
-    (name "julia-stringdistances")
-    (version "0.10.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/matthieugomez/StringDistances.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0n5707wplbibzhhv1xmshvc025d7xk6mnikclc3hvq5cdc0gy9f7"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-distances" ,julia-distances)
-       ))
-    (native-inputs
-     `(
-       ;("julia-colors" ,julia-colors)
-       ))
-    (home-page "https://github.com/matthieugomez/StringDistances.jl")
-    (synopsis "String Distances in Julia")
-    (description "String Distances in Julia")
-    (license license:expat)))
-
-(define-public julia-distances
-  (package
-    (name "julia-distances")
-    (version "0.10.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaStats/Distances.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1yqd9wg4z15k42mrp4y14j2x0sq7yrjhm5zpqklrw6w6j1c367ig"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:tests? #f))    ; some of the tests are flakey
-    (propagated-inputs
-     `(
-       ("julia-statsapi" ,julia-statsapi)
-       ))
-    (native-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/JuliaStats/Distances.jl")
-    (synopsis "ulia package for evaluating distances (metrics) between vectors")
-    (description "A Julia package for evaluating distances(metrics) between vectors.  This package also provides optimized functions to compute column-wise and pairwise distances, which are often substantially faster than a straightforward loop implementation.")
-    (license license:expat)))
-
 (define-public julia-interpolations
   (package
     (name "julia-interpolations")
@@ -2769,13 +2199,11 @@ There are multiple ways to understand @code{StackView}:
     (arguments
      `(#:tests? #f))    ; some of the tests are flakey
     (propagated-inputs
-     `(
-       ("julia-axisalgorithms" ,julia-axisalgorithms)
+     `(("julia-axisalgorithms" ,julia-axisalgorithms)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-ratios" ,julia-ratios)
        ("julia-staticarrays" ,julia-staticarrays)
-       ("julia-woodburymatrices" ,julia-woodburymatrices)
-       ))
+       ("julia-woodburymatrices" ,julia-woodburymatrices)))
     (native-inputs
      `(
        ;("julia-offsetarrays" ,julia-offsetarrays)
@@ -2783,132 +2211,12 @@ There are multiple ways to understand @code{StackView}:
        ))
     (home-page "https://github.com/JuliaMath/Interpolations.jl")
     (synopsis "Fast, continuous interpolation of discrete datasets")
-    (description "This package implements a variety of interpolation schemes for the Julia language.  It has the goals of ease-of-use, broad algorithmic support, and exceptional performance.")
+    (description "This package implements a variety of interpolation schemes for
+the Julia language.  It has the goals of ease-of-use, broad algorithmic support,
+and exceptional performance.")
     (license license:expat)))
 
-(define-public julia-woodburymatrices
-  (package
-    (name "julia-woodburymatrices")
-    (version "0.5.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/timholy/WoodburyMatrices.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "04yykivi8zrbryxlmb0p5xa6lma8iq22r5s863117dnnqj5gaffd"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-staticarrays" ,julia-staticarrays)
-       ;("julia-woodburymatrices" ,julia-woodburymatrices)
-       ))
-    (native-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/timholy/WoodburyMatrices.jl")
-    (synopsis "Support for the Woodbury matrix identity for Julia")
-    (description "This package provides support for the Woodbury matrix identity for the Julia programming language.  This is a generalization of the Sherman-Morrison formula.  Note that the Woodbury matrix identity is notorious for floating-point roundoff errors, so be prepared for a certain amount of inaccuracy in the result.")
-    (license license:expat)))
-
-(define-public julia-ratios
-  (package
-    (name "julia-ratios")
-    (version "0.4.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/timholy/Ratios.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1a4fd4jq4qjply29rkwg3m1clfndjsbckj1b1dab1bc35h2c6yxh"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-staticarrays" ,julia-staticarrays)
-       ;("julia-woodburymatrices" ,julia-woodburymatrices)
-       ))
-    (native-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/timholy/Ratios.jl")
-    (synopsis "Faster Rational-like types for Julia")
-    (description "This package provides types similar to Julia's Rational type, which make some sacrifices but have better computational performance.")
-    (license license:expat)))
-
-(define-public julia-axisalgorithms
-  (package
-    (name "julia-axisalgorithms")
-    (version "1.0.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/timholy/AxisAlgorithms.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "00x85lnfln7xkfnirpplzyi8r6q92nfqwya8il156bf7b1pa20gk"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-woodburymatrices" ,julia-woodburymatrices)
-       ))
-    (native-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/timholy/AxisAlgorithms.jl")
-    (synopsis "Efficient filtering and linear algebra routines for multidimensional arrays")
-    (description "AxisAlgorithms is a collection of filtering and linear algebra algorithms for multidimensional arrays.  For algorithms that would typically apply along the columns of a matrix, you can instead pick an arbitrary axis (dimension).")
-    (license license:expat)))
-
-(define-public julia-identityranges
-  (package
-    (name "julia-identityranges")
-    (version "0.3.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaArrays/IdentityRanges.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0jvl4xn8f8k70sn473li5q62wbiycl5qi25b5k456h3a0j1lbiml"))))
-    (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))
-    (propagated-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
-    (native-inputs
-     `(
-       ;("julia-unitful" ,julia-unitful)
-       ))
-    (home-page "https://github.com/JuliaArrays/IdentityRanges.jl")
-    (synopsis "Ranges that preserve indices of views")
-    (description "IdentityRanges are Julia-language a helper type for creating \"views\" of arrays.  They are a custom type of AbstractUnitRange that makes it easy to preserve the indices of array views.  The key property of an @code{IdentityRange r} is that @code{r[i] == i} (hence the name of the type/package), and that they support arbitrary start/stop indices (i.e., not just starting at 1).")
-    (license license:expat)))
-
+;; ready to upstream
 (define-public julia-imageshow
   (package
     (name "julia-imageshow")
@@ -2926,21 +2234,22 @@ There are multiple ways to understand @code{StackView}:
     (arguments
      `(#:tests? #f))    ; cycle with ImageMagick.jl
     (propagated-inputs
-     `(
-       ("julia-fileio" ,julia-fileio)
+     `(("julia-fileio" ,julia-fileio)
        ("julia-imagecore" ,julia-imagecore)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-requires" ,julia-requires)
-       ("julia-stackviews" ,julia-stackviews)
-       ))
+       ("julia-stackviews" ,julia-stackviews)))
     ;(native-inputs
     ; `(("julia-imagedistances" ,julia-imagedistances)
     ;   ("julia-imagemagick" ,julia-imagemagick)
     ;   ("julia-suppressor" ,julia-suppressor)
     ;   ("julia-testimages" ,julia-testimages)))
     (home-page "https://github.com/JuliaImages/ImageShow.jl")
-    (synopsis "Inline graphical display of images in Julia graphical environments")
-    (description "This package provides three non-exported functions @code{play}/@code{explore} and @code{gif} to interpret your 3D image or 2d images as either a video sequence or a gif.")
+    (synopsis
+     "Inline graphical display of images in Julia graphical environments")
+    (description "This package provides three non-exported functions
+@code{play}/@code{explore} and @code{gif} to interpret your 3D image or 2D
+images as either a video sequence or a gif.")
     (license license:expat)))
 
 (define-public julia-visualregressiontests
@@ -2958,18 +2267,22 @@ There are multiple ways to understand @code{StackView}:
          (base32 "0fsqm89dqrn9bd466v79544hcd5ljn5ikg6x94hfcashjwa5y0g2"))))
     (build-system julia-build-system)
     ;(arguments
-    ; `(#:tests? #f))
+    ; `(#:tests? #f))   ; GTK.jl not packaged yet
     (propagated-inputs
      `(
+       ;("julia-colortypes" ,julia-colortypes)
+       ;("julia-colorvectorspace" ,julia-colorvectorspace)
        ;("julia-fileio" ,julia-fileio)
-       ;("julia-imagecore" ,julia-imagecore)
-       ;("julia-offsetarrays" ,julia-offsetarrays)
+       ;("julia-imagefiltering" ,julia-imagefiltering)
+       ;("julia-imagemagick" ,julia-imagemagick)
+       ;("julia-quartzimageio" ,julia-quartzimageio)
        ;("julia-requires" ,julia-requires)
-       ;("julia-stackviews" ,julia-stackviews)
        ))
     (native-inputs
      `(
        ;("julia-gtk" ,julia-gtk)
+       ;("julia-plots" ,julia-plots)
+       ;("julia-testimages" ,julia-testimages)
        ))
     (home-page "https://github.com/JuliaPlots/VisualRegressionTests.jl")
     (synopsis "Automated integrated regression tests for graphics libraries")
@@ -3018,6 +2331,7 @@ There are multiple ways to understand @code{StackView}:
     (description "This package aims to offer a standard set of Geometry types, which easily work with metadata, query frameworks on geometries and different memory layouts.  The aim is to create a solid basis for Graphics/Plotting, finite elements analysis, Geo applications, and general geometry manipulations - while offering a julian API, that still allows performant C-interop.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-structarrays
   (package
     (name "julia-structarrays")
@@ -3032,24 +2346,23 @@ There are multiple ways to understand @code{StackView}:
         (sha256
          (base32 "0i1h3pbjp04dwic786yjnx81ifppgcbdysvgjs00cd9zmpn3xnqw"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))    ; LoadError: UndefVarError: iocapture not defined
     (propagated-inputs
-     `(
-       ("julia-dataapi" ,julia-dataapi)
-       ("julia-tables" ,julia-tables)
-       ))
+     `(("julia-dataapi" ,julia-dataapi)
+       ("julia-tables" ,julia-tables)))
     (native-inputs
-     `(
-       ("julia-documenter" ,julia-documenter)
+     `(("julia-documenter" ,julia-documenter)
        ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-pooledarrays" ,julia-pooledarrays)
        ("julia-typedtables" ,julia-typedtables)
-       ("julia-weakrefstrings" ,julia-weakrefstrings)
-       ))
+       ("julia-weakrefstrings" ,julia-weakrefstrings)))
     (home-page "https://github.com/JuliaArrays/StructArrays.jl")
     (synopsis "Efficient implementation of struct arrays in Julia")
-    (description "This package introduces the type @code{StructArray} which is an @code{AbstractArray} whose elements are @code{struct} (for example @code{NamedTuples}, or @code{ComplexF64}, or a custom user defined @code{struct}).  While a @code{StructArray} iterates @code{structs}, the layout is column based (meaning each field of the @code{struct} is stored in a separate @code{Array}).")
+    (description "This package introduces the type @code{StructArray} which is
+an @code{AbstractArray} whose elements are @code{struct} (for example
+@code{NamedTuples}, or @code{ComplexF64}, or a custom user defined
+@code{struct}).  While a @code{StructArray} iterates @code{structs}, the layout
+is column based (meaning each field of the @code{struct} is stored in a separate
+@code{Array}).")
     (license license:expat)))
 
 (define-public julia-earcut-jll
@@ -3148,37 +2461,6 @@ There are multiple ways to understand @code{StackView}:
     (description "")
     (license license:expat)))
 
-(define-public julia-showoff
-  (package
-    (name "julia-showoff")
-    (version "1.0.2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGraphics/Showoff.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1g4hqvjjpwbrs7fnllyl5w66yj6qlvpvzpygym2nvf01m1ps6m53"))))
-    (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ;("julia-requires" ,julia-requires)
-       ))
-    (native-inputs
-     `(
-       ;("julia-aqua" ,julia-aqua)
-       ))
-    (home-page "https://github.com/JuliaGraphics/Showoff.jl")
-    (synopsis "Nicely format an array of n things for tables and plots")
-    (description "Showoff provides an interface for consistently formatting an array of n things, e.g. numbers, dates, unitful values.  It's used in Gadfly, Plots and Makie to label axes and keys.")
-    (license license:expat)))
-
 (define-public julia-recipespipeline
   (package
     (name "julia-recipespipeline")
@@ -3212,6 +2494,7 @@ There are multiple ways to understand @code{StackView}:
     (description "This package was factored out of Plots.jl to allow any other plotting package to use the recipe pipeline.  In short, the extremely lightweight RecipesBase.jl package can be depended on by any package to define \"recipes\": plot specifications of user-defined types, as well as custom plot types.  RecipePipeline.jl contains the machinery to translate these recipes to full specifications for a plot.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-gr
   (package
     (name "julia-gr")
@@ -3230,8 +2513,9 @@ There are multiple ways to understand @code{StackView}:
     (propagated-inputs
      `(("julia-gr-jll" ,julia-gr-jll)))
     (home-page "https://github.com/jheinen/GR.jl")
-    (synopsis "Plotting for Julia based on GR, a framework for visualisation applications")
-    (description "This module provides a Julia interface to GR, a framework for visualisation applications.")
+    (synopsis "Plotting for Julia based on GR")
+    (description "This module provides a Julia interface to GR, a framework for
+visualisation applications.")
     (license license:expat)))
 
 ;; TODO: Unbundle fonts
@@ -3258,8 +2542,7 @@ There are multiple ways to understand @code{StackView}:
     (arguments
      `(#:tests? #f))    ; no test target
     (inputs
-     `(
-       ("cairo" ,(S "cairo"))
+     `(("cairo" ,(S "cairo"))
        ("ffmpeg" ,(S "ffmpeg"))
        ("freetype" ,(@ (gnu packages fontutils) freetype))
        ("glfw" ,(S "glfw"))
@@ -3272,13 +2555,13 @@ There are multiple ways to understand @code{StackView}:
        ("pixman" ,(S "pixman"))
        ("qtbase" ,(@ (gnu packages qt) qtbase))
        ("qhull" ,(@ (gnu packages maths) qhull))
-       ("zlib" ,zlib)
-       ))
+       ("zlib" ,zlib)))
     (home-page "https://gr-framework.org/")
     (synopsis "Graphics library for visualisation applications")
     (description "GR is a universal framework for cross-platform visualization applications.  It offers developers a compact, portable and consistent graphics library for their programs.  Applications range from publication quality 2D graphs to the representation of complex 3D scenes.  GR is essentially based on an implementation of a @acronym{GKS, Graphical Kernel System}.  As a self-contained system it can quickly and easily be integrated into existing applications (i.e. using the @code{ctypes} mechanism in Python or @code{ccall} in Julia).")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-gr-jll
   (package
     (name "julia-gr-jll")
