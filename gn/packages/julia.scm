@@ -832,7 +832,7 @@ of packages designed to support image processing and computer vision.")
 (define-public julia-fileio
   (package
     (name "julia-fileio")
-    (version "1.9.0")
+    (version "1.9.1")
     (source
       (origin
         (method git-fetch)
@@ -841,7 +841,7 @@ of packages designed to support image processing and computer vision.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "15q4bmya5bn17pxfq1nbs1y05y723zb711ps0q8164c086yrj6d9"))))
+         (base32 "1b18x43i737g5q41n9818xbnc2pgd98q1m6yw3h29yri0clg4gfx"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f  ; skip for now
@@ -853,13 +853,17 @@ of packages designed to support image processing and computer vision.")
      `(("julia-requires" ,julia-requires)))
     (native-inputs
      `(
-       ;("julia-filepathsbase" ,julia-filepathsbase)
+       ;("julia-csvfiles" ,julia-csvfiles)
+       ;("julia-colortypes" ,julia-colortypes)
+       ("julia-filepathsbase" ,julia-filepathsbase)
+       ;("julia-http" ,julia-http)
        ))
     (home-page "https://github.com/JuliaIO/FileIO.jl")
     (synopsis "Main Package for IO, loading all different kind of files")
     (description "FileIO aims to provide a common framework for detecting file formats and dispatching to appropriate readers/writers.  The two core functions in this package are called load and save, and offer high-level support for formatted files (in contrast with julia's low-level read and write).  To avoid name conflicts, packages that provide support for standard file formats through functions named load and save are encouraged to register with FileIO.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-filepathsbase
   (package
     (name "julia-filepathsbase")
@@ -872,36 +876,21 @@ of packages designed to support image processing and computer vision.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "136wm4ik6isrdanmpi4gdr1qw0qhr15i925qzjxbawk5hnyzwng9"))))
+         (base32 "136wm4ik6isrdanmpi4gdr1qw0qhr15i925qzjxbawk5hnyzwng9"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ;("julia-requires" ,julia-requires)
-       ;("julia-fillarrays" ,julia-fillarrays)
-       ;("julia-linesearches" ,julia-linesearches)
-       ;("julia-nlsolversbase" ,julia-nlsolversbase)
-       ;("julia-nanmath" ,julia-nanmath)
-       ;("julia-parameters" ,julia-parameters)
-       ;("julia-positivefactorizations" ,julia-positivefactorizations)
-       ;("julia-statsbase" ,julia-statsbase)
-       ))
-    (native-inputs
-     `(
-       ("julia-jlso" ,julia-jlso)
-       ))
+     `(#:tests? #f))    ; Cycle with JLSO.jl
     (home-page "https://github.com/rofinn/FilePathsBase.jl")
     (synopsis "Filesystem path types in Julia")
-    (description "FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.")
+    (description "@code{FilePathsBase.jl} provides a type based approach to
+working with filesystem paths in Julia.")
     (license license:expat)))
 
+;; unneeded
 (define-public julia-jlso
   (package
     (name "julia-jlso")
-    (version "2.5.0")
+    (version "2.6.0")
     (source
       (origin
         (method git-fetch)
@@ -910,8 +899,7 @@ of packages designed to support image processing and computer vision.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1x00mrn4njvkhjns4g8bzjj40g4n6slaxlpsbbccalyabs9sz6id"))))
+         (base32 "0wmwpf6nh4sfcm6daq7hfrvas7ian0kdh501lfv4r0js1d2fxszf"))))
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
@@ -919,23 +907,29 @@ of packages designed to support image processing and computer vision.")
     (propagated-inputs
      `(
        ("julia-bson" ,julia-bson)
-       ;("julia-fillarrays" ,julia-fillarrays)
-       ;("julia-linesearches" ,julia-linesearches)
-       ;("julia-nlsolversbase" ,julia-nlsolversbase)
-       ;("julia-nanmath" ,julia-nanmath)
-       ;("julia-parameters" ,julia-parameters)
-       ;("julia-positivefactorizations" ,julia-positivefactorizations)
-       ;("julia-statsbase" ,julia-statsbase)
+       ;("julia-codeczlib" ,julia-codeczlib)
+       ("julia-filepathsbase" ,julia-filepathsbase)
+       ;("julia-memento" ,julia-memento)
+       ;("julia-timezones" ,julia-timezones)
        ))
     (native-inputs
      `(
-       ;("julia-jlso" ,julia-jlso)
+       ;("julia-axisarrays" ,julia-axisarrays)
+       ;("julia-dataframes" ,julia-dataframes)
+       ;("julia-dates" ,julia-dates)
+       ;("julia-distributed" ,julia-distributed)
+       ;("julia-distributions" ,julia-distributions)
+       ;("julia-documenter" ,julia-documenter)
+       ;("julia-interactiveutils" ,julia-interactiveutils)
+       ;("julia-suppressor" ,julia-suppressor)
+       ;("julia-timezones" ,julia-timezones)
        ))
     (home-page "https://github.com/invenia/JLSO.jl")
     (synopsis "Julia Serialized Object (JLSO) file format for storing checkpoint data")
-    (description "JLSO is a storage container for serialized Julia objects.  Think of it less as a serialization format but as a container, that employs a serializer, and a compressor, handles all the other concerns including metadata and saving.  Such that the serializer just needs to determine how to turn a julia object into a streamVector{UInt8}, and the compressor just needs to determine how to turn one stream of UInt8s into a smaller one (and the reverse).")
+    (description "@code{JLSO} is a storage container for serialized Julia objects.  Think of it less as a serialization format but as a container, that employs a serializer, and a compressor, handles all the other concerns including metadata and saving.  Such that the serializer just needs to determine how to turn a Julia object into a streamVector{UInt8}, and the compressor just needs to determine how to turn one stream of UInt8s into a smaller one (and the reverse).")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-bson
   (package
     (name "julia-bson")
@@ -948,27 +942,10 @@ of packages designed to support image processing and computer vision.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1l5608ma2ys7v2gpcqbiv9mwfc6yrlqkihrfx1pf7fgv5llhd4fn"))))
+         (base32 "1l5608ma2ys7v2gpcqbiv9mwfc6yrlqkihrfx1pf7fgv5llhd4fn"))))
     (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ;("julia-bson" ,julia-bson)
-       ;("julia-fillarrays" ,julia-fillarrays)
-       ;("julia-linesearches" ,julia-linesearches)
-       ;("julia-nlsolversbase" ,julia-nlsolversbase)
-       ;("julia-nanmath" ,julia-nanmath)
-       ;("julia-parameters" ,julia-parameters)
-       ;("julia-positivefactorizations" ,julia-positivefactorizations)
-       ;("julia-statsbase" ,julia-statsbase)
-       ))
     (native-inputs
-     `(
-       ("julia-dataframes" ,julia-dataframes)
-       ))
+     `(("julia-dataframes" ,julia-dataframes)))
     (home-page "https://github.com/JuliaIO/BSON.jl")
     (synopsis "Binary JSON serialisation format")
     (description "@code{BSON.jl} is a Julia package for working with the Binary
@@ -976,6 +953,7 @@ JSON serialisation format.  It can be used as a general store for Julia data
 structures.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-dataframes
   (package
     (name "julia-dataframes")
@@ -988,12 +966,24 @@ structures.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0ab03l9q9vmc176711hp0adc456fphh0d762fv6hcvzvhms4xjkz"))))
+         (base32 "0ab03l9q9vmc176711hp0adc456fphh0d762fv6hcvzvhms4xjkz"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f  ; not all dependants packaged
-       ))
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'skip-failing-test
+           (lambda _
+             ;; Tests with non-standard colors.
+             (substitute* "test/show.jl"
+               (("test (sprint\\(show, df, context=:color=>true)" _ test)
+                (string-append "test_nowarn " test)))
+             (substitute* "test/io.jl"
+               (("testset \\\"improved.*" all)
+                (string-append all "return\n")))
+             (substitute* "test/join.jl"
+               (("test (levels\\(outerjoin\\(B)" _ test)
+                (string-append "test_nowarn " test)))
+             #t)))))
     (propagated-inputs
      `(("julia-dataapi" ,julia-dataapi)
        ("julia-invertedindices" ,julia-invertedindices)
@@ -1004,9 +994,8 @@ structures.")
        ("julia-sortingalgorithms" ,julia-sortingalgorithms)
        ("julia-tabletraits" ,julia-tabletraits)))
     (native-inputs
-     `(
-       ;("julia-categoricalarrays" ,julia-categoricalarrays)
-       ;("julia-combinatorics" ,julia-combinatorics)
+     `(("julia-categoricalarrays" ,julia-categoricalarrays)
+       ("julia-combinatorics" ,julia-combinatorics)
        ("julia-datastructures" ,julia-datastructures)
        ("julia-datavalues" ,julia-datavalues)
        ("julia-offsetarrays" ,julia-offsetarrays)
@@ -1014,6 +1003,106 @@ structures.")
     (home-page "https://dataframes.juliadata.org/stable/")
     (synopsis "In-memory tabular data")
     (description "Tools for working with tabular data in Julia.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-combinatorics
+  (package
+    (name "julia-combinatorics")
+    (version "1.0.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaMath/Combinatorics.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0gafqkqi874zfm9h99akw9q95lk3ih5gip2h8p12fj9h7rvyf4j5"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/JuliaMath/Combinatorics.jl")
+    (synopsis "Combinatorics library for Julia")
+    (description "This package provides a combinatorics library for Julia,
+focusing mostly (as of now) on enumerative combinatorics and permutations.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-categoricalarrays
+  (package
+    (name "julia-categoricalarrays")
+    (version "0.10.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/CategoricalArrays.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "09ddkl5cspcihwrld8g1nf31i66hf20d8hsilj1swfcnshmns0vx"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-dataapi" ,julia-dataapi)
+       ("julia-json" ,julia-json)
+       ("julia-missings" ,julia-missings)
+       ("julia-recipesbase" ,julia-recipesbase)
+       ("julia-structtypes" ,julia-structtypes)))
+    (native-inputs
+     `(("julia-json3" ,julia-json3)
+       ("julia-plots" ,julia-plots)
+       ("julia-pooledarrays" ,julia-pooledarrays)))
+    (home-page "https://github.com/JuliaData/CategoricalArrays.jl")
+    (synopsis "Arrays for working with categorical data")
+    (description "This package provides tools for working with categorical
+variables, both with unordered (nominal variables) and ordered categories
+(ordinal variables), optionally with missing values.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-structtypes
+  (package
+    (name "julia-structtypes")
+    (version "1.7.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaData/StructTypes.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "02mn4kkhn3927dk7945c9bjwlldihydxgn5ilmqqvs8dknvbw8p1"))))
+    (build-system julia-build-system)
+    (home-page "https://juliadata.github.io/StructTypes.jl/stable/")
+    (synopsis "Abstract definitions and convenience methods for Julia objects")
+    (description "This package provides the @code{StructTypes.StructType} trait
+for Julia types to declare the kind of \"struct\" they are, providing
+serialization/deserialization packages patterns and strategies to automatically
+construct objects.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-json3
+  (package
+    (name "julia-json3")
+    (version "1.8.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/quinnj/JSON3.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1mc3byqm6ygg4mjpdrx6grkr4gn06p25nr7050jgq1k2cf06iqba"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-parsers" ,julia-parsers)
+       ("julia-structtypes" ,julia-structtypes)))
+    (home-page "https://github.com/quinnj/JSON3.jl")
+    (synopsis "JSON package for Julia")
+    (description "This package provides another JSON package for Julia, with a
+focus on speed and slick struct mapping.")
     (license license:expat)))
 
 ;; TODO: unbundle javascript calls to cdn.jsdelivr.net
