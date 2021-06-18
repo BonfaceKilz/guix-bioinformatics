@@ -1662,14 +1662,14 @@ sorted order.")
   (package
     (inherit python-rpy2)
     (name "python-rpy2-next")
-    (version "3.4.4")
+    (version "3.4.5")
     (source
      (origin
        (method url-fetch)
        (uri (pypi-uri "rpy2" version))
        (sha256
         (base32
-         "0l4fvm58fyz044hxpaw3a8w1nlki1n8iikrg9bdd7imz04kqd671"))))))
+         "1cysswxr5glrdblyl2zsmywcj7xhxn3wmyihxinrz9gm8gmaacax"))))))
 
 (define-public python-jupyter-server-proxy
   (package
