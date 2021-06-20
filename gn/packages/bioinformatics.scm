@@ -1338,7 +1338,7 @@ available to other researchers.")
 (define-public vg
   (package
     (name "vg")
-    (version "1.32.0")
+    (version "1.33.0")
     (source
       (origin
         (method url-fetch)
@@ -1346,7 +1346,7 @@ available to other researchers.")
                             version "/vg-v" version ".tar.gz"))
         (sha256
          (base32
-          "0sqk2ymd5p1mpvsxaaz5vz3fdc8m9vd2l9307bd59603nijm8yzf"))
+          "1pd4gdqb3ar0r1igzhf730kh9x0wj5l4shmjxz0j2mj78wy8y2sg"))
         (modules '((guix build utils)))
         (snippet
          '(begin
@@ -1354,11 +1354,12 @@ available to other researchers.")
             ;(delete-file-recursively "deps/BBHash")
             ;(delete-file-recursively "deps/DYNAMIC")
             ;(delete-file-recursively "deps/FlameGraph")
+            ;(delete-file-recursively "deps/atomic_queue")
             ;(delete-file-recursively "deps/backward-cpp")
             (delete-file-recursively "deps/bash-tap")
             ;(delete-file-recursively "deps/dozeu")
             (delete-file-recursively "deps/elfutils")
-            ;(delete-file-recursively "deps/fastahack")
+            ;(delete-file-recursively "deps/fastahack")  ; Fasta.o
             ;(delete-file-recursively "deps/fermi-lite")
             ;(delete-file-recursively "deps/gbwt")
             (delete-file-recursively "deps/gbwt/deps")
@@ -1367,7 +1368,8 @@ available to other researchers.")
             ;(delete-file-recursively "deps/gcsa2")
             ;(delete-file-recursively "deps/gfakluge")
             ;(delete-file-recursively "deps/gssw")
-            ;(delete-file-recursively "deps/ipso")
+            (delete-file-recursively "deps/htslib")
+            ;(delete-file-recursively "deps/ips4o")
             (delete-file-recursively "deps/jemalloc")
             ;(delete-file-recursively "deps/libVCFH")
             ;(delete-file-recursively "deps/libbdsg")
@@ -1382,19 +1384,34 @@ available to other researchers.")
             ;(delete-file-recursively "deps/libdeflate")
             ;(delete-file-recursively "deps/libhandlegraph")
             ;(delete-file-recursively "deps/libvgio")
-            ;(delete-file-recursively "deps/libvgio/deps")
+            ;(delete-file-recursively "deps/libvgio/deps")  ; libhandlegraph
+            ;(delete-file-recursively "deps/lru_cache")
+            ;(delete-file-recursively "deps/mio")
+            ;(delete-file-recursively "deps/mmmultimap")
+            (delete-file-recursively "deps/mmmultimap/deps/DYNAMIC")
+            (delete-file-recursively "deps/mmmultimap/deps/args")
+            (delete-file-recursively "deps/mmmultimap/deps/atomic_queue")
+            ;(delete-file-recursively "deps/mmmultimap/deps/hopscotch-map")
+            (delete-file-recursively "deps/mmmultimap/deps/ips4o")
+            (delete-file-recursively "deps/mmmultimap/deps/mio")
+            ;(delete-file-recursively "deps/mmmultimap/deps/paryfor")
+            (delete-file-recursively "deps/mmmultimap/deps/sdsl-lite")
+            ;(delete-file-recursively "deps/pinchesAndCacti")
+            ;(delete-file-recursively "deps/progress_bar")
             (delete-file-recursively "deps/raptor")
             ;(delete-file-recursively "deps/sdsl-lite")
             (delete-file-recursively "deps/snappy")
             ;(delete-file-recursively "deps/sonLib")
             (delete-file-recursively "deps/sparsehash")
+            ;(delete-file-recursively "deps/sparsepp")
             ;(delete-file-recursively "deps/ssw")
+            ;(delete-file-recursively "deps/structures")
+            ;(delete-file-recursively "deps/sublinear-Li-Stephens")
             (delete-file-recursively "deps/sublinear-Li-Stephens/deps")
+            (delete-file-recursively "deps/tabixpp")
             (delete-file-recursively "deps/vcflib")
-            (delete-file-recursively "deps/vowpal_wabbit")
             ;(delete-file-recursively "deps/xg")
-            ;; Removing causes segfaults in the test suite
-            ;(delete-file-recursively "deps/xg/deps")
+            (delete-file-recursively "deps/xg/deps")
             ;; libvgio doesn't search the correct include directory.
             (copy-recursively "deps/libhandlegraph/src/include/handlegraph"
                               "deps/libvgio/include/handlegraph")
@@ -1409,31 +1426,37 @@ available to other researchers.")
              (substitute* "Makefile"
                ;; PKG_CONFIG_DEPS needs to be substituted to actually link to everything.
                (("cairo jansson")
-                "cairo jansson vcflib htslib sdsl-lite libvw raptor2 protobuf libelf libdw")
+                "cairo htslib jansson libdw libelf protobuf raptor2 sdsl-lite tabixpp vcflib")
 
                ;; Skip the part where we link static libraries special. It doesn't like the changes we make
                (("-Wl,-B.*") "\n")
 
+               (("\\$\\(CWD\\)/\\$\\(LIB_DIR\\)/libtabixpp\\.a") "$(LIB_DIR)/libtabixpp.a")
+               ((" \\$\\(LIB_DIR\\)/libtabixpp\\.a")
+                (string-append " " (assoc-ref inputs "tabixpp") "/lib/libtabixpp.so"))
+               (("\\$\\(LIB_DIR\\)/pkgconfig/tabixpp\\.pc")
+                (string-append " " (assoc-ref inputs "tabixpp") "/lib/pkgconfig/tabixpp.pc"))
+
                (("\\$\\(CWD\\)/\\$\\(LIB_DIR\\)/libhts\\.a") "$(LIB_DIR)/libhts.a")
                ((" \\$\\(LIB_DIR\\)/libhts\\.a")
                 (string-append " " (assoc-ref inputs "htslib") "/lib/libhts.so"))
-               (("\\$\\(LIB_DIR\\)/pkgconfig/htslib\\.pc") "")
+               (("\\$\\(LIB_DIR\\)/pkgconfig/htslib\\.pc")
+                (string-append " " (assoc-ref inputs "htslib") "/lib/pkgconfig/htslib.pc"))
 
                ((" \\$\\(LIB_DIR\\)/libvcflib.a")
                 (string-append " " (assoc-ref inputs "vcflib") "/lib/libvcflib.so"))
+               ((" \\$\\(BIN_DIR\\)/vcf2tsv")
+                (string-append " " (assoc-ref inputs "vcflib") "/bin/vcf2tsv"))
                ((" \\$\\(VCFLIB_DIR\\)/bin/vcf2tsv")
                 (string-append " " (assoc-ref inputs "vcflib") "/bin/vcf2tsv"))
 
+               ((" \\$\\(FASTAHACK_DIR\\)/fastahack")
+                (string-append " " (assoc-ref inputs "fastahack") "/bin/fastahack"))
                ((" \\$\\(FASTAHACK_DIR\\)/bin/fastahack")
                 (string-append " " (assoc-ref inputs "fastahack") "/bin/fastahack"))
 
                ((" \\$\\(LIB_DIR\\)/libsnappy.a")
                 (string-append " " (assoc-ref inputs "snappy") "/lib/libsnappy.so"))
-
-               ((" \\$\\(LIB_DIR\\)/libvw.a")
-                (string-append " " (assoc-ref inputs "vowpal-wabbit") "/lib/libvw.so"))
-               ((" \\$\\(LIB_DIR\\)/liballreduce.a")
-                (string-append " " (assoc-ref inputs "vowpal-wabbit") "/lib/liballreduce.so"))
 
                ;; Only link against the libraries in the elfutils package.
                (("-ldwfl -ldw -ldwelf -lelf -lebl") "-ldw -lelf")
@@ -1467,6 +1490,11 @@ available to other researchers.")
              (substitute* "test/t/02_vg_construct.t"
                (("../deps/vcflib/bin/vcf2tsv") (which "vcf2tsv")))
              #t))
+         (add-after 'unpack 'fix-fastahack-dependency
+           (lambda _
+             (substitute* "src/aligner.hpp"
+               (("Fasta.h") "fastahack/Fasta.h"))
+             #t))
          (add-after 'unpack 'fix-hopscotch-dependency
            (lambda _
              (substitute* "Makefile"
@@ -1485,7 +1513,7 @@ available to other researchers.")
          (add-after 'unpack 'adjust-tests
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((bash-tap (assoc-ref inputs "bash-tap")))
-               (substitute* (find-files "test/t" ".")
+               (substitute* (find-files "test/t")
                  (("BASH_TAP_ROOT.*")
                   (string-append "BASH_TAP_ROOT=" bash-tap "/bin\n"))
                  ((".*bash-tap-bootstrap")
@@ -1546,7 +1574,6 @@ available to other researchers.")
        ("sparsehash" ,sparsehash)
        ("tabixpp" ,tabixpp)
        ("vcflib" ,vcflib)
-       ("vowpal-wabbit" ,vowpal-wabbit)
        ("zlib" ,zlib)))
     (home-page "https://www.biostars.org/t/vg/")
     (synopsis "Tools for working with genome variation graphs")
