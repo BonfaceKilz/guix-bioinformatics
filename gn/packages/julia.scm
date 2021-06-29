@@ -386,7 +386,7 @@ equations in string literals in the Julia language.")
 (define-public julia-distributions
   (package
     (name "julia-distributions")
-    (version "0.25.1")
+    (version "0.25.6")
     (source
       (origin
         (method git-fetch)
@@ -395,18 +395,17 @@ equations in string literals in the Julia language.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0p3998sh667f1bskd011z9hfdkbdw5kgh9n1771jx4madxscy7dq"))))
+         (base32 "07n7g5zxp1b82k6yvqa5kh51jww2cy1f5pyvh60k3fp6rdp8sy1j"))))
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
        ))
     (propagated-inputs
      `(
-       ;("julia-fillarrays" ,julia-fillarrays)
-       ;("julia-distributed" ,julia-distributed)
+       ("julia-fillarrays" ,julia-fillarrays)
        ("julia-pdmats" ,julia-pdmats)
        ;("julia-quadgk" ,julia-quadgk)
-       ;("julia-specialfunctions" ,julia-specialfunctions)
+       ("julia-specialfunctions" ,julia-specialfunctions)
        ("julia-statsbase" ,julia-statsbase)
        ("julia-statsfuns" ,julia-statsfuns)    ; fix Rmath.jl
        ))
@@ -429,7 +428,7 @@ equations in string literals in the Julia language.")
 (define-public julia-documenter
   (package
     (name "julia-documenter")
-    (version "0.26.3")
+    (version "0.27.2")
     (source
       (origin
         (method git-fetch)
@@ -439,12 +438,11 @@ equations in string literals in the Julia language.")
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "1d4mdjc56w0hrc50qia361zfp8zapq163cqgagkbbjn0k83zp21x"))))
+          "0x99ns9fvnpm5jrqgfssfxdspxlx82qx7w5g0jy1x530yknk8ijq"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-docstringextensions" ,julia-docstringextensions)
-       ;; TODO: Switch to julia-iocapture after 0.27.
-       ("julia-iocapture" ,julia-iocapture-0.1)
+       ("julia-iocapture" ,julia-iocapture)
        ("julia-json" ,julia-json)))
     (native-inputs
      `(("git" ,(S "git-minimal"))
@@ -453,22 +451,6 @@ equations in string literals in the Julia language.")
     (synopsis "Documentation generator for Julia")
     (description "This package provides a documentation generator for Julia.")
     (license license:expat)))
-
-;; Upstream with julia-documenter
-(define-public julia-iocapture-0.1
-  (package
-    (inherit julia-iocapture)
-    (name "julia-iocapture")
-    (version "0.1.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaDocs/IOCapture.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0wm8pag5mk46064h3qpvgz8m63138104rq0smx1za7lh7j32925h"))))))
 
 ;; ready to upstream with julia-documenter
 (define-public julia-documenter-0.22
@@ -509,7 +491,7 @@ equations in string literals in the Julia language.")
 (define-public julia-documentermarkdown
   (package
     (name "julia-documentermarkdown")
-    (version "0.2.1")
+    (version "0.2.2")
     (source
       (origin
         (method git-fetch)
@@ -518,8 +500,7 @@ equations in string literals in the Julia language.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "11l7yrifg8pdr4q6h75zydfw5i8vww07p5bci5mi8gwwcpi3jksb"))))
+         (base32 "0sx89hi5p2f8zi2rp5qrv06m270d90pxj5d2y5cxls1spax7wqx8"))))
     (build-system julia-build-system)
     (inputs
      ;; We don't want to propagate the bootstrap version.
@@ -527,8 +508,38 @@ equations in string literals in the Julia language.")
      `(("julia-documenter" ,julia-documenter-0.22)))
     (home-page "https://github.com/JuliaDocs/DocumenterMarkdown.jl")
     (synopsis "Documenter's Markdown")
-    (description "his package enables the Markdown / MkDocs backend of
+    (description "This package enables the Markdown / MkDocs backend of
 @code{Documenter.jl}.")
+    (license license:expat)))
+
+(define-public julia-documentertools
+  (package
+    (name "julia-documentertools")
+    (version "0.1.13")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaDocs/DocumenterTools.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "05p57p8xlkn42m1lv9gq4hl96vp7hpj19d51p828ai1rbpcpi3a6"))))
+    (build-system julia-build-system)
+    (inputs
+     ;; We don't want to propagate the bootstrap version.
+     ;; Cycle with Documenter.jl in later versions.
+     `(("julia-documenter" ,julia-documenter-0.22)))
+    (propagated-inputs
+     `(
+       ("julia-docstringextensions" ,julia-docstringextensions)
+       ("julia-gumbo" ,julia-gumbo)
+       ;("julia-sass" ,julia-sass)
+       ))
+    (home-page "https://github.com/JuliaDocs/DocumenterTools.jl")
+    (synopsis "Extra tools for setting up Documenter")
+    (description "This package contains utilities for setting up documentation
+generation with @code{Documenter.jl}.")
     (license license:expat)))
 
 (define-public julia-optim
@@ -571,7 +582,7 @@ optimization of functions.")
 (define-public julia-plots
   (package
     (name "julia-plots")
-    (version "1.15.1")
+    (version "1.16.6")
     (source
       (origin
         (method git-fetch)
@@ -580,8 +591,7 @@ optimization of functions.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1bw76zzrq4zlwglhr7nkr1h0w0wl1i49rp35nnbbdqkdj46bz52y"))))
+         (base32 "0ipv9408r4czsx1j01sv2f7ww52b329jc0v79npn4x2mf827nsik"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f  ; for now
@@ -610,19 +620,19 @@ optimization of functions.")
     (native-inputs
      `(
        ;("julia-distributions" ,julia-distributions)
-       ;("julia-fileio" ,julia-fileio)
+       ("julia-fileio" ,julia-fileio)
        ;("julia-gtk" ,julia-gtk)
        ;("julia-hdf5" ,julia-hdf5)
        ("julia-imagemagick" ,julia-imagemagick)
        ;("julia-images" ,julia-images)
-       ;("julia-offsetarrays" ,julia-offsetarrays)
+       ("julia-offsetarrays" ,julia-offsetarrays)
        ;("julia-pgfplotsx" ,julia-pgfplotsx)
        ;("julia-plotlyjs" ,julia-plotlyjs)
        ;("julia-rdatasets" ,julia-rdatasets)
-       ;("julia-stablerngs" ,julia-stablerngs)
-       ;("julia-staticarrays" ,julia-staticarrays)
+       ("julia-stablerngs" ,julia-stablerngs)
+       ("julia-staticarrays" ,julia-staticarrays)
        ;("julia-statsplots" ,julia-statsplots)
-       ;("julia-testimages" ,julia-testimages)
+       ("julia-testimages" ,julia-testimages)
        ;("julia-unicodeplots" ,julia-unicodeplots)
        ;("julia-visualregressiontests" ,julia-visualregressiontests)
        ))
@@ -743,7 +753,7 @@ variables, both with unordered (nominal variables) and ordered categories
 (define-public julia-pluto
   (package
     (name "julia-pluto")
-    (version "0.14.7")
+    (version "0.14.8")
     (source
       (origin
         (method git-fetch)
@@ -752,8 +762,7 @@ variables, both with unordered (nominal variables) and ordered categories
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0b2g3j78kpkayhrm3am855cc5kjb3w73ygcvjbvhz2p5i1ivji7b"))))
+         (base32 "0kzl70fgb6q23yxifkadxrxp7nhc26pqnklna83bqdczk0543q3w"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f      ; Many tests need network connectivity or a browser.
@@ -805,10 +814,11 @@ dependencies between them and takes care of execution.")
 native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-configurations
   (package
     (name "julia-configurations")
-    (version "0.15.4")
+    (version "0.16.0")
     (source
       (origin
         (method git-fetch)
@@ -817,19 +827,36 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "1dz1h64nqgcv6ai70pfv2dv4mqx9rqmh08196k7j73bqlc6r00w1"))))
+         (base32 "033wc6bqslvv6fkknlc725432j2vc2wcji2167klnx3qwlac2965"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; cannot find test/option.toml
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'fix-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               (("option.toml") "test/option.toml"))
+             #t))
+         (add-after 'unpack 'dont-use-exproniconlite
+           (lambda _
+             (substitute* '("Project.toml"
+                            "src/Configurations.jl"
+                            "test/runtests.jl")
+               (("ExproniconLite") "Expronicon"))
+             (substitute* "Project.toml"
+               (("55351af7-c7e9-48d6-89ff-24e801d99491")
+                "6b7a57c9-7cc1-4fdf-b7f5-e857abae3636"))
+             #t)))))
     (propagated-inputs
      `(("julia-crayons" ,julia-crayons)
-       ("julia-exproniconlite" ,julia-exproniconlite)
+       ("julia-expronicon" ,julia-expronicon)
        ("julia-orderedcollections" ,julia-orderedcollections)
        ("julia-toml" ,julia-toml)))
-    (home-page "https://configurations.rogerluo.dev/stable")
-    (synopsis "Options & Configurations made easy")
-    (description "Configurations is a Julia Language package.")
+    (home-page "https://configurations.rogerluo.dev/stable/")
+    (synopsis "Options and configurations in Julia")
+    (description "@code{Configurations.jl} provides a macro @code{@@option} to
+let you define @code{structs} to represent options/configurations, and serialize
+between different option/configuration file formats such as @code{TOML}.")
     (license license:expat)))
 
 ;; XXX: Part of base Julia as of 1.6+
@@ -853,6 +880,8 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (description "TOML v1.0.0 parser for Julia.")
     (license license:expat)))
 
+;; ready to upstream
+;; ExproniconLite.jl is autogenerated from this package.
 (define-public julia-expronicon
   (package
     (name "julia-expronicon")
@@ -865,44 +894,41 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0lbzfn1li2ph02z6hl5286bj6bf17g63vfp6qn4cz40d760fcw8a"))))
+         (base32 "0lbzfn1li2ph02z6hl5286bj6bf17g63vfp6qn4cz40d760fcw8a"))))
     (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
     (propagated-inputs
-     `(
-       ;("julia-mlstyle" ,julia-mlstyle)
-       ))
-    (home-page "https://expronicon.rogerluo.dev/")
+     `(("julia-mlstyle" ,julia-mlstyle)
+       ("julia-toml" ,julia-toml)))
+    (native-inputs
+     `(("julia-documenter" ,julia-documenter)))
+    (home-page "https://expronicon.rogerluo.dev/dev/")
     (synopsis "Collective tools for metaprogramming on Julia Expr")
-    (description "Collective tools for metaprogramming on Julia Expr.")
+    (description "This package provides a collection of tools for
+metaprogramming on Julia Expr, the meta programming standard library for
+@code{MLStyle}.")
     (license license:expat)))
 
-;; autogenerated package?
-(define-public julia-exproniconlite
+;; ready to upstream
+(define-public julia-mlstyle
   (package
-    (name "julia-exproniconlite")
-    (version "0.6.8")
+    (name "julia-mlstyle")
+    (version "0.4.10")
     (source
       (origin
         (method git-fetch)
         (uri (git-reference
-               (url "https://github.com/Roger-luo/ExproniconLite.jl")
+               (url "https://github.com/thautwarm/MLStyle.jl")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "02zm5r3fi7zx4fnr2ikxpapb9rvmnqvklrfyd4j9418q1mryh04l"))))
+         (base32 "0h1cd7cr4c4cnpqyj3180113gdbvcc047lqphp8a8gq5smp3c059"))))
     (build-system julia-build-system)
     (native-inputs
-     `(("julia-documenter" ,julia-documenter)))
-    (home-page "https://expronicon.rogerluo.dev/")
-    (synopsis "Collective tools for metaprogramming on Julia Expr")
-    (description "no fancy pattern matching, no dependencies, Light-weight Expronicon for low latency.
-
-                 this package is generated by Expronicon, please refer to Expronicon for any issues")
+     `(("julia-datastructures" ,julia-datastructures)))
+    (home-page "https://thautwarm.github.io/MLStyle.jl/latest/")
+    (synopsis "Julia functional programming infrastructures")
+    (description "This package provides consistent and extensible functional
+programming infrastructures, and metaprogramming facilities.")
     (license license:expat)))
 
 (define-public julia-statsfuns
@@ -943,13 +969,15 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
         (method git-fetch)
         (uri (git-reference
                (url "https://github.com/JuliaStats/Rmath-julia")
-               (commit (string-append "v" version))))
+               ;(commit (string-append "v" version))))
+               (commit "5c5dfd6baca358103fbb47cc03dc0ecee04fb1ff")))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "11a6h3wwmpnb2d55pkm6av111b3pxlvxfnbz8b0n77afpllgb8j2"))))
+         ;(base32 "11a6h3wwmpnb2d55pkm6av111b3pxlvxfnbz8b0n77afpllgb8j2"))))
+         (base32 "04lf8gfnfcppckk9d7hss0ja91yxaax6qz1gzqya9w0shjr386s5"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f  ; Test not defined, tests not often run upstream.
+     `(;#:tests? #f  ; Test not defined, tests not often run upstream.
        #:phases
        (modify-phases %standard-phases
          (delete 'precompile)
@@ -978,7 +1006,6 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
   (package
     (name "julia-rmath")
     (version "0.7.0")
-    ;(version "0.6.1")
     (source
       (origin
         (method git-fetch)
@@ -988,30 +1015,27 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
         (file-name (git-file-name name version))
         (sha256
          (base32 "0cam16ff4v2fl7c9j1wx2ahgjhwba9mk2q6qv3zdknnnqj6w664s"))))
-         ;(base32 "1745xajy5c8hdcy1hgi2rr9lrapr55hp0jm2dcb1ksyskvm5drsr"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f  ; Test not defined
-       #:phases
+     `(#:phases
        (modify-phases %standard-phases
-         ;(add-after 'unpack 'patch-source
-         ;  (lambda _
-         ;    ;; see upstream julia bug
-         ;    ;; ERROR: LoadError: InitError: UndefVarError: libRmath_path not defined
-         ;    (substitute* "src/Rmath.jl"
-         ;      (("libRmath\\)") "libRmath_path)"))
-         ;    #t))
-         )
-       ))
+         (add-after 'unpack 'link-to-librmath-directly
+           (lambda* (#:key inputs #:allow-other-keys)
+             (let* ((rmath    (assoc-ref inputs "rmath"))
+                    (librmath (string-append rmath "/lib/libRmath-julia.so")))
+               ;; see upstream julia bug
+               ;; ERROR: LoadError: InitError: UndefVarError: libRmath_path not defined
+               (substitute* "src/Rmath.jl"
+                 (("libRmath\\)") (string-append "\"" librmath "\")")))
+               ;(substitute* "test/runtests.jl"
+               ;  (("Rmath\\.libRmath\\)") (string-append "\"" librmath "\")")))
+               #t))))))
     (propagated-inputs
-     `(
-       ("julia-rmath-jll" ,julia-rmath-jll)
-       ;("julia-rmath-jll" ,julia-rmath-jll-0.2)
-       ))
+     `(("julia-rmath-jll" ,julia-rmath-jll)))
+    (inputs
+     `(("rmath" ,rmath-julia)))
     (native-inputs
-     `(
-       ;("julia-offsetarrays" ,julia-offsetarrays)
-       ))
+     `(("rmath" ,rmath-julia)))
     (home-page "https://github.com/JuliaStats/Rmath.jl")
     (synopsis "functions that emulate R's d-p-q-r functions for probability distributions")
     (description "
@@ -1019,6 +1043,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
                  Archive of functions that emulate R's d-p-q-r functions for probability distributions.")
     (license license:expat)))
 
+;; This package seems to be bugged, doesn't load libRmath-julia.so correctly.
 (define-public julia-rmath-jll
   (package
     (name "julia-rmath-jll")
@@ -1050,47 +1075,10 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
               ;; There's a Julia file for each platform, override them all
               (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs
-     `(
-       ;; It wants the custom rmath.
+     `(;; It wants the custom rmath.
        ("rmath" ,rmath-julia)
        ;("rmath" ,(S "rmath-standalone"))
        ))
-    (propagated-inputs
-     `(("julia-jllwrappers" ,julia-jllwrappers)))
-    (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
-    (synopsis "Rmath library wrappers")
-    (description "This package provides a wrapper for Rmath.")
-    (license license:expat)))
-
-(define-public julia-rmath-jll-0.2
-  (package
-    (name "julia-rmath-jll")
-    (version "0.2.2+2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
-               (commit (string-append "Rmath-v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "13wvx4n0ai7bsda3rvlw8xbqwdbdwhjijbgjgl0k2yzq5l8x5dmh"))))
-    (build-system julia-build-system)
-    (arguments
-     '(#:tests? #f ; no runtests
-       #:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'override-binary-path
-           (lambda* (#:key inputs #:allow-other-keys)
-             (map
-               (lambda (wrapper)
-                 (substitute* wrapper
-                   (("artifact\"Rmath\"")
-                    (string-append "\"" (assoc-ref inputs "rmath") "\""))))
-               ;; There's a Julia file for each platform, override them all
-               (find-files "src/wrappers/" "\\.jl$")))))))
-    (inputs
-     `(("rmath" ,rmath-julia)))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)))
     (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
@@ -1170,7 +1158,7 @@ floats and complex types.")
 (define-public julia-polynomials
   (package
     (name "julia-polynomials")
-    (version "2.0.10")
+    (version "2.0.12")
     (source
       (origin
         (method git-fetch)
@@ -1179,7 +1167,7 @@ floats and complex types.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0mz7ls281d6166w9808lwgn007dsk8pqi4qmdf0jiiipy5a0a4ji"))))
+         (base32 "1ydxw1ich5gkd6mlrr6x4clyjkr0xkmlf0l054g4k73symw2bc7x"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-intervals" ,julia-intervals)
@@ -1378,7 +1366,7 @@ that still support Julia versions older than 1.6.")
 (define-public julia-geometrybasics
   (package
     (name "julia-geometrybasics")
-    (version "0.3.12")
+    (version "0.3.13")
     (source
       (origin
         (method git-fetch)
@@ -1387,7 +1375,7 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1wsx287i1hlzkw7ljfc929ssla6b4qn647nsa3j32v2f8gzd86ag"))))
+         (base32 "05wq41s6c69zay2awgdhjld8gsycdb5jbvf6a785i3f12av6ndk0"))))
     (build-system julia-build-system)
     (arguments
      `(;#:tests? #f
@@ -1421,7 +1409,7 @@ that still support Julia versions older than 1.6.")
 (define-public julia-structarrays
   (package
     (name "julia-structarrays")
-    (version "0.5.1")
+    (version "0.6.0")
     (source
       (origin
         (method git-fetch)
@@ -1430,10 +1418,11 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0i1h3pbjp04dwic786yjnx81ifppgcbdysvgjs00cd9zmpn3xnqw"))))
+         (base32 "05yxsmzi82fp9f0bg5kihpcls4xjxdy4chnnflmg8h4i457pbr5v"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-dataapi" ,julia-dataapi)
+       ("julia-staticarrays" ,julia-staticarrays)
        ("julia-tables" ,julia-tables)))
     (native-inputs
      `(("julia-documenter" ,julia-documenter)
@@ -1551,7 +1540,7 @@ is column based (meaning each field of the @code{struct} is stored in a separate
 (define-public julia-gr
   (package
     (name "julia-gr")
-    (version "0.57.4")
+    (version "0.57.5")
     (source
       (origin
         (method git-fetch)
@@ -1560,8 +1549,7 @@ is column based (meaning each field of the @code{struct} is stored in a separate
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0hwzxwnak3sixm8jlm2zz6578gn713sbbznq49s11h38n0aczjx2"))))
+         (base32 "14nra7fx2g8y2ll3saxgccanzbcl5s58qzgd2jlha3r0ngfhrvxg"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-gr-jll" ,julia-gr-jll)))
@@ -1625,7 +1613,7 @@ in Julia).")
 (define-public julia-gr-jll
   (package
     (name "julia-gr-jll")
-    (version "0.57.2+0")
+    (version "0.57.3+0")
     (source
       (origin
         (method git-fetch)
@@ -1634,7 +1622,7 @@ in Julia).")
                (commit (string-append "GR-v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1fqm531s5pm8q2rqz0gmrbj2qsivmc6x04sgn8gzfpz9jrmglbzq"))))
+         (base32 "0a568qxxdrfi951s0lhy5081yw8pw6sv39vfkzxw5cxic92w6rbs"))))
     (build-system julia-build-system)
     (arguments
      '(#:tests? #f  ; no runtests
