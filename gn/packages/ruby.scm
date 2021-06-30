@@ -2692,6 +2692,28 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (home-page "http://mjijackson.github.com/rack-accept")
     (license #f)))
 
+(define-public ruby-mustermann
+ (package
+  (name "ruby-mustermann")
+  (version "1.1.1")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (rubygems-uri "mustermann" version))
+      (sha256
+        (base32
+          "0ccm54qgshr1lq3pr1dfh7gphkilc19dp63rw6fcx7460pjwy88a"))))
+  (build-system ruby-build-system)
+  (propagated-inputs
+    `(("ruby-ruby2-keywords" ,ruby-ruby2-keywords)))
+  (synopsis
+    "A library implementing patterns that behave like regular expressions.")
+  (description
+    "This package provides a library implementing patterns that behave like regular expressions.")
+  (home-page
+    "https://github.com/sinatra/mustermann")
+  (license license:expat)))
+
 (define-public ruby-mustermann-grape
   (package
     (name "ruby-mustermann-grape")
