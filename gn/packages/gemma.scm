@@ -179,10 +179,10 @@ genome-wide association studies (GWAS).")
    ))
 
 (define-public gemma-gn2-dev ; Dev version for GeneNetwork. Not a Guix candidate
-  (let ((commit "f623b4775d47b2c2697a4925bd044412a7db49d3"))
+  (let ((commit "8524ca2c6c0e1ee0f92091e4af7ee71e87654cc2"))
   (package
     (name "gemma-gn2-dev")
-    (version (string-append "0.98.3-" (string-take commit 7)))
+    (version (string-append "0.98.4-" (string-take commit 7)))
     (source (origin
              (method git-fetch)
              (uri (git-reference
@@ -191,7 +191,7 @@ genome-wide association studies (GWAS).")
              (file-name (string-append name "-" version "-checkout"))
              (sha256
               (base32
-               "0xm4cjfzrcb1wc8lw9p1727spica8rlzwnvjkp7ackn1g7zmzhw0"))))
+               "0fn7yj1dgfhk178i096al5d3z5xmsz5krl9mf9v3xn4ima4ak7q3"))))
     ; guix environment -C guix --ad-hoc gcc-toolchain gdb gsl openblas zlib bash ld-wrapper perl vim which
     (inputs `(
               ("gsl" ,gsl)
