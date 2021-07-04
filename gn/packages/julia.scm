@@ -717,38 +717,6 @@ structures.")
     (description "Tools for working with tabular data in Julia.")
     (license license:expat)))
 
-;; ready to upstream - needs plots
-(define-public julia-categoricalarrays
-  (package
-    (name "julia-categoricalarrays")
-    (version "0.10.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaData/CategoricalArrays.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "09ddkl5cspcihwrld8g1nf31i66hf20d8hsilj1swfcnshmns0vx"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-dataapi" ,julia-dataapi)
-       ("julia-json" ,julia-json)
-       ("julia-missings" ,julia-missings)
-       ("julia-recipesbase" ,julia-recipesbase)
-       ("julia-structtypes" ,julia-structtypes)))
-    (native-inputs
-     `(("julia-json3" ,julia-json3)
-       ("julia-plots" ,julia-plots)
-       ("julia-pooledarrays" ,julia-pooledarrays)))
-    (home-page "https://github.com/JuliaData/CategoricalArrays.jl")
-    (synopsis "Arrays for working with categorical data")
-    (description "This package provides tools for working with categorical
-variables, both with unordered (nominal variables) and ordered categories
-(ordinal variables), optionally with missing values.")
-    (license license:expat)))
-
 ;; TODO: unbundle javascript calls to cdn.jsdelivr.net
 (define-public julia-pluto
   (package
