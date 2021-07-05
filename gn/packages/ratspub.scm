@@ -1,5 +1,6 @@
 (define-module (gn packages ratspub)
   #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (guix git)
   #:use-module (guix utils)
   #:use-module (gnu packages)
   #:use-module (guix packages)
@@ -278,12 +279,6 @@ if __name__ == '__main__':
                      (url "https://github.com/hakangunturkun/GeneCup")
                      (commit (string-append "v" version))))
               (file-name (git-file-name name version))
-              ;; Change the port for running the service.
-              (modules '((guix build utils)))
-              (snippet
-               '(begin (substitute* "server.py"
-                         (("4200") "4204"))
-                       #t))
               (sha256
                (base32 "0krrwnr4yjqpafllwx1xg6cjk1j683bdmkyqq848plzlqx2cl72c"))))
     (build-system python-build-system)
@@ -293,6 +288,12 @@ if __name__ == '__main__':
        (modify-phases %standard-phases
          (delete 'configure)
          (delete 'build)
+         ;; Change the port for running the service.
+         (add-after 'unpack 'use-different-port
+           (lambda _
+             (substitute* "server.py"
+               (("4200") "4204"))
+             #t))
          (add-after 'unpack 'make-files-writable
            (lambda _
              (for-each make-file-writable (find-files "."))))
@@ -401,8 +402,24 @@ into an ontology.  The users create an ontology by identifying categories of
 concepts and a list of keywords for each concept.")
     (license license:expat)))
 
+(define genecup-master
+  (package
+    (inherit genecup)
+    (name "genecup-master")
+    (version "HEAD-of-master-branch")
+    (source
+      (git-checkout
+        (url "https://github.com/hakangunturkun/GeneCup")
+        (branch "master")))))
+
 (define-public genecup-with-tensorflow-native
   (package
     (inherit
       (tensowflow-native-instead-of-tensorflow genecup))
     (name "genecup-with-tensorflow-native")))
+
+(define-public genecup-latest-with-tensorflow-native
+  (package
+    (inherit
+      (tensowflow-native-instead-of-tensorflow genecup-master))
+    (name "genecup-latest-with-tensorflow-native")))
