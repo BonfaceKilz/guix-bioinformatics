@@ -35,6 +35,7 @@
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages ghostscript)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages guile)
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
   #:use-module (gnu packages jemalloc)
@@ -54,6 +55,7 @@
   #:use-module (gnu packages readline)
   #:use-module (gnu packages rsync)
   #:use-module (gnu packages ruby)
+  #:use-module (gnu packages serialization)
   #:use-module (gnu packages shells)
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages tcl)
@@ -1972,3 +1974,227 @@ cases include:
   divergence below ~15%.
 @end enumerate\n")
     (license license:expat)))
+
+(define-public hap.py
+  (package
+   (name "hap.py")
+   (version "0.3.14")
+   (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/Illumina/hap.py")
+              (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1bnm7s86651p3zf6wahz5pic7n8416fx677kj47lwckr3syp2x1h"))
+       (modules '((guix build utils)))
+       (snippet
+        '(begin
+           (delete-file-recursively "external/bcftools.tar.gz")
+           (delete-file-recursively "external/boost_subset_1_58_0.tar.bz2")
+           (delete-file-recursively "external/htslib.tar.gz")
+           ;; TODO: Unbundle jsoncpp.
+           ;(delete-file-recursively "external/jsoncpp")
+           ;(delete-file-recursively "external/klib")
+           (delete-file-recursively "external/samtools.tar.gz")
+           (delete-file-recursively "external/virtualenv-12.0.7.tar.gz")
+           (delete-file-recursively "external/zlib-1.2.8.tar.gz")
+           #t))))
+   (build-system cmake-build-system)
+   (arguments
+    `(#:configure-flags (list "-DBUILD_VCFEVAL=ON")
+      #:phases
+      (modify-phases %standard-phases
+        (add-after 'unpack 'set-package-version
+          (lambda _
+            (substitute* "CMakeLists.txt"
+              (("git describe --tags --always")
+               (string-append "echo " ,version)))
+            #t))
+        ;; A shared library conflicts with boost-static.
+        ;; Not using boost-static causes linking errors.
+        ;(add-after 'unpack 'build-dynamic-library
+        ;  (lambda _
+        ;    (substitute* "src/c++/lib/CMakeLists.txt"
+        ;      (("STATIC") "SHARED"))
+        ;    #t))
+        (add-after 'unpack 'fix-build
+          (lambda* (#:key inputs #:allow-other-keys)
+            (let ((zlib     (assoc-ref inputs "zlib"))
+                  (bcftools (assoc-ref inputs "bcftools"))
+                  (boost    (assoc-ref inputs "boost"))
+                  (htslib   (assoc-ref inputs "htslib"))
+                  (samtools (assoc-ref inputs "samtools")))
+              (mkdir-p "external/bin")
+              (mkdir-p "external/lib")
+              (mkdir-p "external/include")
+              (mkdir-p "external/scratch/lib")
+
+              (substitute* "external/make_dependencies.sh"
+                (("zlib-1\\.2\\.8/libz\\.a") "lib/libz.so"))
+              (substitute* "src/cmake/FindHTSLib.cmake"
+                (("libhts\\.a") "libhts.so"))
+              (substitute* "CMakeLists.txt"
+                (("ZLIB_LIBRARIES .*\\)")
+                 (string-append "ZLIB_LIBRARIES \"" zlib "/lib/libz.so\")")))
+
+              (setenv "BOOST_ROOT" boost)
+              (setenv "LDFLAGS"
+                      (string-append "-L" (assoc-ref %build-inputs "htslib") "/lib"))
+
+              (symlink (string-append zlib "/lib/libz.so")
+                       "external/scratch/lib/libz.so")
+
+              (symlink (string-append htslib "/include/htslib")
+                       "external/include/htslib")
+              (symlink (string-append htslib "/lib/libhts.so")
+                       "external/lib/libhts.so")
+              (symlink (string-append htslib "/lib/libhts.so")
+                       "external/lib/libhts.so.3")
+
+              (symlink (string-append bcftools "/bin/bcftools")
+                       "external/bin/bcftools")
+              (symlink (string-append samtools "/bin/samtools")
+                       "external/bin/samtools")
+              #t)))
+        (add-after 'fix-build 'insert-rtg-tools
+          (lambda* (#:key inputs #:allow-other-keys)
+            (let ((rtg-tools (assoc-ref inputs "rtg-tools")))
+              (mkdir "external/libexec")
+              (invoke "unzip" "-j" rtg-tools
+                      "rtg-tools-3.12.1/rtg"
+                      "rtg-tools-3.12.1/RTG.jar"
+                      "rtg-tools-3.12.1/README.txt"
+                      "rtg-tools-3.12.1/LICENSE.txt"
+                      "rtg-tools-3.12.1/third-party/gzipfix.jar"
+                      "-d" "external/libexec/rtg-tools-install")
+              (mkdir "external/libexec/rtg-tools-install/third-party")
+              (rename-file "external/libexec/rtg-tools-install/gzipfix.jar"
+                           "external/libexec/rtg-tools-install/third-party/gzipfix.jar")
+              (copy-file "external/rtg.cfg"
+                         "external/libexec/rtg-tools-install/rtg.cfg")
+              #t)))
+        (replace 'configure
+          (lambda* (#:key outputs (configure-flags '()) (out-of-source? #t)
+                    build-type target
+                    #:allow-other-keys)
+                   "Configure the given package."
+                   (let* ((out        (assoc-ref outputs "out"))
+                          (abs-srcdir (getcwd))
+                          (srcdir     (if out-of-source?
+                                        (string-append "../" (basename abs-srcdir))
+                                        ".")))
+                     (format #t "source directory: ~s (relative from build: ~s)~%"
+                             abs-srcdir srcdir)
+                     (when out-of-source?
+                       (mkdir "../build")
+
+                       ;; Extra code added here!!
+                       (copy-recursively "external/scratch" "../build/scratch")
+                       (copy-recursively "external/libexec" "../build/libexec")
+                       (copy-recursively "external/lib" "../build/lib")
+                       (copy-recursively "external/bin" "../build/bin")
+                       (copy-recursively "external/include" "../build/include")
+
+                       (chdir "../build"))
+                     (format #t "build directory: ~s~%" (getcwd))
+
+                     (let ((args `(,srcdir
+                                    ,@(if build-type
+                                        (list (string-append "-DCMAKE_BUILD_TYPE="
+                                                             build-type))
+                                        '())
+                                    ,(string-append "-DCMAKE_INSTALL_PREFIX=" out)
+                                    ;; ensure that the libraries are installed into /lib
+                                    "-DCMAKE_INSTALL_LIBDIR=lib"
+                                    ;; add input libraries to rpath
+                                    "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE"
+                                    ;; add (other) libraries of the project itself to rpath
+                                    ,(string-append "-DCMAKE_INSTALL_RPATH=" out "/lib")
+                                    ;; enable verbose output from builds
+                                    "-DCMAKE_VERBOSE_MAKEFILE=ON"
+
+                                    ;;  Cross-build
+                                    ,@(if target
+                                        (list (string-append "-DCMAKE_C_COMPILER="
+                                                             target "-gcc")
+                                              (string-append "-DCMAKE_CXX_COMPILER="
+                                                             target "-g++")
+                                              (if (string-contains target "mingw")
+
+                                                "-DCMAKE_SYSTEM_NAME=Windows"
+                                                "-DCMAKE_SYSTEM_NAME=Linux"))
+                                        '())
+                                    ,@configure-flags)))
+                       (format #t "running 'cmake' with arguments ~s~%" args)
+                       (apply invoke "cmake" args)))))
+        (replace 'check
+          (lambda* (#:key tests? #:allow-other-keys)
+            (when tests?
+              (invoke "./bin/test_haplotypes"))
+            #t))
+        (add-before 'install 'remove-extra-files
+          (lambda _
+            (delete-file "bin/bcftools")
+            (delete-file "bin/samtools")
+            (delete-file "bin/test_haplotypes")
+            (delete-file "lib/libhts.so")
+            (delete-file "lib/libhts.so.3")
+            #t))
+        (add-after 'install 'wrap-programs
+          (lambda* (#:key inputs outputs #:allow-other-keys)
+            (let ((out      (assoc-ref outputs "out"))
+                  (bcftools (assoc-ref inputs "bcftools"))
+                  (samtools (assoc-ref inputs "samtools")))
+              (for-each
+                (lambda (file)
+                  (wrap-script file
+                    `("PYTHONPATH" ":" prefix (,(getenv "PYTHONPATH")))
+                    `("PATH" ":" prefix (,(string-append bcftools "/bin")
+                                         ,(string-append samtools "/bin")))))
+                (find-files (string-append out "/bin") "\\.py$"))
+              #t))))))
+   (native-inputs
+    `(("rtg-tools"
+       ;; When updating this package also update the insert-rtg-tools phase.
+       ;; This bundled software is bsd-2 licensed.
+       ,(origin
+          (method url-fetch)
+          (uri (string-append "https://github.com/RealTimeGenomics/rtg-tools"
+                              "/releases/download/3.12.1"
+                              "/rtg-tools-3.12.1-nojre.zip"))
+          (sha256
+           (base32 "1an4axkrj28br09xpj9g0a6k5hrx1cx4wcldrryvj6a0ljqqrz2y"))))
+      ("unzip" ,unzip)))
+   (inputs
+    `(("bcftools" ,bcftools)
+      ("boost" ,boost-static)   ; has to be boost-static
+      ("guile" ,guile-3.0)      ; for wrap-script
+      ("htslib" ,htslib)
+      ;; The software specifically states python-2.
+      ("python" ,python-2)
+      ("python2-bx-python" ,python2-bx-python)
+      ("python2-numpy" ,python2-numpy)
+      ("python2-pandas" ,python2-pandas)
+      ("python2-pysam" ,python2-pysam)
+      ("python2-scipy" ,python2-scipy)
+      ("samtools" ,samtools)
+      ("zlib" ,zlib)))
+   (home-page "https://github.com/Illumina/hap.py")
+   (synopsis "Haplotype VCF comparison tools")
+   (description
+    "This is a set of programs based on htslib to benchmark variant calls
+against gold standard truth datasets.
+
+The main two tools are @code{hap.py} (diploid precision/recall evaluation) and
+@code{som.py} (somatic precision/recall evaluation -- this ignores the GT and
+just checks for presence of alleles).  Other tools are @code{qfy.py} (which just
+executes the quantification step of the analysis pipeline, this requires a
+GA4GH-intermediate VCF file), and @code{pre.py}, which is @code{hap.py}'s input
+cleaning and variant normalisation step.
+
+To run the bundled rtg-tools software you will also need java.  The
+@code{icedtea:jdk} output should work nicely.")
+   (license (list license:expat     ; bundled jsoncpp, klib
+                  license:bsd-2))))
