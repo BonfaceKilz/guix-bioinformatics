@@ -28,12 +28,14 @@
   #:use-module (gnu packages)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages bioinformatics)
+  #:use-module (gnu packages certs)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages icu4c)
   #:use-module (gnu packages java)
+  #:use-module (gnu packages java-compression)
   #:use-module (gnu packages perl)
-  #:use-module (gnu packages certs)
-  )
+  #:use-module (srfi srfi-1))
 
 ;; ----------------------------------------------------------------------------
 ;; WORKING PACKAGES
@@ -297,3 +299,78 @@ comprehension tool. Based on the concept of a project object model (POM),
 Maven can manage a project's build, reporting and documentation from a central
 piece of information.")
     (license license:asl2.0)))
+
+;; TODO: Remove bundled jars from buildLib, lib, testLib and javascript
+(define-public rtg-tools
+  (package
+    (name "rtg-tools")
+    (version "3.11")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/RealTimeGenomics/rtg-tools")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "13fjhhcjgnynxscaymkn3rpdciplbg2m2qmihc7fxsylgn4m6gxk"))))
+    (build-system ant-build-system)
+    (arguments
+     `(#:build-target "zip-nojre"
+       #:test-target "runalltests"
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-source
+           (lambda _
+             (substitute* "build.xml"
+               (("\"git\"") "\"echo\"")
+               (("\\$\\{vcs\\.cmd\\.out\\}") "${product.version}")
+               (("\\$\\{build\\.time\\}") "1970-01-01")
+               (("-\\$\\{rtg\\.vcs\\.commit\\.revision\\}") ""))
+             #t))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out"))
+                   (pkg (string-append ,name "-" ,version)))
+               (install-file (string-append "dist/" pkg "-nojre.zip")
+                             out)
+               (with-directory-excursion out
+                 (invoke "unzip" (string-append pkg "-nojre.zip"))
+                 (copy-recursively (string-append pkg "/") ".")
+                 (delete-file-recursively pkg)
+                 (delete-file (string-append pkg "-nojre.zip")))
+               #t)))
+         (delete 'generate-jar-indices))))  ; manually installed
+    (inputs
+     `(("java-commons-collections" ,java-commons-collections)
+       ("java-commons-compress" ,java-commons-compress)
+       ("java-commons-lang" ,java-commons-lang)
+       ;("java-graal-sdk" ,java-graal-sdk)
+       ;("java-gzipfix" ,java-gzipfix)
+       ;("java-htsjdk" ,java-sam-rtg)
+       ("java-icu4j" ,java-icu4j)
+       ;("java-js" ,java-js)
+       ;("java-js-scriptengine" ,java-js-scriptengine)
+       ;("java-json-simple" ,java-json-simple)
+       ;("java-regex" ,java-regex)
+       ;("java-rplot" ,java-rplot)
+       ("java-snappy" ,java-snappy)
+       ;("java-truffle-api" ,java-truffle-api)
+       ;("java-velocity" ,java-velocity)
+       ;("java-velocity-tools-generic" ,java-velocity-tools-generic)
+       ))
+    (native-inputs
+     `(;("java-findbugs-annotations" ,java-findbugs-annotations)
+       ;("java-findbugs-jsr305" ,java-findbugs-jsr305)
+       ;("java-jumble-annotations" ,java-jumble-annotations)
+       ;; for tests
+       ("java-hamcrest-core" ,java-hamcrest-core)
+       ("java-junit" ,java-junit)
+       ;("java-spelling" ,java-spelling)
+       ("unzip" ,unzip)))
+    (home-page "https://github.com/RealTimeGenomics/rtg-tools/")
+    (synopsis "Utilities for accurate VCF comparison and manipulation")
+    (description "RTG Tools is a subset of RTG Core that includes several useful
+utilities for dealing with VCF files and sequence data.  Probably the most
+interesting is the @code{vcfeval} command which performs sophisticated
+comparison of VCF files.")
+    (license license:bsd-2)))

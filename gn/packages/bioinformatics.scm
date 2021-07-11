@@ -15,6 +15,7 @@
   #:use-module (guix build-system trivial)
   #:use-module (guix build-system waf)
   #:use-module (gnu packages)
+  #:use-module (gn packages java)
   #:use-module (gn packages python)
   #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
@@ -2060,20 +2061,12 @@ cases include:
               #t)))
         (add-after 'fix-build 'insert-rtg-tools
           (lambda* (#:key inputs #:allow-other-keys)
-            (let ((rtg-tools (assoc-ref inputs "rtg-tools")))
-              (mkdir "external/libexec")
-              (invoke "unzip" "-j" rtg-tools
-                      "rtg-tools-3.12.1/rtg"
-                      "rtg-tools-3.12.1/RTG.jar"
-                      "rtg-tools-3.12.1/README.txt"
-                      "rtg-tools-3.12.1/LICENSE.txt"
-                      "rtg-tools-3.12.1/third-party/gzipfix.jar"
-                      "-d" "external/libexec/rtg-tools-install")
-              (mkdir "external/libexec/rtg-tools-install/third-party")
-              (rename-file "external/libexec/rtg-tools-install/gzipfix.jar"
-                           "external/libexec/rtg-tools-install/third-party/gzipfix.jar")
+            (let ((rtg-tools (assoc-ref inputs "rtg-tools"))
+                  (dest      "external/libexec/rtg-tools-install"))
+              (mkdir-p dest)
+              (copy-recursively rtg-tools dest)
               (copy-file "external/rtg.cfg"
-                         "external/libexec/rtg-tools-install/rtg.cfg")
+                         (string-append dest "/rtg.cfg"))
               #t)))
         (replace 'configure
           (lambda* (#:key outputs (configure-flags '()) (out-of-source? #t)
@@ -2155,18 +2148,6 @@ cases include:
                                          ,(string-append samtools "/bin")))))
                 (find-files (string-append out "/bin") "\\.py$"))
               #t))))))
-   (native-inputs
-    `(("rtg-tools"
-       ;; When updating this package also update the insert-rtg-tools phase.
-       ;; This bundled software is bsd-2 licensed.
-       ,(origin
-          (method url-fetch)
-          (uri (string-append "https://github.com/RealTimeGenomics/rtg-tools"
-                              "/releases/download/3.12.1"
-                              "/rtg-tools-3.12.1-nojre.zip"))
-          (sha256
-           (base32 "1an4axkrj28br09xpj9g0a6k5hrx1cx4wcldrryvj6a0ljqqrz2y"))))
-      ("unzip" ,unzip)))
    (inputs
     `(("bcftools" ,bcftools)
       ("boost" ,boost-static)   ; has to be boost-static
@@ -2179,6 +2160,7 @@ cases include:
       ("python2-pandas" ,python2-pandas)
       ("python2-pysam" ,python2-pysam)
       ("python2-scipy" ,python2-scipy)
+      ("rtg-tools" ,rtg-tools)
       ("samtools" ,samtools)
       ("zlib" ,zlib)))
    (home-page "https://github.com/Illumina/hap.py")
