@@ -16,6 +16,7 @@
   #:use-module (gnu packages gdb)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages maths)
+  #:use-module (gnu packages parallel)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages web)
   #:use-module (gn packages shell)
@@ -247,7 +248,10 @@ genome-wide association studies (GWAS).")
         (base32
          "0wysg7s64vyzm19j2hvxyflbszx00d9diw9zwzbqirzagzmqbfwk"))))
     (build-system ruby-build-system)
-    (inputs `(("gemma-gn2" ,gemma-gn2-git)))
+    (inputs `(
+      ("gemma-gn2" ,gemma-gn2-git)
+      ("parallel" ,parallel) ;; gnu parallel
+    ))
     (arguments
      `(#:tests? #f
        #:phases
