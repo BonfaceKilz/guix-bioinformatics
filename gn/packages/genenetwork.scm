@@ -758,6 +758,7 @@ written in C")
       (propagated-inputs
        `(("python" ,python-2.4)
          ("httpd-with-mod-python" ,httpd22-with-mod-python)
+         ("python-direct" ,python24-direct)
          ("python-htmlgen-GN1" ,python24-htmlgen-GN1)
          ("python-json-GN1" ,python24-json-GN1)
          ("python-mysqlclient" ,python24-mysqlclient)
