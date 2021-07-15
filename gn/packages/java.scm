@@ -339,6 +339,22 @@ piece of information.")
                  (delete-file-recursively pkg)
                  (delete-file (string-append pkg "-nojre.zip")))
                #t)))
+         (add-after 'install 'create-rtg.cfg
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-output-to-file (string-append out "/rtg.cfg")
+                 (lambda _
+                   (format #t "RTG_JAVA=\"~a\"~@
+                           RTG_TALKBACK=false~@
+                           RTG_USAGE=false~%"
+                           (which "java"))))
+                 #t)))
+           (add-after 'install 'install-completions
+             (lambda* (#:key outputs #:allow-other-keys)
+               (install-file "installer/resources/common/scripts/rtg-bash-completion"
+                             (string-append (assoc-ref outputs "out")
+                                            "/share/bash-completion/completions"))
+               #t))
          (delete 'generate-jar-indices))))  ; manually installed
     (inputs
      `(("java-commons-collections" ,java-commons-collections)

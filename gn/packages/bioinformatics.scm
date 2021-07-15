@@ -2063,10 +2063,8 @@ cases include:
           (lambda* (#:key inputs #:allow-other-keys)
             (let ((rtg-tools (assoc-ref inputs "rtg-tools"))
                   (dest      "external/libexec/rtg-tools-install"))
-              (mkdir-p dest)
-              (copy-recursively rtg-tools dest)
-              (copy-file "external/rtg.cfg"
-                         (string-append dest "/rtg.cfg"))
+              (mkdir-p (dirname dest))
+              (symlink rtg-tools dest)
               #t)))
         (replace 'configure
           (lambda* (#:key outputs (configure-flags '()) (out-of-source? #t)
