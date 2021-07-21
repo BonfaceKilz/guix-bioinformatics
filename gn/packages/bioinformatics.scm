@@ -1246,6 +1246,44 @@ runApp(launch.browser=0, port=4206)~%\n"
     "")
    (license #f)))
 
+(define-public python-whatshap
+  (package
+    (name "python-whatshap")
+    (version "1.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "whatshap" version))
+        (sha256
+         (base32 "0vxv6y8sg25yii106j6k55vc5z7n1l1y1nax49dgbarbrvk8cr2f"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'patch-source
+           (lambda _
+             (substitute* "setup.py"
+               (("~=.*\"") "\"")
+               ((">=1.73") ""))
+             #t)))))
+    (inputs
+     `(("python-biopython" ,python-biopython)
+       ("python-networkx" ,python-networkx)
+       ("python-pyfaidx" ,python-pyfaidx)
+       ("python-pysam" ,python-pysam)
+       ("python-scipy" ,python-scipy)
+       ("python-xopen" ,python-xopen)))
+    (native-inputs
+     `(("python-cython" ,python-cython)
+       ("python-setuptools-scm" ,python-setuptools-scm)))
+    (home-page "https://github.com/whatshap/whatshap/")
+    (synopsis "Read-based phasing of genomic variants")
+    (description
+     "WhatsHap is a software for phasing genomic variants using DNA sequencing
+reads, also called read-based phasing or haplotype assembly.  It is especially
+suitable for long reads, but works also well with short reads.")
+    (license license:expat)))
+
 (define-public bh20-seq-resource
   (let ((commit "ae4cb3c2cf7103bbc84f52618bb755d7ce25775b")
         (revision "3"))
