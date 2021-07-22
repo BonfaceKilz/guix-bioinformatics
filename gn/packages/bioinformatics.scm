@@ -1257,15 +1257,6 @@ runApp(launch.browser=0, port=4206)~%\n"
         (sha256
          (base32 "0vxv6y8sg25yii106j6k55vc5z7n1l1y1nax49dgbarbrvk8cr2f"))))
     (build-system python-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'patch-source
-           (lambda _
-             (substitute* "setup.py"
-               (("~=.*\"") "\"")
-               ((">=1.73") ""))
-             #t)))))
     (inputs
      `(("python-biopython" ,python-biopython)
        ("python-networkx" ,python-networkx)
