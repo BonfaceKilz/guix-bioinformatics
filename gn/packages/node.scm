@@ -4,8 +4,8 @@
   #:use-module (guix packages)
   #:use-module (guix git-download)
   #:use-module (guix build-system node)
-  #:use-module (gnu packages lisp-xyz)
-  #:use-module (gnu packages node-xyz))
+  #:use-module (gnu packages node-xyz)
+  #:use-module (gnu packages uglifyjs))
 
 (define-public node-asap
   (package
@@ -209,8 +209,6 @@
        (modify-phases %standard-phases
          (replace 'build
            (lambda _
-             (substitute* "Makefile"
-               (("uglifyjs") (which "uglify-js")))
              (invoke "make" "clean")
              (invoke "make" "build"))))))
     (native-inputs
@@ -235,9 +233,9 @@
        ;("node-nyc" ,node-nyc)
        ;("node-rsvp" ,node-rsvp)
        ;("node-semver" ,node-semver)
+       ("node-uglify-js" ,node-uglify-js)
        ;("node-xyz" ,node-xyz)
        ;("node-yargs" ,node-yargs)
-       ("uglify-js" ,uglify-js)
        ))))
 
 (define-public node-closure-library
@@ -706,7 +704,7 @@ functionality to JupyterHub deployments.")
        ;("node-pre-commit" ,node-pre-commit)
        ;("node-sauce-browsers" ,node-sauce-browsers)
        ;("node-sauce-test" ,node-sauce-test)
-       ;("uglify-js" ,uglify-js)
+       ("node-uglify-js" ,node-uglify-js)
        ))
     (home-page "https://github.com/primus/eventemitter3")
     (synopsis "EventEmitter3 focuses on performance while maintaining a Node.js AND browser compatible interface")
@@ -1066,7 +1064,7 @@ such as reverse proxies and load balancers.")
        ;("node-request" ,node-request)
        ;("node-requirejs" ,node-requirejs)
        ;("node-sauce-tunnel" ,node-sauce-tunnel)
-       ;("node-uglify-js" ,node-uglify-js)
+       ("node-uglify-js" ,node-uglify-js)
        ;("node-webpack" ,node-webpack)
        ))
     (home-page "https://lodash.com/")
@@ -1245,7 +1243,7 @@ such as reverse proxies and load balancers.")
      `(("node-asap" ,node-asap)))
     (native-inputs
      `(
-       ;("node-acorn" ,node-acorn)
+       ("node-acorn" ,node-acorn)
        ;("node-better-assert" ,node-better-assert)
        ;("node-istanbul" ,node-istanbul)
        ;("node-mocha" ,node-mocha)
