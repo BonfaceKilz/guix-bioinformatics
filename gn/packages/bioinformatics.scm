@@ -485,11 +485,11 @@ reads.")
        (modify-phases %standard-phases
          (add-after 'unpack 'adjust-dependency-version
            (lambda* (#:key inputs #:allow-other-keys)
-             ;; TODO: Replace the hardcoded version with logic.
-             (substitute* "Cargo.toml"
-               (("\"0.7\"")
-                "{ version = \"0.7.0-alpha.9\" }"))
-             #t)))))
+             (let ((handlebar-version ,(package-version rust-handlegraph-0.7)))
+               (substitute* "Cargo.toml"
+                 (("\"0.7\"")
+                  (string-append "{ version = \"" handlebar-version "\" }")))
+               #t))))))
     (home-page "https://github.com/marschall-lab/GFAffix")
     (synopsis "Identify walk-preserving shared affixes in variation graphs")
     (description
