@@ -490,9 +490,6 @@ reads.")
                (("\"0.7\"")
                 "{ version = \"0.7.0-alpha.9\" }"))
              #t)))))
-    (inputs
-     ;; rust-handlegraph@0.7 doesn't get picked up as a rust input.
-     `(("rust-handlegraph-0.7" ,rust-handlegraph-0.7)))
     (home-page "https://github.com/marschall-lab/GFAffix")
     (synopsis "Identify walk-preserving shared affixes in variation graphs")
     (description

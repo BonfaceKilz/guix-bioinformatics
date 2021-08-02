@@ -75,37 +75,34 @@
     (license license:expat)))
 
 (define-public rust-handlegraph-0.7
-  ;; After this commit try the next actual release.
-  (let ((commit "a7ca8da640ae442ffd3ef4f5f9f358cd37c7deee")
-        (revision "1"))
-    (package
-      (inherit rust-handlegraph-0.3)
-      (name "rust-handlegraph")
-      (version (git-version "0.7.0-alpha.9" revision commit))
-      (source
-        (origin
-          (method git-fetch)
-          (uri (git-reference
-                 (url "https://github.com/chfi/rs-handlegraph")
-                 (commit commit)))
-          (file-name (git-file-name name version))
-          (sha256
-           (base32 "19cxgysxam79k6skanh4q4hafi4aglzcmg5hmm3vfnrzbz9q6js0"))))
-      (arguments
-       `(#:rust ,rust-1.47      ; or later
-         #:cargo-inputs
-         (("rust-anyhow" ,rust-anyhow-1)
-          ("rust-boomphf" ,rust-boomphf-0.5)
-          ("rust-bstr" ,rust-bstr-0.2)
-          ("rust-crossbeam-channel" ,rust-crossbeam-channel-0.5)
-          ("rust-fnv" ,rust-fnv-1)
-          ("rust-gfa" ,rust-gfa-0.10)
-          ("rust-log" ,rust-log-0.4)
-          ("rust-rayon" ,rust-rayon-1)
-          ("rust-succinct" ,rust-succinct-0.5))
-         #:cargo-development-inputs
-         (("rust-quickcheck" ,rust-quickcheck-0.9)
-          ("rust-rand" ,rust-rand-0.7)))))))
+  (package
+    (inherit rust-handlegraph-0.3)
+    (name "rust-handlegraph")
+    (version "0.7.0-alpha.9")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "handlegraph" version))
+        (file-name
+         (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32
+          "1frlcdwhycjvizb0gfb0v36vxjdi0jxagl2l2v6dzdjxpaawv9rs"))))
+    (arguments
+     `(#:rust ,rust-1.47      ; or later
+       #:cargo-inputs
+       (("rust-anyhow" ,rust-anyhow-1)
+        ("rust-boomphf" ,rust-boomphf-0.5)
+        ("rust-bstr" ,rust-bstr-0.2)
+        ("rust-crossbeam-channel" ,rust-crossbeam-channel-0.5)
+        ("rust-fnv" ,rust-fnv-1)
+        ("rust-gfa" ,rust-gfa-0.10)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-rayon" ,rust-rayon-1)
+        ("rust-succinct" ,rust-succinct-0.5))
+       #:cargo-development-inputs
+       (("rust-quickcheck" ,rust-quickcheck-0.9)
+        ("rust-rand" ,rust-rand-0.7))))))
 
 (define-public rust-quick-csv-0.1
   (package
