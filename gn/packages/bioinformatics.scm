@@ -8,6 +8,7 @@
   #:use-module (guix git-download)
   #:use-module (guix hg-download)
   #:use-module (guix build-system ant)
+  #:use-module (guix build-system cargo)
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
@@ -15,6 +16,7 @@
   #:use-module (guix build-system trivial)
   #:use-module (guix build-system waf)
   #:use-module (gnu packages)
+  #:use-module (gn packages crates-io)
   #:use-module (gn packages java)
   #:use-module (gn packages python)
   #:use-module (gn packages twint)
@@ -28,6 +30,7 @@
   #:use-module (gnu packages cmake)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cran)
+  #:use-module (gnu packages crates-io)
   #:use-module (gnu packages curl)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages datastructures)
@@ -56,6 +59,7 @@
   #:use-module (gnu packages readline)
   #:use-module (gnu packages rsync)
   #:use-module (gnu packages ruby)
+  #:use-module (gnu packages rust)
   #:use-module (gnu packages serialization)
   #:use-module (gnu packages shells)
   #:use-module (gnu packages statistics)
@@ -446,6 +450,55 @@ reads.")
 
 (define-public edirect-gn
   (deprecated-package "edirect-gn" edirect))
+
+(define-public gfaffix
+  (package
+    (name "gfaffix")
+    (version "0.1.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/marschall-lab/GFAffix")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0xpzi0zvaa4pajs4vbp3vkwj2ha8pi62ly7bd8cpf3fi6r32pgdz"))
+        (modules '((guix build utils)))
+        (snippet
+         '(begin
+            (substitute* "Cargo.toml"
+              (("^handlegraph.*") "handlegraph = \"0.7\"\n"))))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:rust ,rust-1.49        ; or later
+       #:cargo-inputs
+       (("rust-clap" ,rust-clap-3)
+        ("rust-rustc-hash" ,rust-rustc-hash-1)
+        ("rust-regex" ,rust-regex-1)
+        ("rust-handlegraph" ,rust-handlegraph-0.7)
+        ("rust-gfa" ,rust-gfa-0.10)
+        ("rust-quick-csv", rust-quick-csv-0.1)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-env-logger" ,rust-env-logger-0.7))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-dependency-version
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; TODO: Replace the hardcoded version with logic.
+             (substitute* "Cargo.toml"
+               (("\"0.7\"")
+                "{ version = \"0.7.0-alpha.7\" }"))
+             #t)))))
+    (inputs
+     ;; rust-handlegraph@0.7 doesn't get picked up as a rust input.
+     `(("rust-handlegraph-0.7" ,rust-handlegraph-0.7)))
+    (home-page "https://github.com/marschall-lab/GFAffix")
+    (synopsis "Identify walk-preserving shared affixes in variation graphs")
+    (description
+     "GFAffix identifies walk-preserving shared affixes in variation graphs and
+collapses them into a non-redundant graph structure.")
+    (license license:expat)))
 
 ;; TODO: Unbundle zlib, bamtools, tclap
 (define-public sniffles
