@@ -81,7 +81,7 @@
     (package
       (inherit rust-handlegraph-0.3)
       (name "rust-handlegraph")
-      (version (git-version "0.7.0-alpha.7" revision commit))
+      (version (git-version "0.7.0-alpha.9" revision commit))
       (source
         (origin
           (method git-fetch)
