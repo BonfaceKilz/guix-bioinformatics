@@ -940,7 +940,7 @@ runApp(launch.browser=0, port=4208)~%\n"
 (scRNA-seq) data analysis.")
      (license license:agpl3))))
 
-(define-public seqwish
+(define-public seqwish-0.1
   (package
     (name "seqwish")
     (version "0.1")
