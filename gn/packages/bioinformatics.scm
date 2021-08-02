@@ -488,7 +488,7 @@ reads.")
              ;; TODO: Replace the hardcoded version with logic.
              (substitute* "Cargo.toml"
                (("\"0.7\"")
-                "{ version = \"0.7.0-alpha.7\" }"))
+                "{ version = \"0.7.0-alpha.9\" }"))
              #t)))))
     (inputs
      ;; rust-handlegraph@0.7 doesn't get picked up as a rust input.
