@@ -80,10 +80,8 @@
          ("python-jupyter-server-proxy"
           ,(@ (gn packages python) python-jupyter-server-proxy-1))))
       (inputs
-       `(;("julia-distributions" ,julia-distributions)
-         ;("julia-interactiveutils" ,julia-interactiveutils) ; Part of stdlib as of XXXX
+       `(("julia-distributions" ,julia-distributions)
          ("julia-latexstrings" ,julia-latexstrings)
-         ;("julia-markdown" ,julia-markdown)                 ; Part of stdlib as of XXXX
          ("julia-optim" ,julia-optim)
          ("julia-plots" ,julia-plots)
          ("julia-pluto" ,julia-pluto)
@@ -115,7 +113,7 @@
        `(;("julia-csv" ,julia-csv)
          ;("julia-cuda" ,julia-cuda)
          ("julia-dataframes" ,julia-dataframes)
-         ;("julia-distributions" ,julia-distributions)
+         ("julia-distributions" ,julia-distributions)
          ("julia-docstringextensions" ,julia-docstringextensions)))
       (native-inputs
        `(("julia-documenter" ,julia-documenter)
@@ -129,15 +127,19 @@
          ))
       (home-page "https://github.com/senresearch/LiteQTL.jl")
       (synopsis "Julia package for eQTL genome scans near real-time")
-      (description "LiteQTL is a package that runs whole genome QTL scans near real-time, utilizing the computation power of GPU.
-LiteQTL uses new algorithms that enables near-real time whole genome QTL scans for up to 1 million traits. By using easily parallelizable operations including matrix multiplication, vectorized operations, and element-wise operations, our method is about 300 times faster than a R/qtl linear model genome scan using 16 threads.")
+      (description "LiteQTL is a package that runs whole genome QTL scans near
+real-time, utilizing the computation power of GPU.  LiteQTL uses new algorithms
+that enables near-real time whole genome QTL scans for up to 1 million traits.
+By using easily parallelizable operations including matrix multiplication,
+vectorized operations, and element-wise operations, our method is about 300
+times faster than a R/qtl linear model genome scan using 16 threads.")
       (license license:expat))))
 
 ;; contains bundled libraries?
 (define-public julia-packagecompiler
   (package
     (name "julia-packagecompiler")
-    (version "1.2.6")
+    (version "1.3.0")
     (source
       (origin
         (method git-fetch)
@@ -146,10 +148,10 @@ LiteQTL uses new algorithms that enables near-real time whole genome QTL scans f
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1l0sc7dcx5zabvkjfzqjmni47c5w8fr5c6phkdcgrb1vqp90xvkx"))))
+         (base32 "1ks7g8cvyc81yj6knkrdcxkkm3rdw61jx1h3nqn2n289p5xxfv26"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; Tries to contact package repository.
+     `(#:tests? #f))    ; Test suite needs a copy of the Julia package repository.
     (home-page "https://github.com/JuliaLang/PackageCompiler.jl")
     (synopsis "Compile your Julia Package")
     (description "PackageCompiler is a Julia package with two main purposes:
@@ -164,7 +166,7 @@ can be sent and run on other machines without Julia being installed on that mach
 (define-public julia-flxqtl
   (package
     (name "julia-flxqtl")
-    (version "0.2.0")
+    (version "0.3.0")
     (source
       (origin
         (method git-fetch)
@@ -173,19 +175,18 @@ can be sent and run on other machines without Julia being installed on that mach
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0lzf4vmbjc8zfqsw7a697gza4dxchq5jqp876567ywla3d1f3sl0"))))
+         (base32 "06mzbiv8bp0hgkz2i67ax63xcs5wkbyw80cz3s9snwd1426v2r41"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
+     `(#:tests? #f
        ))
     (propagated-inputs
      `(
-       ;("julia-distributions" ,julia-distributions)
+       ("julia-distributions" ,julia-distributions)
        ;("julia-lossfunctions" ,julia-lossfunctions)
        ("julia-pyplot" ,julia-pyplot)
        ;("julia-revise" ,julia-revise)
-       ;("julia-staticarrays" ,julia-static-arrays)
+       ("julia-staticarrays" ,julia-staticarrays)
        ("julia-statsbase" ,julia-statsbase)
        ))
     (home-page "https://github.com/senresearch/FlxQTL.jl")
@@ -219,9 +220,9 @@ distributed computing.")
        ))
     (propagated-inputs
      `(
-       ("julia-pycall" ,julia-pycall)
-       ("julia-latexstrings" ,julia-latexstrings)
        ("julia-colors" ,julia-colors)
+       ("julia-latexstrings" ,julia-latexstrings)
+       ("julia-pycall" ,julia-pycall)
        ("julia-versionparsing" ,julia-versionparsing)
        ))
     (home-page "https://github.com/JuliaPy/PyPlot.jl")
@@ -245,65 +246,52 @@ distributed computing.")
           "07r99ni6nkxpyrp3wsb5qg4jxz7i2r08dyqbiffy2zm3g0bn88jq"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
-       #:phases
+     `(#:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'remove-conda
            (lambda _
              (substitute* "Project.toml"
                ((".*Conda.*") ""))
-             (substitute* "src/PyCall.jl"
+             (substitute* (list "src/PyCall.jl"
+                                "test/runtests.jl")
                (("import Conda") ""))
+             (substitute* "deps/depsutils.jl"
+               (("Conda.PYTHONDIR") "\"/\""))
              #t))
          (add-after 'unpack 'set-python
-           (lambda* (#:key inputs #:allow-other-keys)
+           (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((python (assoc-ref inputs "python")))
-               ;(substitute* "deps/find_libpython.py"
-               ;  (("/usr/bin/env python")
-                  ;(string-append python "/bin/python3"))
-               ;   "/usr/bin/env python3")
-                 ;(("return (path|None)")
-                 ; (string-append "return \"" python "/lib/libpython3.so\""))
-               ;   )
-               ;(substitute* "deps/buildutils.jl"
-               ;  (("\\$python \\$script")
-               ;   (string-append python "/bin/python3 $script"))
-               ;  (("pythonenv\\(cmd\\)")
-               ;   (string-append python "/lib/libpython3.so"))
-               ;  )
-               ;(substitute* "src/startup.jl"
-               ;  (("dlopen\\(libpython")
-               ;   (string-append "dlopen(\"" python "/lib/libpython3.so\""))
-               ;  (("pyversion_build")
-               ;  ;(string-append "\"" ,(package-version python) "\""))
-               ;  ;,(package-version python))
-               ;  ,(version-major+minor (package-version python)))
-               ;  (("PYTHONHOME")
-               ;  (string-append "\"" python "\""))
-               ;  )
-               ;(setenv "SHLIB_SUFFIX" ".so")
-               (setenv "PYCALL_DEBUG_BUILD" "yes")
-               (setenv "JULIA_PKGEVAL" "false")
+               (setenv "PYCALL_JL_RUNTIME_PYTHON"
+                       (string-append python "/bin/python3"))
                (with-output-to-file "deps/deps.jl"
                  (lambda _
-                   (format #t ;"ENV[\"PYTHON\"]=\"~a/bin/python3\"~%"
-                           "ENV[\"PYTHONHOME\"]=\"~a\"~%"
-                           ;python
-                           python)))
+                   (format #t
+                           "const python = \"~a/bin/python3\"~@
+                           const pyprogramname = \"~a/bin/python3\"~@
+                           const libpython = \"~a/lib/libpython3.8.so.1.0\"~@
+                           const PYTHONHOME = \"~a/lib/python3.8\"~@
+                           const pyversion_build = v\"~a\"~@
+                           const conda = false~%"
+                           python
+                           python
+                           python
+                           python
+                           ,(package-version python))))
                #t)))
-         )
-       ))
+         (add-before 'check 'pre-check
+           (lambda _
+             (setenv "CI" "true")
+             (setenv "JULIA_PKGEVAL" "true")
+             #t)))))
     (propagated-inputs
-     `(
-       ;("julia-conda" ,julia-conda)
-       ("julia-macrotools" ,julia-macrotools)
-       ("julia-versionparsing" ,julia-versionparsing)
-       ("python" ,python)
-       ))
+     `(("julia-macrotools" ,julia-macrotools)
+       ("julia-versionparsing" ,julia-versionparsing)))
+    (inputs
+     `(("python" ,python)))
     (native-inputs
-     `(
-       ;("python-numpy" ,(@ (gnu packages python-xyz) python-numpy))
-       ))
+     `(("python-numpy" ,(@ (gnu packages python-xyz) python-numpy))
+       ("python-pip" ,(@ (gnu packages python-xyz) python-pip))
+       ("python-virtualenv" ,(@ (gnu packages python-xyz) python-virtualenv))))
     (home-page "https://github.com/JuliaPy/PyCall.jl")
     (synopsis "Call Python functions from the Julia language")
     (description "This package provides the ability to directly call and fully interoperate with Python from the Julia language.  You can import arbitrary Python modules from Julia, call Python functions (with automatic conversion of types between Julia and Python), define Python classes from Julia methods, and share large data structures between Julia and Python without copying them.")
@@ -312,7 +300,7 @@ distributed computing.")
 (define-public julia-conda
   (package
     (name "julia-conda")
-    (version "1.5.0")
+    (version "1.5.2")
     (source
       (origin
         (method git-fetch)
@@ -322,17 +310,26 @@ distributed computing.")
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "1v0plrhx9765kzynjdbgrxg5yv0nl40mklyl0z0p06ifvn927q77"))))
+          "01qxrv3xv7b979j760iyn28w3hlls29b2parjginwi81jbzr1vgd"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
+     `(#:tests? #f  ; Tests involve downloading Conda packages.
        #:phases
        (modify-phases %standard-phases
+         ;(delete 'precompile)
+         (add-after 'unpack 'hardcode-conda-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "src/Conda.jl"
+               (("bin_dir\\(ROOTENV\\), \"conda\"") (string-append "\"" (assoc-ref inputs "conda") "/bin/\", \"conda\"")))
+             #t))
          (add-before 'check 'pre-check
            (lambda* (#:key inputs #:allow-other-keys)
              ;(setenv "CONDA_JL_HOME" (string-append (assoc-ref inputs "conda") ))
              ;(setenv "CONDA_JL_VERSION" "3")
+             ;(setenv "CONDA_JL_USE_MINIFORGE" "false")
              ;(display (getcwd))
+             ;(setenv "HOME" (getcwd))
+             ;(invoke "conda" "create" "--offline" "--use-local" "-n" "conda_jl" "python" "conda")
              ;(invoke "ls")
              ;(invoke "pwd")
              ;(with-output-to-file "deps/deps.jl"
@@ -348,7 +345,7 @@ distributed computing.")
     (native-inputs
      `(
        ("conda" ,(S "conda"))
-       ("python" ,(S "python-wrapper"))
+       ;("python" ,(S "python-wrapper"))
        ))
     (propagated-inputs
      `(
@@ -386,7 +383,7 @@ equations in string literals in the Julia language.")
 (define-public julia-distributions
   (package
     (name "julia-distributions")
-    (version "0.25.6")
+    (version "0.25.11")
     (source
       (origin
         (method git-fetch)
@@ -395,25 +392,31 @@ equations in string literals in the Julia language.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "07n7g5zxp1b82k6yvqa5kh51jww2cy1f5pyvh60k3fp6rdp8sy1j"))))
+         (base32 "0n5xgdpzrpb4s0g23rjggk7c7x8677hbhq0sam7xbw9mn2w79m7n"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
-       ))
+     `(#:tests? #f))        ; Some failed tests
     (propagated-inputs
-     `(
-       ("julia-fillarrays" ,julia-fillarrays)
+     `(("julia-fillarrays" ,julia-fillarrays)
        ("julia-pdmats" ,julia-pdmats)
-       ;("julia-quadgk" ,julia-quadgk)
+       ("julia-quadgk" ,julia-quadgk)
        ("julia-specialfunctions" ,julia-specialfunctions)
        ("julia-statsbase" ,julia-statsbase)
-       ("julia-statsfuns" ,julia-statsfuns)    ; fix Rmath.jl
-       ))
+       ("julia-statsfuns" ,julia-statsfuns)))
+    (native-inputs
+     `(("julia-calculus" ,julia-calculus)
+       ("julia-finitedifferences" ,julia-finitedifferences)
+       ("julia-forwarddiff" ,julia-forwarddiff)
+       ("julia-json" ,julia-json)
+       ("julia-stablerngs" ,julia-stablerngs)
+       ("julia-staticarrays" ,julia-staticarrays)))
     (home-page "https://github.com/JuliaStats/Distributions.jl")
-    (synopsis "probability distributions and associated functions")
-    (description "Julia package for probability distributions and associated functions. Particularly, Distributions implements:
+    (synopsis "Probability distributions and associated functions")
+    (description "Julia package for probability distributions and associated
+functions.  Particularly, @code{Distributions} implements:
 @enumerate
-@enum Moments (e.g mean, variance, skewness, and kurtosis), entropy, and other properties
+@enum Moments (e.g mean, variance, skewness, and kurtosis), entropy, and other
+properties
 @enum Probability density/mass functions (pdf) and their logarithm (logpdf)
 @enum Moment generating functions and characteristic functions
 @enum Sampling from population or from a distribution
@@ -542,10 +545,12 @@ equations in string literals in the Julia language.")
 generation with @code{Documenter.jl}.")
     (license license:expat)))
 
+;; ready to upstream
+;; if the test suite passes
 (define-public julia-optim
   (package
     (name "julia-optim")
-    (version "1.3.0")
+    (version "1.4.0")
     (source
       (origin
         (method git-fetch)
@@ -554,11 +559,10 @@ generation with @code{Documenter.jl}.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1nmc4979dim5s630b5wskkjg141yz9655qag7i5m8f4p2cq4b2dp"))))
+         (base32 "0bv281n999kmjlp9p3vl4vv4phdl17z4gdpvkjzxsyk6dvcg2nrf"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f  ; TODO: Fix test
-       ))
+     `(#:tests? #f))    ; TODO: Fix test
     (propagated-inputs
      `(("julia-compat" ,julia-compat)
        ("julia-fillarrays" ,julia-fillarrays)
@@ -569,10 +573,9 @@ generation with @code{Documenter.jl}.")
        ("julia-positivefactorizations" ,julia-positivefactorizations)
        ("julia-statsbase" ,julia-statsbase)))
     (native-inputs
-     `(
+     `(("julia-measurements" ,julia-measurements)
        ("julia-optimtestproblems" ,julia-optimtestproblems)
-       ("julia-recursivearraytools" ,julia-recursivearraytools)
-       ))
+       ("julia-recursivearraytools" ,julia-recursivearraytools)))
     (home-page "https://github.com/JuliaNLSolvers/Optim.jl")
     (synopsis "Optimization functions for Julia")
     (description "@code{Optim.jl} is a package for univariate and multivariate
@@ -669,7 +672,7 @@ structures.")
 (define-public julia-dataframes
   (package
     (name "julia-dataframes")
-    (version "1.1.1")
+    (version "1.2.2")
     (source
       (origin
         (method git-fetch)
@@ -678,7 +681,7 @@ structures.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0ab03l9q9vmc176711hp0adc456fphh0d762fv6hcvzvhms4xjkz"))))
+         (base32 "1bk0amrghgjrkyn1mm4ac23swwbgszl1d0qyl9137qj5zvv9dasp"))))
     (build-system julia-build-system)
     (arguments
      `(#:phases
@@ -699,11 +702,13 @@ structures.")
     (propagated-inputs
      `(("julia-dataapi" ,julia-dataapi)
        ("julia-invertedindices" ,julia-invertedindices)
+       ("julia-iteratorinterfaceextensions" ,julia-iteratorinterfaceextensions)
        ("julia-missings" ,julia-missings)
        ("julia-pooledarrays" ,julia-pooledarrays)
        ("julia-prettytables" ,julia-prettytables)
        ("julia-reexport" ,julia-reexport)
        ("julia-sortingalgorithms" ,julia-sortingalgorithms)
+       ("julia-tables" ,julia-tables)
        ("julia-tabletraits" ,julia-tabletraits)))
     (native-inputs
      `(("julia-categoricalarrays" ,julia-categoricalarrays)
@@ -721,7 +726,7 @@ structures.")
 (define-public julia-pluto
   (package
     (name "julia-pluto")
-    (version "0.14.8")
+    (version "0.15.1")
     (source
       (origin
         (method git-fetch)
@@ -730,23 +735,33 @@ structures.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0kzl70fgb6q23yxifkadxrxp7nhc26pqnklna83bqdczk0543q3w"))))
+         (base32 "1jsvqi33rsj8izm9pb0r4gjzb5xd01dxri8xp95h84kd0rdliirr"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f      ; Many tests need network connectivity or a browser.
+     `(#:tests? #f      ; Test suite fails to load HTTP.jl.
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'dont-check-for-upgrades
            (lambda _
              (substitute* "frontend/components/Welcome.js"
                (("local_index !== -1") "false"))
+             #t))
+         (add-after 'unpack 'skip-network-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               ;; Attempts to update the package registry.
+               ((".*Basic.jl.*") ""))
              #t)))))
     (propagated-inputs
      `(("julia-configurations" ,julia-configurations)
        ("julia-fuzzycompletions" ,julia-fuzzycompletions)
        ("julia-http" ,julia-http)
        ("julia-msgpack" ,julia-msgpack)
-       ("julia-tableiointerface" ,julia-tableiointerface)))
+       ("julia-tableiointerface" ,julia-tableiointerface)
+       ("julia-tables" ,julia-tables)))
+    (native-inputs
+     `(("julia-dataframes" ,julia-dataframes)
+       ("julia-offsetarrays" ,julia-offsetarrays)))
     (home-page "https://github.com/fonsp/Pluto.jl")
     (synopsis "Simple reactive notebooks for Julia")
     (description "A Pluto notebook is made up of small blocks of Julia code
@@ -818,34 +833,12 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (propagated-inputs
      `(("julia-crayons" ,julia-crayons)
        ("julia-expronicon" ,julia-expronicon)
-       ("julia-orderedcollections" ,julia-orderedcollections)
-       ("julia-toml" ,julia-toml)))
+       ("julia-orderedcollections" ,julia-orderedcollections)))
     (home-page "https://configurations.rogerluo.dev/stable/")
     (synopsis "Options and configurations in Julia")
     (description "@code{Configurations.jl} provides a macro @code{@@option} to
 let you define @code{structs} to represent options/configurations, and serialize
 between different option/configuration file formats such as @code{TOML}.")
-    (license license:expat)))
-
-;; XXX: Part of base Julia as of 1.6+
-(define-public julia-toml
-  (package
-    (name "julia-toml")
-    (version "1.0.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaLang/TOML.jl")
-               (commit version)))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "15qmgy3jpyw6h938kg2fc9h896rbskdjgaimj118p3mg4mln4gci"))))
-    (build-system julia-build-system)
-    (home-page "https://github.com/JuliaLang/TOML.jl")
-    (synopsis "TOML parser for TOML 1.0 written in Julia")
-    (description "TOML v1.0.0 parser for Julia.")
     (license license:expat)))
 
 ;; ready to upstream
@@ -864,9 +857,10 @@ between different option/configuration file formats such as @code{TOML}.")
         (sha256
          (base32 "0lbzfn1li2ph02z6hl5286bj6bf17g63vfp6qn4cz40d760fcw8a"))))
     (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))        ; Tests try to read SSL certificates.
     (propagated-inputs
-     `(("julia-mlstyle" ,julia-mlstyle)
-       ("julia-toml" ,julia-toml)))
+     `(("julia-mlstyle" ,julia-mlstyle)))
     (native-inputs
      `(("julia-documenter" ,julia-documenter)))
     (home-page "https://expronicon.rogerluo.dev/dev/")
@@ -899,6 +893,7 @@ metaprogramming on Julia Expr, the meta programming standard library for
 programming infrastructures, and metaprogramming facilities.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-statsfuns
   (package
     (name "julia-statsfuns")
@@ -913,63 +908,73 @@ programming infrastructures, and metaprogramming facilities.")
         (sha256
          (base32 "1zl46p9gbx9xkjnnpd45csshqvq2i94mxw10karpr8xkx8msyk3k"))))
     (build-system julia-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-test-suite
+           (lambda _
+             (substitute* "test/misc.jl"
+               (("test logmvbeta\\(1") "test_nowarn logmvbeta(1"))
+             #t)))))
     (propagated-inputs
-     `(
-       ("julia-logexpfunctions" ,julia-logexpfunctions)
+     `(("julia-logexpfunctions" ,julia-logexpfunctions)
        ("julia-rmath" ,julia-rmath)
-       ("julia-specialfunctions" ,julia-specialfunctions)
-       ))
+       ("julia-specialfunctions" ,julia-specialfunctions)))
     (native-inputs
-     `(
-       ("julia-forwarddiff" ,julia-forwarddiff)
-       ))
+     `(("julia-forwarddiff" ,julia-forwarddiff)))
     (home-page "https://github.com/JuliaStats/StatsFuns.jl")
     (synopsis "Mathematical functions related to statistics")
-    (description "This package provides a collection of mathematical constants and numerical functions for statistical computing.")
+    (description "This package provides a collection of mathematical constants
+and numerical functions for statistical computing.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public rmath-julia
-  (package
-    (name "rmath-julia")
-    (version "0.3.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaStats/Rmath-julia")
-               ;(commit (string-append "v" version))))
-               (commit "5c5dfd6baca358103fbb47cc03dc0ecee04fb1ff")))
-        (file-name (git-file-name name version))
-        (sha256
-         ;(base32 "11a6h3wwmpnb2d55pkm6av111b3pxlvxfnbz8b0n77afpllgb8j2"))))
-         (base32 "04lf8gfnfcppckk9d7hss0ja91yxaax6qz1gzqya9w0shjr386s5"))))
-    (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f  ; Test not defined, tests not often run upstream.
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'precompile)
-         (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
-             (when tests?
-               (invoke "julia" "test.jl"))
-             #t))
-         (add-before 'install 'build
-           (lambda _
-             (invoke "make")))
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out")))
-               (install-file "src/libRmath-julia.so" (string-append out "/lib"))
-               #t))))))
-    (home-page "https://github.com/JuliaStats/Rmath-julia")
-    (synopsis "Rmath library from R")
-    (description "This is a slightly modified version of the standalone Rmath library from R, built to be used with the Rmath.jl Julia package.
+  ;; More recent commits fix various build issues
+  (let ((commit "5c5dfd6baca358103fbb47cc03dc0ecee04fb1ff")
+        (revision "1"))
+    (package
+      (name "rmath-julia")
+      (version (git-version "0.3.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/JuliaStats/Rmath-julia")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "04lf8gfnfcppckk9d7hss0ja91yxaax6qz1gzqya9w0shjr386s5"))))
+      (build-system julia-build-system)
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (delete 'precompile)     ; No Project.toml.
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (invoke "julia" "test.jl"))
+               #t))
+           (add-before 'install 'build
+             (lambda _
+               (invoke "make")))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (install-file "src/libRmath-julia.so" (string-append out "/lib"))
+                 #t))))))
+      (home-page "https://github.com/JuliaStats/Rmath-julia")
+      (synopsis "Rmath library from R")
+      (description "This is a slightly modified version of the standalone Rmath
+library from R, built to be used with the @code{Rmath.jl} Julia package.
+The main difference is that it is built to allow defining custom random number
+generating functions via C function pointers (see @code{include/callback.h}).
+When using the library, these should be defined before calling any of the random
+functions.")
+      (properties '((hidden? . #t)))
+      (license license:gpl2))))
 
-                 The main difference is that it is built to allow defining custom random number generating functions via C function pointers (see include/callback.h). When using the library, these should be defined before calling any of the random functions.")
-    (properties '((hidden? . #t)))
-    (license license:gpl2)))
-
+;; ready to upstream
 (define-public julia-rmath
   (package
     (name "julia-rmath")
@@ -991,12 +996,8 @@ programming infrastructures, and metaprogramming facilities.")
            (lambda* (#:key inputs #:allow-other-keys)
              (let* ((rmath    (assoc-ref inputs "rmath"))
                     (librmath (string-append rmath "/lib/libRmath-julia.so")))
-               ;; see upstream julia bug
-               ;; ERROR: LoadError: InitError: UndefVarError: libRmath_path not defined
                (substitute* "src/Rmath.jl"
                  (("libRmath\\)") (string-append "\"" librmath "\")")))
-               ;(substitute* "test/runtests.jl"
-               ;  (("Rmath\\.libRmath\\)") (string-append "\"" librmath "\")")))
                #t))))))
     (propagated-inputs
      `(("julia-rmath-jll" ,julia-rmath-jll)))
@@ -1005,13 +1006,13 @@ programming infrastructures, and metaprogramming facilities.")
     (native-inputs
      `(("rmath" ,rmath-julia)))
     (home-page "https://github.com/JuliaStats/Rmath.jl")
-    (synopsis "functions that emulate R's d-p-q-r functions for probability distributions")
-    (description "
-
-                 Archive of functions that emulate R's d-p-q-r functions for probability distributions.")
+    (synopsis "Emulate R's d-p-q-r functions for probability distributions")
+    (description "This package provides an archive of functions that emulate
+R's d-p-q-r functions for probability distributions.  It is a wrapper around
+@code{rmath} for Julia.")
     (license license:expat)))
 
-;; This package seems to be bugged, doesn't load libRmath-julia.so correctly.
+;; ready to upstream
 (define-public julia-rmath-jll
   (package
     (name "julia-rmath-jll")
@@ -1035,7 +1036,6 @@ programming infrastructures, and metaprogramming facilities.")
              (map
               (lambda (wrapper)
                 (substitute* wrapper
-                  ;(("libRmath-julia") "libRmath")
                   (("generate_wrapper_header.*")
                    (string-append
                      "generate_wrapper_header(\"Rmath\", \""
@@ -1043,10 +1043,7 @@ programming infrastructures, and metaprogramming facilities.")
               ;; There's a Julia file for each platform, override them all
               (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs
-     `(;; It wants the custom rmath.
-       ("rmath" ,rmath-julia)
-       ;("rmath" ,(S "rmath-standalone"))
-       ))
+     `(("rmath" ,rmath-julia)))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)))
     (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
@@ -1651,4 +1648,62 @@ in Julia).")
     (home-page "https://github.com/JuliaPackaging/BinaryProvider.jl")
     (synopsis "binary provider for Julia")
     (description "Packages are installed to a @code{Prefix}; a folder that acts similar to the @code{/usr/local} directory on Unix-like systems, containing a @code{bin} folder for binaries, a @code{lib} folder for libraries, etc... @code{Prefix} objects can have tarballs @code{install()}'ed within them, @code{uninstall()}'ed from them, etc...")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-measurements
+  (package
+    (name "julia-measurements")
+    (version "2.6.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPhysics/Measurements.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "05p3f0gr4sv4maq8cix5fi8ldq0zagswqsd43xn6fhy046f936mz"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-calculus" ,julia-calculus)
+       ("julia-recipesbase" ,julia-recipesbase)
+       ("julia-requires" ,julia-requires)))
+    (native-inputs
+     `(("julia-specialfunctions" ,julia-specialfunctions)
+       ("julia-quadgk" ,julia-quadgk)
+       ("julia-unitful" ,julia-unitful)))
+    (home-page "https://juliaphysics.github.io/Measurements.jl/stable/")
+    (synopsis "Error propagation calculator and library")
+    (description "@code{Measurements.jl} is an error propagation calculator and
+library for physical measurements.  It supports real and complex numbers with
+uncertainty, arbitrary precision calculations, operations with arrays, and
+numerical integration.  The linear error propagation theory is employed to
+propagate the errors.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-quadgk
+  (package
+    (name "julia-quadgk")
+    (version "2.4.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaMath/QuadGK.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1hy0629yai6xflgxaflk9764lzr1lzhlghimxk1aqi212q9c6n33"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-datastructures" ,julia-datastructures)))
+    (home-page "https://github.com/JuliaMath/QuadGK.jl")
+    (synopsis "Adaptive 1d numerical Gauss–Kronrod integration in Julia")
+    (description "This package provides support for one-dimensional numerical
+integration in Julia using adaptive Gauss-Kronrod quadrature.  The code was
+originally part of Base Julia.  It supports integration of arbitrary numeric
+types, including arbitrary precision (@code{BigFloat}), and even integration of
+arbitrary normed vector spaces (e.g. matrix-valued integrands).")
     (license license:expat)))

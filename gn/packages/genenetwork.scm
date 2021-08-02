@@ -238,8 +238,7 @@ implemented, light on server resource usage, and fairly speedy.")
           "0cgiis9v1nd4m7zxvgsz8jf8ijv4d8fa5wb7cpnjshksb8z7xh69"))))
     (build-system cargo-build-system)
     (arguments
-     `(#:rust ,rust-1.42
-       #:cargo-inputs
+     `(#:cargo-inputs
        (("rust-bstr" ,rust-bstr-0.2)
         ("rust-clap" ,rust-clap-2)
         ("rust-gfa" ,rust-gfa-0.6)
