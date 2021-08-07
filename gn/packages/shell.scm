@@ -8,10 +8,10 @@
   #:use-module ((guix licenses) #:prefix license:)
   )
 
-(define-public shunit2
+(define-public shunit2-old ;; maintain old version for gemma and sambamba, for now
   (let ((commit "60dd60bcd1573befe38465010263ab242e55811d"))
     (package
-      (name "shunit2")
+      (name "shunit2-old")
       (version (string-append "2.0.4-" (string-take commit 7)))
       (source (origin
                 (method git-fetch)

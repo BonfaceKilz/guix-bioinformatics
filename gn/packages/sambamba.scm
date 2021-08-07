@@ -89,7 +89,7 @@ data.  It also provides the @command{bgzip}, @command{htsfile}, and
        ))
       (native-inputs
        `(("ldc" ,ldc)
-         ("shunit2" ,shunit2)
+         ("shunit2-old" ,shunit2-old)
          ("coreutils" ,coreutils) ; for env
          ("perl" ,perl) ; Needed for building htslib
          ("ruby" ,ruby) ; Needed for building htslib
