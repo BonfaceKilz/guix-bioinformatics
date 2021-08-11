@@ -410,8 +410,8 @@ Graphical Fragment Assembly} files and related formats.")
       (arguments
        `(#:python python-wrapper
          #:tests? #f        ; no 'setup.py test'
-         #:phases %standard-phases
-         (modify-phases ,phases
+         #:phases
+         (modify-phases %standard-phases
             (delete 'reset-gzip-timestamps)
             (add-after 'unpack 'fix-paths-scripts
               (lambda _
