@@ -408,7 +408,7 @@ Graphical Fragment Assembly} files and related formats.")
        `(("javascript-colorbox" ,(package-source javascript-colorbox))))
       (build-system python-build-system)
       (arguments
-       `(#:python python-wrapper
+       `(#:python ,python-wrapper
          #:tests? #f        ; no 'setup.py test'
          #:phases
          (modify-phases %standard-phases
