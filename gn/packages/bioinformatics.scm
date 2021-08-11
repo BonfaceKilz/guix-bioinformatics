@@ -21,6 +21,7 @@
   #:use-module (gn packages python)
   #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
+  #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages bioconductor)
@@ -565,6 +566,82 @@ here}.")
       (description "PBSIM simulates @acronym{Continuous Long Reads, CLRs} of
 PacBio, and Nanopore reads.  In it sampling-based and model-based simulations
 are implemented.")
+      (license license:gpl2))))
+
+(define-public pirs
+  (let ((commit "bee9b594f4d0e10580aae77ec411cecec4a77219") ; Sept 7, 2017
+        (revision "1"))
+    (package
+      (name "pirs")
+      (version (git-version "2.0.2" revision commit))
+      (source (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/galaxy001/pirs")
+               (commit commit)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0pn74h98cqcr5qayp4riss982n4272p35y5dp472cmqpwjjil9cd"))))
+      (build-system gnu-build-system)
+      (arguments
+       `(#:configure-flags (list "--enable-pirs-diploid"
+                                 ;; TODO: Enable after core-updates merge, late 2021.
+                                 ;,@(if (not (or (target-x86-64?)
+                                 ;               (target-x86-32?)))
+                                 ;    `("--disable-sse2")
+                                 ;    '())
+                                 )
+         #:phases
+         (modify-phases %standard-phases
+           (add-before 'bootstrap 'chdir
+             (lambda _
+               (chdir "src")))
+           (add-after 'unpack 'patch-source
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out  (assoc-ref outputs "out")))
+                 (substitute* "src/configure.ac"
+                   (("ssse2") "sse2"))
+                 (substitute* "src/stator/gcContCvgBias/Makefile"
+                   (("gzstream.o ") "")
+                   (("-lz")"-lgzstream -lz")
+                   (("-static") "")
+                   (("-mtune=generic") ""))
+                 (substitute* "src/pirs/gccMakefile"
+                   (("/usr/local") out)))))
+           (replace 'check
+             (lambda* (#:key tests? test-target #:allow-other-keys #:rest args)
+               (when tests?
+                 (apply (assoc-ref %standard-phases 'check) args)
+                 (with-directory-excursion "stator/gcContCvgBias"
+                 ;  ((assoc-ref %standard-phases 'check)
+                 ;   #:test-target "test" args))
+                   (invoke "make" "test")))))
+           (add-after 'build 'build-more
+             (lambda* (#:key #:allow-other-keys #:rest args)
+               (with-directory-excursion "stator/gcContCvgBias"
+                 (apply (assoc-ref %standard-phases 'build) args))))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys #:rest args)
+               (let ((out (assoc-ref outputs "out")))
+                 (apply (assoc-ref %standard-phases 'install) args)
+                 (with-directory-excursion "stator/gcContCvgBias"
+                   ;(apply (assoc-ref %standard-phases 'install) args)
+                   (install-file "gc_coverage_bias" (string-append out "/bin")))))))))
+      (inputs
+       `(("gnuplot" ,gnuplot)
+         ("perl" ,perl)
+         ("zlib" ,zlib)))
+      (native-inputs
+       `(("autoconf" ,autoconf)
+         ("automake" ,automake)
+         ("boost" ,boost)
+         ("gzstream" ,gzstream)
+         ("libtool" ,libtool)))
+      (home-page "https://github.com/galaxy001/pirs")
+      (synopsis "Profile based Illumina pair-end Reads Simulator")
+      (description "@code{pIRS} is a program for simulating paired-end reads
+from a reference genome.  It is optimized for simulating reads similar to those
+generated from the Illumina platform.")
       (license license:gpl2))))
 
 ;; TODO: Unbundle zlib, bamtools, tclap
