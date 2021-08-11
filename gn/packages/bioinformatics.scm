@@ -497,6 +497,54 @@ reads.")
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
 
+(define-public pangenie
+  (let ((commit "1f3d2d247702e8c90620b8b1c5f6ea866c9aab19") ; April 30, 2021
+        (revision "1"))
+    (package
+      (name "pangenie")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://bitbucket.org/jana_ebler/pangenie.git")
+               (commit commit)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0qp15dfngg37lk64yn2q8kglkazdwi1vpfr2r783bcx5pywr4n5w"))))
+      (build-system cmake-build-system)
+      (arguments
+       `(#:configure-flags (list (string-append "-DCMAKE_BUILD_RPATH="
+                                                (assoc-ref %outputs "out") "/lib"))
+         #:phases
+         (modify-phases %standard-phases
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (invoke "make" "-C" "tests"))
+               #t))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (with-directory-excursion "src"
+                   (install-file "PanGenie" (string-append out "/bin"))
+                   (install-file "PanGenie-graph" (string-append out "/bin"))
+                   (install-file "libPanGenieLib.so" (string-append out "/lib"))
+                   )
+                 #t))))))
+      (native-inputs
+       `(("pkg-config" ,pkg-config)))
+      (inputs
+       `(("jellyfish" ,jellyfish)))
+      (home-page "https://bitbucket.org/jana_ebler")
+      (synopsis "Genotyping based on k-mers and pangenome graphs")
+      (description
+       "This package provides a genotyper for various types of genetic variants
+(such as SNPs, indels and structural variants).  Genotypes are computed based on
+read k-mer counts and a panel of known haplotypes.  A description of the method
+can be found @url{https://www.biorxiv.org/content/10.1101/2020.11.11.378133v1,
+here}.")
+      (license license:expat))))
+
 ;; TODO: Unbundle zlib, bamtools, tclap
 (define-public sniffles
   (package
