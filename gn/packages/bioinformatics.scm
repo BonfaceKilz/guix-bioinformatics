@@ -545,6 +545,28 @@ can be found @url{https://www.biorxiv.org/content/10.1101/2020.11.11.378133v1,
 here}.")
       (license license:expat))))
 
+(define-public pbsim2
+  (let ((commit "e71f7892aea0bd3c963b4f1f5628db4f830ee475") ; Dec 2, 2020
+        (revision "1"))
+    (package
+      (name "pbsim2")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/yukiteruono/pbsim2")
+               (commit commit)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "13d3mhdp3rs58w14j9a5sbda4q8k9vzic7rgfa8223m7cm5ih6y7"))))
+      (build-system gnu-build-system)
+      (home-page "https://github.com/yukiteruono/pbsim2")
+      (synopsis "Simulator for long read sequencers")
+      (description "PBSIM simulates @acronym{Continuous Long Reads, CLRs} of
+PacBio, and Nanopore reads.  In it sampling-based and model-based simulations
+are implemented.")
+      (license license:gpl2))))
+
 ;; TODO: Unbundle zlib, bamtools, tclap
 (define-public sniffles
   (package
