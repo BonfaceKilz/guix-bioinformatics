@@ -9,14 +9,14 @@
 (define-public gitea
   (package
     (name "gitea")
-    (version "1.13.7")
+    (version "1.14.6")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/go-gitea/gitea/releases"
                                   "/download/v" version
                                   "/gitea-src-" version ".tar.gz"))
               (sha256
-               (base32 "0z0qsnqxxfkdaq18hkm92fdvssp2frmqdkd5y5pxva8p8zxdg5lc"))))
+               (base32 "0nkv5a49iryx806fba76l8y7pbx0vir7npf6hf53wc4zaqk0x2i0"))))
     (build-system go-build-system)
     (arguments
      `(#:install-source? #f
