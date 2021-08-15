@@ -456,7 +456,9 @@ Graphical Fragment Assembly} files and related formats.")
                 (call-with-output-file
                     (string-append
                      (assoc-ref outputs "out")
-                     "/lib/python3.8/site-packages"
+                     "/lib/python"
+                     (python-version (assoc-ref inputs "python"))
+                     "/site-packages"
                      "/wqflask/dependency-graph.html")
                   (lambda (port)
                     (format
@@ -477,7 +479,9 @@ Graphical Fragment Assembly} files and related formats.")
                 (let* ((output-dir
                         (string-append
                          (assoc-ref outputs "out")
-                         "/lib/python3.8/site-packages/wqflask/"))
+                         "/lib/python"
+                         (python-version (assoc-ref inputs "python"))
+                         "/site-packages/wqflask/"))
                        (dot-file
                         (string-append
                          output-dir
@@ -509,7 +513,9 @@ Graphical Fragment Assembly} files and related formats.")
                 (call-with-output-file
                     (string-append
                      (assoc-ref outputs "out")
-                     "/lib/python3.8/site-packages"
+                     "/lib/python"
+                     (python-version (assoc-ref inputs "python"))
+                     "/site-packages"
                      "/wqflask/DEPENDENCIES.md")
                   (lambda (port)
                     (format
