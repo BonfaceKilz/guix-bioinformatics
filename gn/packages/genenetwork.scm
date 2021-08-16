@@ -13,6 +13,7 @@
   #:use-module (guix graph)
   #:use-module (guix scripts graph)
   #:use-module (guix store)
+  #:use-module (guix gexp)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bioconductor)
@@ -305,7 +306,11 @@ Graphical Fragment Assembly} files and related formats.")
                  (base32
                   "1402g129ghfh0xwfxjj1i7gbib2yl9rahf55caj7b1psy24ys87x"))))
       (native-inputs
-       `(("graphviz" ,graphviz)))
+       `(("graphviz" ,graphviz)
+         ;; And the graphs
+         ;("genenetwork-graph" ,genenetwork-graph)
+         ;("dag-svg-file" ,dag-svg-file)
+         ))
       (propagated-inputs
        `(("genenetwork3" ,genenetwork3)
          ("parallel" ,parallel) ;; GNU parallel
@@ -508,6 +513,21 @@ Graphical Fragment Assembly} files and related formats.")
                                      #:node-type %package-node-type
                                      #:backend %graphviz-backend)))))))))
                     (invoke "dot" "-Tsvg" "-o" svg-file dot-file)))))
+
+            ;; TODO: Use this to replace the two previous phases.
+            ;(add-after 'install 'install-generated-files
+            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
+            ;    (let ((output-dir
+            ;           (string-append
+            ;            (assoc-ref outputs "out")
+            ;            "/lib/python"
+            ;            (python-version (assoc-ref inputs "python"))
+            ;            "/site-packages/wqflask/")))
+            ;      (install-file (string-append %dag-svg-file "/dependency-graph.dot") output-dir)
+            ;      (install-file (string-append %dag-svg-file "/dependency-graph.svg") output-dir)
+            ;      (install-file (string-append %genenetwork-graph "/dependency-graph.html") output-dir)
+            ;      #t)))
+
             (add-after 'install 'generate-dependency-file
               (lambda* (#:key inputs outputs #:allow-other-keys)
                 (call-with-output-file
@@ -802,3 +822,106 @@ and Arabidopsis).  Most of these population data sets are linked with dense
 genetic maps (genotypes) that can be used to locate the genetic modifiers that
 cause differences in expression and phenotypes, including disease susceptibility.")
       (license license:agpl3+))))
+
+(define (genenetwork-graph)
+  (with-imported-modules '((guix build utils))
+    (gexp->derivation "genenetwork-graph"
+      #~(begin
+          (use-modules (guix build utils)
+                       (srfi srfi-1))
+
+          (define (python-version package)
+            (let* ((version     (last (string-split
+                                        package
+                                        #\-)))
+                   (components  (string-split version #\.))
+                   (major+minor (take components 2)))
+              (string-join major+minor ".")))
+
+          (let ((html-file (string-append #$output
+                                          "/lib/python"
+                                          (python-version #$python)
+                                          "/site-packages/wqflask"
+                                          "/dependency-graph.html")))
+            (mkdir-p (dirname html-file))
+            (call-with-output-file html-file
+              (lambda (port)
+                (format
+                  port "~a"
+                  #$(call-with-output-string
+                     (lambda (p)
+                       (with-output-to-port p
+                         (lambda ()
+                           (run-with-store
+                             (open-connection)
+                             (export-graph
+                              (list genenetwork2)
+                              p
+                              #:node-type %package-node-type
+                              #:backend %d3js-backend))))))))))))))
+
+;(define (computed-genenetwork-graph)
+;  (with-imported-modules '((guix build utils))
+;    (computed-file "genenetwork-graph"
+;      #~(begin
+;          (use-modules (guix build utils))
+;            (call-with-output-file #$output
+;              (lambda (port)
+;                (format
+;                  port "~a"
+;                  #$(call-with-output-string
+;                      (lambda (p)
+;                        (with-output-to-port p
+;                          (lambda ()
+;                            (run-with-store
+;                              (open-connection)
+;                              (export-graph
+;                                (list genenetwork1)
+;                                p
+;                                #:node-type %package-node-type
+;                                #:backend %d3js-backend)))))))))))))
+
+(define (dag-svg-file)
+  (with-imported-modules '((guix build utils))
+    (gexp->derivation "dag-svg-file"
+      #~(begin
+          (use-modules (guix build utils)
+                       (srfi srfi-1))
+
+        (define (python-version package)
+          (let* ((version     (last (string-split
+                                      package
+                                      #\-)))
+                 (components  (string-split version #\.))
+                 (major+minor (take components 2)))
+            (string-join major+minor ".")))
+
+          (let* ((dest-dir (string-append #$output
+                                          "/lib/python"
+                                          (python-version #$python)
+                                          "/site-packages/wqflask"))
+                 (dot-file (string-append dest-dir "/dependency-graph.dot"))
+                 (svg-file (string-append dest-dir "/dependency-graph.svg")))
+            (mkdir-p dest-dir)
+            (call-with-output-file dot-file
+              (lambda (port)
+                (format
+                  port "~a"
+                  #$(call-with-output-string
+                     (lambda (p)
+                       (with-output-to-port p
+                         (lambda ()
+                           (run-with-store
+                             (open-connection)
+                             (export-graph
+                              (list genenetwork2)
+                              p
+                              #:node-type %package-node-type
+                              #:backend %graphviz-backend)))))))))
+            (invoke #+(file-append graphviz "/bin/dot")
+                    "-Tsvg" "-o" svg-file dot-file))))))
+
+;(define-public genenetwork2-combined
+;  (directory-union
+;    "genenetwork2"
+;    (list genenetwork2 genenetwork-graph dag-svg-file)))
