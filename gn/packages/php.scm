@@ -1,5 +1,6 @@
 (define-module (gn packages php)
   #:use-module (gnu packages)
+  #:use-module (past packages tls)
   #:use-module (gnu packages pcre)
   #:use-module (gnu packages php)
   #:use-module (gnu packages tls)

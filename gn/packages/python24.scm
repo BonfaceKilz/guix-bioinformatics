@@ -8,6 +8,7 @@
   #:use-module (gn packages databases)
   #:use-module (gn packages python)
   #:use-module (past packages python)
+  #:use-module (past packages tls)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages gcc)
