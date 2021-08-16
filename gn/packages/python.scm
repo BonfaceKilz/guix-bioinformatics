@@ -1813,3 +1813,30 @@ window to get to RStudio for example.")
     (description
       "High level compatibility layer for multiple asynchronous event loop implementations")
     (license license:expat)))
+
+;; Waiting for this to be merged upstream then I'll remove it
+(define-public python-flask-debugtoolbar
+  (package
+    (name "python-flask-debugtoolbar")
+    (version "0.11.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "Flask-DebugToolbar" version))
+       (sha256
+        (base32
+         "1d5asdnk8bmh6m46pzg3i7677cjgdm9mlm3wcpk19q7dak9pjkiw"))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-blinker" ,python-blinker)
+       ("python-flask" ,python-flask)
+       ("python-itsdangerous" ,python-itsdangerous)
+       ("python-werkzeug" ,python-werkzeug)))
+    (home-page
+     "https://flask-debugtoolbar.readthedocs.io/")
+    (synopsis
+     "A toolbar overlay for debugging Flask applications.")
+    (description
+     "This extension adds a toolbar overlay to Flask applications containing
+useful information for debugging.")
+    (license license:bsd-3)))
