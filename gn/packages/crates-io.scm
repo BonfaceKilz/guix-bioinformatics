@@ -24,7 +24,10 @@
          (base32
           "1frlcdwhycjvizb0gfb0v36vxjdi0jxagl2l2v6dzdjxpaawv9rs"))))
     (arguments
-     `(#:rust ,rust-1.47      ; or later
+     `(#:rust ,(if (> (string->number (version-major+minor (package-version rust-1.47)))
+                      (string->number (version-major+minor (package-version rust))))
+                 rust-1.47
+                 rust)
        #:cargo-inputs
        (("rust-anyhow" ,rust-anyhow-1)
         ("rust-boomphf" ,rust-boomphf-0.5)
