@@ -49,7 +49,6 @@
   #:use-module (gn packages databases)
   #:use-module (gn packages elixir)
   #:use-module (gn packages gemma)
-  #:use-module (gn packages golang)
   #:use-module (gn packages javascript)
   #:use-module (gn packages phewas)
   #:use-module (gn packages python)
