@@ -27,10 +27,10 @@
 (define-public gemma-gn2 ; guix candidate - currently uses generic
                          ; openblas version and genenetwork github repo
 
-  (let ((commit "140667153f7ad601af2761e0856c396ce2808a78"))
+  (let ((commit "71553f5e5626e1d791b5be24c84ea6b17ae81cc7"))
   (package
     (name "gemma-gn2")
-    (version (string-append "0.98.4-" (string-take commit 7)))
+    (version (string-append "0.98.5-" (string-take commit 7)))
     (source (origin
              (method git-fetch)
              (uri (git-reference
@@ -39,7 +39,7 @@
              (file-name (string-append name "-" version "-checkout"))
              (sha256
               (base32
-               "0km2m3xhq8a5d6nv7n9r0jmxhc2fy8f3q88mfqarmcqybbyplsd4"))))
+               "11farc7smvkrrkvkbvh26i3sycdzwxrbgj536s3478v8j6iiwijp"))))
     (inputs `(
               ("gsl" ,gsl)
               ("shunit2-old" ,shunit2-old)
@@ -117,7 +117,7 @@ genome-wide association studies (GWAS).")
          "032f4mwb584vcqqlzp61dqqlb16cp68y6iqpbjhxzx7x3qkfps59"))))
     (build-system ruby-build-system)
     (inputs `(
-      ("gemma-gn2" ,gemma-gn2-git)
+      ("gemma-gn2" ,gemma-gn2)
       ("parallel" ,parallel) ;; gnu parallel
     ))
     (arguments
