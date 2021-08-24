@@ -12,7 +12,8 @@
   #:use-module (gnu packages ncurses)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages readline)
-  #:use-module (gnu packages tls))
+  ; #:use-module (gnu packages tls))
+  )
 
 (define-public mysql-5.0
   (package
