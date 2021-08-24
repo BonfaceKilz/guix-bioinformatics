@@ -251,7 +251,7 @@ Graphical Fragment Assembly} files and related formats.")
     (license license:expat)))
 
 (define-public genenetwork3
-  (let ((commit "487e50e8f8304a65e7af3759c13256f921efb8be"))
+  (let ((commit "c9ee473ff7797f6bbd7507eb55c772a3a646acee"))
     (package
       (name "genenetwork3")
       (version (string-append "0.0.1-guix-" (string-take commit 7)))
@@ -264,7 +264,7 @@ Graphical Fragment Assembly} files and related formats.")
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1rm8pvl5x1350aivk7m2symdsf3iiacl4pnaz1q8fgxpr154qw93"))))
+           "1z25nr45kzy3vpk8gc1cq9r4j89dgpdmb83s1pgp75m9dcij5863"))))
       (propagated-inputs `(("coreutils" ,coreutils)
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("csvdiff" ,go-github-com-aswinkarthik-csvdiff)
@@ -292,7 +292,7 @@ Graphical Fragment Assembly} files and related formats.")
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "84cbf35adbb15c79638372d108308edb05f12683"))
+  (let ((commit "fe345c9f2e99be748511f6889420d6560a553a37"))
     (package
       (name "genenetwork2")
       (version (string-append "3.11-guix-" (string-take commit 7) ))
@@ -304,7 +304,7 @@ Graphical Fragment Assembly} files and related formats.")
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "1402g129ghfh0xwfxjj1i7gbib2yl9rahf55caj7b1psy24ys87x"))))
+                  "1y6psmxpm3qn78dx6xfc11rdpf22vf807qb7grnp82gl19q6408w"))))
       (native-inputs
        `(("graphviz" ,graphviz)
          ;; And the graphs
@@ -331,6 +331,7 @@ Graphical Fragment Assembly} files and related formats.")
          ("plink-ng-gn" ,plink-ng-gn)
          ; ("pylmm-gn2" ,pylmm-gn2)
          ("rust-qtlreaper" ,rust-qtlreaper)
+         ("glibc-utf8-locales" ,glibc-utf8-locales)
          ("nginx" ,nginx)
          ("python" ,python-wrapper)
          ("python-pillow" ,python-pillow)
@@ -434,13 +435,13 @@ Graphical Fragment Assembly} files and related formats.")
                   (("rm") (which "rm"))
                   (("which") (which "which")))
                 #t))
-            (add-after 'unpack 'patch-javascript
-              (lambda* (#:key inputs #:allow-other-keys)
-                (let ((colorbox (assoc-ref inputs "javascript-colorbox"))
-                      (gn2 "/share/genenetwork2/javascript/"))
-                  (delete-file-recursively "wqflask/wqflask/static/packages/colorbox")
-                  (copy-recursively colorbox "wqflask/wqflask/static/packages/colorbox")
-                  #t)))
+            ; (add-after 'unpack 'patch-javascript
+            ;  (lambda* (#:key inputs #:allow-other-keys)
+            ;    (let ((colorbox (assoc-ref inputs "javascript-colorbox"))
+            ;          (gn2 "/share/genenetwork2/javascript/"))
+            ;      (delete-file-recursively "wqflask/wqflask/static/packages/colorbox")
+            ;      (copy-recursively colorbox "wqflask/wqflask/static/packages/colorbox")
+            ;      #t)))
             (add-before 'install 'fix-paths
               (lambda* (#:key inputs #:allow-other-keys)
                 (let* (
@@ -457,63 +458,63 @@ Graphical Fragment Assembly} files and related formats.")
                     (("^GEMMA_COMMAND =.*") (string-append "GEMMA_COMMAND = \"" gemmacmd "\"\n" ))
                     )
                   )))
-            (add-after 'install 'generate-graph
-              (lambda* (#:key inputs outputs #:allow-other-keys)
-                (call-with-output-file
-                    (string-append
-                     (assoc-ref outputs "out")
-                     "/lib/python"
-                     (python-version (assoc-ref inputs "python"))
-                     "/site-packages"
-                     "/wqflask/dependency-graph.html")
-                  (lambda (port)
-                    (format
-                     port "~a"
-                     ,(call-with-output-string
-                        (lambda (p)
-                          (with-output-to-port p
-                            (lambda ()
-                              (run-with-store
-                                  (open-connection)
-                                (export-graph
-                                 (list this-package)
-                                 p
-                                 #:node-type %package-node-type
-                                 #:backend %d3js-backend)))))))))))
-            (add-after 'install 'generate-dag-svg-file
-              (lambda* (#:key inputs outputs #:allow-other-keys)
-                (let* ((output-dir
-                        (string-append
-                         (assoc-ref outputs "out")
-                         "/lib/python"
-                         (python-version (assoc-ref inputs "python"))
-                         "/site-packages/wqflask/"))
-                       (dot-file
-                        (string-append
-                         output-dir
-                         "dependency-graph.dot"))
-                       (svg-file
-                        (string-append
-                         output-dir
-                         "dependency-graph.svg")))
-                  (begin
-                    (call-with-output-file
-                        dot-file
-                      (lambda (port)
-                        (format
-                         port "~a"
-                         ,(call-with-output-string
-                            (lambda (p)
-                              (with-output-to-port p
-                                (lambda ()
-                                  (run-with-store
-                                      (open-connection)
-                                    (export-graph
-                                     (list this-package)
-                                     p
-                                     #:node-type %package-node-type
-                                     #:backend %graphviz-backend)))))))))
-                    (invoke "dot" "-Tsvg" "-o" svg-file dot-file)))))
+            ; (add-after 'install 'generate-graph
+            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
+            ;    (call-with-output-file
+            ;        (string-append
+            ;         (assoc-ref outputs "out")
+            ;         "/lib/python"
+            ;         (python-version (assoc-ref inputs "python"))
+            ;         "/site-packages"
+            ;         "/wqflask/dependency-graph.html")
+            ;      (lambda (port)
+            ;        (format
+            ;         port "~a"
+            ;         ,(call-with-output-string
+            ;            (lambda (p)
+            ;              (with-output-to-port p
+            ;                (lambda ()
+            ;                  (run-with-store
+            ;                      (open-connection)
+            ;                    (export-graph
+            ;                     (list this-package)
+            ;                     p
+            ;                     #:node-type %package-node-type
+            ;                     #:backend %d3js-backend)))))))))))
+            ;(add-after 'install 'generate-dag-svg-file
+            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
+            ;    (let* ((output-dir
+            ;            (string-append
+            ;             (assoc-ref outputs "out")
+            ;             "/lib/python"
+            ;             (python-version (assoc-ref inputs "python"))
+            ;             "/site-packages/wqflask/"))
+            ;           (dot-file
+            ;            (string-append
+            ;             output-dir
+            ;             "dependency-graph.dot"))
+            ;           (svg-file
+            ;            (string-append
+            ;             output-dir
+            ;             "dependency-graph.svg")))
+            ;      (begin
+            ;        (call-with-output-file
+            ;            dot-file
+            ;          (lambda (port)
+            ;            (format
+            ;             port "~a"
+            ;             ,(call-with-output-string
+            ;                (lambda (p)
+            ;                  (with-output-to-port p
+            ;                    (lambda ()
+            ;                      (run-with-store
+            ;                          (open-connection)
+            ;                        (export-graph
+            ;                         (list this-package)
+            ;                         p
+            ;                         #:node-type %package-node-type
+            ;                         #:backend %graphviz-backend)))))))))
+            ;        (invoke "dot" "-Tsvg" "-o" svg-file dot-file)))))
 
             ;; TODO: Use this to replace the two previous phases.
             ;(add-after 'install 'install-generated-files
