@@ -14,7 +14,7 @@
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages python-xyz)
-  #:use-module (gnu packages tls)
+  ; #:use-module (gnu packages tls)
   #:use-module (srfi srfi-1))
 
 (define (default-python2.4)
