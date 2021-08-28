@@ -18,13 +18,13 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages bioconductor)
   #:use-module (gnu packages bioinformatics)
-  #:use-module (gnu packages bootstrap)
   #:use-module (gnu packages check)
   #:use-module (gnu packages cran)
   #:use-module (gnu packages crates-io)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages ghostscript)
+  #:use-module (gnu packages golang)
   #:use-module (gnu packages graphviz)
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages python)
@@ -38,142 +38,19 @@
   #:use-module (gnu packages scheme)
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages version-control)
-  #:use-module (gnu packages vim)
+  ; #:use-module (gnu packages vim)
   #:use-module (gnu packages web)
-  #:use-module (gnu packages wget)
+  ; #:use-module (gnu packages wget)
   #:use-module (gnu packages xml)
-  #:use-module (past packages python)
-  #:use-module (past packages web)
   #:use-module (gn packages bioinformatics)
-  #:use-module (gn packages twint)
-  #:use-module (gn packages databases)
-  #:use-module (gn packages elixir)
   #:use-module (gn packages gemma)
   #:use-module (gn packages javascript)
-  #:use-module (gn packages phewas)
   #:use-module (gn packages python)
-  #:use-module (gn packages python24)
   #:use-module (gn packages statistics)
+  #:use-module (gn packages twint)
   #:use-module (gn packages web)
   #:use-module (srfi srfi-1))
 
-
-(define-public python2-qtlreaper
-  (let ((commit "442c217b90393380a8634ff8636b44992f5c53dd"))
-  (package
-    (name "python2-qtlreaper")
-    (version (string-append "1.11-gn2-" (string-take commit 7) ))
-    (source (origin
-             (method git-fetch)
-             (uri (git-reference
-                   ;; (url "https://github.com/genenetwork/genenetwork2.git")
-                   (url "https://github.com/pjotrp/QTLreaper.git")
-                   (commit commit)))
-             (file-name (string-append name "-" (string-take commit 7)))
-             (sha256
-              (base32
-               "1rrbm1ap2zzyjxmrs9aa1d18sgiba5dhj1fmkl7wmab06jv3j1hm"))))
-    (build-system python-build-system)
-    (arguments
-     `(#:python ,python-2
-       #:tests? #f))   ; no 'setup.py test' really!
-    (home-page "http://qtlreaper.sourceforge.net/")
-    (synopsis "Scan expression data for QTLs")
-    (description
-     "Batch-oriented version of WebQTL. It requires, as input,
-expression data from members of a set of recombinant inbred lines and
-genotype information for the same lines.  It searches for an
-association between each expression trait and all genotypes and
-evaluates that association by a permutation test.  For the permutation
-test, it performs only as many permutations as are necessary to define
-the empirical P-value to a reasonable precision. It also performs
-bootstrap resampling to estimate the confidence region for the
-location of a putative QTL.")
-    (license license:gpl2+))))
-
-(define-public python24-qtlreaper
-  (let ((commit "442c217b90393380a8634ff8636b44992f5c53dd"))
-    (package
-      (name "python24-qtlreaper")
-      (version (git-version "1.11" "gn1" commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                       ;; (url "https://github.com/genenetwork/genenetwork2.git")
-                       (url "https://github.com/pjotrp/QTLreaper.git")
-                       (commit commit)))
-                (file-name (git-file-name name version))
-                (sha256
-                 (base32
-                  "1rrbm1ap2zzyjxmrs9aa1d18sgiba5dhj1fmkl7wmab06jv3j1hm"))))
-      (build-system python-build-system)
-      (arguments
-       `(#:python ,python-2.4
-         #:phases
-         (modify-phases %standard-phases
-           (add-after 'unpack 'make-max-markername-size-larger
-             (lambda _
-               (substitute* "Src/dataset.c"
-                 (("512") "2048"))
-               #t))
-           (replace 'check
-             (lambda* (#:key inputs outputs #:allow-other-keys)
-               (add-installed-pythonpath inputs outputs)
-               (invoke "python" "test/runtest.py"))))))
-      (native-inputs
-       `(("python24-setuptools" ,python24-setuptools)))
-      (home-page "http://qtlreaper.sourceforge.net/")
-      (synopsis "Scan expression data for QTLs")
-      (description
-       "Batch-oriented version of WebQTL. It requires, as input,
-expression data from members of a set of recombinant inbred lines and
-genotype information for the same lines.  It searches for an
-association between each expression trait and all genotypes and
-evaluates that association by a permutation test.  For the permutation
-test, it performs only as many permutations as are necessary to define
-the empirical P-value to a reasonable precision. It also performs
-bootstrap resampling to estimate the confidence region for the
-location of a putative QTL.")
-      (license license:gpl2+))))
-
-;; Reintroduced python2-gunicorn because we are running GN with python2
-;; right now. Please keep it until we migrate to Python3 fully!
-
-(define-public python-gunicorn-gn
-  (package
-    (name "python-gunicorn-gn")
-    (version "19.9.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "gunicorn" version))
-        (sha256
-         (base32
-          "1wzlf4xmn6qjirh5w81l6i6kqjnab1n1qqkh7zsj1yb6gh4n49ps"))))
-    (build-system python-build-system)
-    (inputs
-     `(("python-mock" ,python-mock)))
-    (arguments
-     '(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'loosen-verion-restrictions
-           (lambda _
-             (substitute* "requirements_test.txt"
-               (("coverage.*") "coverage\n")
-               (("pytest.*") "pytest\n")
-               (("pytest-cov.*") "pytest-cov\n"))
-             #t)))))
-    (native-inputs
-     `(("python-coverage" ,python-coverage)
-       ("python-pytest" ,python-pytest)
-       ("python-pytest-cov" ,python-pytest-cov)))
-    (home-page "https://gunicorn.org")
-    (synopsis "WSGI HTTP Server for UNIX")
-    (description "Gunicorn 'Green Unicorn' is a Python WSGI HTTP Server for
-UNIX.  It's a pre-fork worker model ported from Ruby's Unicorn project.  The
-Gunicorn server is broadly compatible with various web frameworks, simply
-implemented, light on server resource usage, and fairly speedy.")
-    (license license:expat)))
 
 (define-public rust-qtlreaper
   (let ((commit "2e7fed6d45b0b602d80fa2a55835f96ef1cba9e3")
@@ -219,35 +96,6 @@ implemented, light on server resource usage, and fairly speedy.")
       (description "Reimplementation of genenetwork/QTLReaper in Rust")
       (license #f))))
 
-(define-public gfautil
-  (package
-    (name "gfautil")
-    (version "0.1.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (crate-uri "gfautil" version))
-        (file-name
-         (string-append name "-" version ".tar.gz"))
-        (sha256
-         (base32
-          "0cgiis9v1nd4m7zxvgsz8jf8ijv4d8fa5wb7cpnjshksb8z7xh69"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-bstr" ,rust-bstr-0.2)
-        ("rust-clap" ,rust-clap-2)
-        ("rust-gfa" ,rust-gfa-0.6)
-        ("rust-handlegraph" ,rust-handlegraph-0.3)
-        ("rust-rayon" ,rust-rayon-1)
-        ("rust-serde" ,rust-serde-1)
-        ("rust-structopt" ,rust-structopt-0.3))))
-    (home-page "https://github.com/chfi/rs-gfa-utils")
-    (synopsis "Command line tools for working with GFA files")
-    (description
-     "This package provides command line tools for working with @acronym{GFA,
-Graphical Fragment Assembly} files and related formats.")
-    (license license:expat)))
 
 (define-public genenetwork3
   (let ((commit "c9ee473ff7797f6bbd7507eb55c772a3a646acee"))
@@ -645,184 +493,6 @@ Graphical Fragment Assembly} files and related formats.")
     (license license:agpl3+))))
 
 
-
-(define-public python-reaper
-  (let ((commit "63391333a6619771277bfffa9bd9d33811fa0d28"))
-    (package
-     (name "python-reaper")
-     (version (string-append "0.0.1-"
-                             (string-take commit 7)))
-     (source (origin
-               (method git-fetch)
-               (uri (git-reference
-                      (url "https://github.com/fredmanglis/reaper.git")
-                      (commit commit)))
-               (file-name (git-file-name name version))
-               (sha256
-                (base32
-                 "1rq2qn0vrqd8k676yy8drm0zxzkj065ywhxjl0j1n2r25zifay7r"))))
-     (build-system python-build-system)
-     (arguments
-      `(#:tests? #f))
-     (home-page "https://github.com/fredmanglis/reaper")
-     (synopsis "Parser for .geno files")
-     (description "Parser for .geno files.  It replaces the Python2 library
-written in C")
-     (license license:agpl3+))))
-
-
-(define-public genenetwork1
-  (let ((commit "acf65ac9ae4be395c07c1629758f7408bf4eab5f") ; June 3, 2020
-        (revision "2"))
-    (package
-      (name "genenetwork1")
-      (version (git-version "0.0.0" revision commit))
-      (source (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/genenetwork/genenetwork1.git")
-               (commit commit)))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0xmmmjyvh80yd8b0cjrwpdmxl8k9zj5ly65r2g9aygx74njsp4fi"))))
-      (build-system gnu-build-system)
-      (native-inputs
-       `(("ghostscript" ,ghostscript)
-         ("graphviz" ,graphviz)
-         ("wget" ,wget)))
-      (propagated-inputs
-       `(("python" ,python-2.4)
-         ("httpd-with-mod-python" ,httpd22-with-mod-python)
-         ("python-direct" ,python24-direct)
-         ("python-htmlgen-GN1" ,python24-htmlgen-GN1)
-         ("python-json-GN1" ,python24-json-GN1)
-         ("python-mysqlclient" ,python24-mysqlclient)
-         ("python-numarray" ,python24-numarray)
-         ("python-piddle" ,python24-piddle)
-         ("python-pp-GN1" ,python24-pp-GN1)
-         ("python-pyx" ,python24-pyx)
-         ("python-pyxlwriter" ,python24-pyxlwriter)
-         ("python-qtlreaper" ,python24-qtlreaper)
-         ("python-rpy2" ,python24-rpy2)
-         ("python-svg-GN1" ,python24-svg-GN1)))
-      (arguments
-       `(#:tests? #f ; no tests
-         #:phases
-         (modify-phases %standard-phases
-           (delete 'configure)
-           (delete 'build)
-           (add-after 'patch-generated-file-shebangs 'patch-more-files
-             (lambda* (#:key inputs #:allow-other-keys)
-               (let ((piddle (assoc-ref inputs "python-piddle")))
-                 (substitute* "web/webqtl/networkGraph/networkGraphUtils.py"
-                   (("/usr/local/bin/neato") (which "neato"))
-                   (("/usr/local/bin/circo") (which "circo"))
-                   (("/usr/local/bin/twopi") (which "twopi"))
-                   (("/usr/local/bin/fdp") (which "fdp"))
-                   (("ps2pdf") (which "ps2pdf")))
-                 (substitute* "web/webqtl/maintainance/addRif.py"
-                   (("rm ") (string-append (which "rm") " "))
-                   (("wget ") (string-append (which "wget") " "))
-                   (("gunzip") (which "gunzip")))
-                 (substitute* "web/webqtl/misc/editHtmlPage.py"
-                   (("/bin/cp") (which "cp")))
-                 (substitute* "web/webqtl/geneWiki/AddGeneRIFPage.py"
-                   (("touch") (which "touch")))
-                 (substitute* '("web/webqtl/maintainance/addRif.py"
-                                "web/webqtl/networkGraph/networkGraphPage.py"
-                                "web/webqtl/utility/svg.py")
-                   (("/usr/bin/(env )?python") (which "python")))
-                 (substitute* "web/webqtl/base/webqtlConfigLocal.py"
-                   (("PythonPath.*")
-                    (string-append "PythonPath = '" (which "python") "'\n"))
-                   (("PIDDLE_FONT_PATH.*/lib")
-                    (string-append "PIDDLE_FONT_PATH = '" piddle "/lib"))))
-               #t))
-           (add-after 'patch-generated-file-shebangs 'changes-for-deployed-service
-             (lambda* (#:key outputs #:allow-other-keys)
-               (let ((out    (assoc-ref outputs "out")))
-                 (substitute* "web/webqtl/base/webqtlConfigLocal.py"
-                   ;; Where GN1 is located: (GNROOT)
-                   (("/gnshare/gn") out)
-                   ;; Where the database is located: (sql_host)
-                   (("tux01.uthsc.edu") "127.0.0.1"))
-                   (substitute* '("web/webqtl/maintainance/QTL_Reaper_cal_lrs.py")
-                     (("128\\.169\\.5\\.59") "localhost"))
-                 ;; This directory (TMPDIR) is expected to be writable by apache.
-                 ;; /tmp is private inside the container.
-                 (symlink "/tmp" "web/tmp")
-                 ;; IMGDIR is expected to be writable.
-                 (symlink "/tmp" "web/image")
-                 (system "chmod 0777 web/tmp")
-                 ;; More writable locations:
-                 (substitute* (list "web/webqtl/collection/ExportSelectionDetailInfoPage.py"
-                                    "web/webqtl/pairScan/DirectPlotPage.py"
-                                    "web/webqtl/updateTrait/DataUpdatePage.py"
-                                    "web/webqtl/utility/Plot.py")
-                   (("/gnshare/gn/web/debug_file.txt") "/tmp/debug_file.txt"))
-                 ;; We mount the genotypes folder (GENODIR) in the OS-config and
-                 ;; provide the symlink to that location from the package.
-                 ;; And now the directory is magically available!
-                 (symlink "/gnshare/gn/web/genotypes" "web/genotypes")
-                 (substitute* "web/webqtl/base/webqtlConfig.py"
-                   (("http://www.genenetwork.org") "http://gn1-test.genenetwork.org"))
-                 ;; Inside the gn1 container, there's some conflict when
-                 ;; importing the user module, therefore, as a hack, rename
-                 ;; user to useralt
-                 (mkdir "web/webqtl/useralt")
-                 (copy-recursively "web/webqtl/user" "web/webqtl/useralt")
-                 (substitute* '("web/webqtl/main.py")
-                   (("from user import") "from useralt import"))
-                 #t)))
-           (add-after 'unpack 'use-local-links
-             (lambda _
-               (substitute* '("web/javascript/menu_items.js"
-                              "web/webqtl/maintainance/updateMenuJS.py")
-                 (("http://(www|gn1).genenetwork.org") ""))
-
-               ;; Move this file out of the way while patching files.
-               (rename-file "web/infoshare/manager/MDB-Free/index.html"
-                            "web/infoshare/manager/MDB-Free/index.htm")
-               (substitute* (cons*
-                              "web/webqtl/base/indexBody.py"
-                              "web/webqtl/submitTrait/BatchSubmitPage.py"
-                              (find-files "web" "\\.html"))
-                 ((".*base href.*") "")
-                 (("(HREF|href)=\\\"http://(www.)?genenetwork.org")
-                  "href=\""))
-               ;; Move this file back to its original location.
-               (rename-file "web/infoshare/manager/MDB-Free/index.htm"
-                            "web/infoshare/manager/MDB-Free/index.html")
-
-               (substitute* (cons*
-                              "web/humanCross.html"
-                              "web/webqtl/base/indexBody.py"
-                              "web/whats_new.html"
-                              (find-files "web/dbdoc" "\\.html"))
-                 (("src=\\\"http://www.genenetwork.org") "src=\""))
-               #t))
-           (replace 'install
-             (lambda* (#:key outputs #:allow-other-keys)
-               (copy-recursively "." (assoc-ref outputs "out"))
-               #t)))))
-      (home-page "http://www.genenetwork.org/webqtl/main.py")
-      (synopsis
-       "Combined database and data analysis software resource for systems genetics")
-      (description "GeneNetwork is a group of linked data sets and tools used to
-study complex networks of genes, molecules, and higher order gene function and
-phenotypes.  GeneNetwork combines more than 25 years of legacy data generated by
-hundreds of scientists together with sequence data (SNPs) and massive
-transcriptome data sets (expression genetic or eQTL data sets).  The
-@dfn{quantitative trait locus} (QTL) mapping module that is built into GN is
-optimized for fast on-line analysis of traits that are controlled by
-combinations of gene
-variants and environmental factors.  GeneNetwork can be used to study humans,
-mice (BXD, AXB, LXS, etc.), rats (HXB), Drosophila, and plant species (barley
-and Arabidopsis).  Most of these population data sets are linked with dense
-genetic maps (genotypes) that can be used to locate the genetic modifiers that
-cause differences in expression and phenotypes, including disease susceptibility.")
-      (license license:agpl3+))))
 
 (define (genenetwork-graph)
   (with-imported-modules '((guix build utils))
