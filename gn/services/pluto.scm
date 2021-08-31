@@ -76,7 +76,7 @@
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "does-not-matter")))
+               (targets '("does-not-matter"))))
   (file-systems (list (file-system
                         (device "does-not-matter")
                         (mount-point "/")

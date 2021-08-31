@@ -96,7 +96,7 @@
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "does-not-matter")))
+               (targets '("does-not-matter"))))
   (file-systems %base-file-systems)
   ;; No firmware for VMs.
   (firmware '())

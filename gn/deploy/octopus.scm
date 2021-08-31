@@ -19,7 +19,7 @@
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "/dev/sda")
+               (targets '("/dev/sda"))
                (terminal-outputs '(console serial))))
   (kernel-arguments '("console=tty1" "console=ttyS0,115200n8"))
 
