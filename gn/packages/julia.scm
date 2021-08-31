@@ -200,36 +200,41 @@ leave-one-chromosome-out}, computation of kinship matrices, and support for
 distributed computing.")
     (license license:gpl3)))
 
+;; ready to upstream
 (define-public julia-pyplot
-  (package
-    (name "julia-pyplot")
-    (version "2.9.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaPy/PyPlot.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0lvnraw8i851xnlfyd8d1p1bp8nrr1s9z56fw6znlmakpjjwny39"))))
-    (build-system julia-build-system)
-    (arguments
-     `(;#:tests? #f
-       ))
-    (propagated-inputs
-     `(
-       ("julia-colors" ,julia-colors)
-       ("julia-latexstrings" ,julia-latexstrings)
-       ("julia-pycall" ,julia-pycall)
-       ("julia-versionparsing" ,julia-versionparsing)
-       ))
-    (home-page "https://github.com/JuliaPy/PyPlot.jl")
-    (synopsis "Plotting for Julia based on matplotlib.pyplot")
-    (description "This module provides a Julia interface to the Matplotlib plotting library from Python, and specifically to the @code{matplotlib.pyplot} module.  PyPlot uses the Julia PyCall package to call Matplotlib directly from Julia with little or no overhead (arrays are passed without making a copy).")
-    (license license:expat)))
+  ;; Test suite was fixed since the last release.
+  (let ((commit "52a83c88fc10f159d044db5e14563f524562898b")
+        (revision "1"))
+    (package
+      (name "julia-pyplot")
+      (version (git-version "2.9.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/JuliaPy/PyPlot.jl")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32
+            "1nbr9lva4s042l9n67xckak87lhn9q5jpajc18y7vk5r1vr89n5l"))))
+      (build-system julia-build-system)
+      (propagated-inputs
+       `(("julia-colors" ,julia-colors)
+         ("julia-latexstrings" ,julia-latexstrings)
+         ("julia-pycall" ,julia-pycall)
+         ("julia-versionparsing" ,julia-versionparsing)
+         ;; python-matplotlib is expected to be available at runtime.
+         ("python-matplotlib" ,(@ (gnu packages python-xyz) python-matplotlib))))
+      (home-page "https://github.com/JuliaPy/PyPlot.jl")
+      (synopsis "Plotting for Julia based on matplotlib.pyplot")
+      (description "This module provides a Julia interface to the Matplotlib
+plotting library from Python, and specifically to the @code{matplotlib.pyplot}
+module.  PyPlot uses the Julia PyCall package to call Matplotlib directly from
+Julia with little or no overhead (arrays are passed without making a copy).")
+      (license license:expat))))
 
+;; ready to upstream
 (define-public julia-pycall
   (package
     (name "julia-pycall")
@@ -246,7 +251,12 @@ distributed computing.")
           "07r99ni6nkxpyrp3wsb5qg4jxz7i2r08dyqbiffy2zm3g0bn88jq"))))
     (build-system julia-build-system)
     (arguments
-     `(#:phases
+     `(#:imported-modules ((guix build python-build-system)
+                           ,@%julia-build-system-modules)
+       #:modules ((guix build julia-build-system)
+                  (guix build utils)
+                  ((guix build python-build-system) #:prefix python:))
+       #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'remove-conda
            (lambda _
@@ -268,13 +278,14 @@ distributed computing.")
                    (format #t
                            "const python = \"~a/bin/python3\"~@
                            const pyprogramname = \"~a/bin/python3\"~@
-                           const libpython = \"~a/lib/libpython3.8.so.1.0\"~@
-                           const PYTHONHOME = \"~a/lib/python3.8\"~@
+                           const libpython = \"~a/lib/libpython~a.so.1.0\"~@
+                           const PYTHONHOME = \"~a\"~@
                            const pyversion_build = v\"~a\"~@
                            const conda = false~%"
                            python
                            python
                            python
+                           (python:python-version python)
                            python
                            ,(package-version python))))
                #t)))
@@ -289,12 +300,14 @@ distributed computing.")
     (inputs
      `(("python" ,python)))
     (native-inputs
-     `(("python-numpy" ,(@ (gnu packages python-xyz) python-numpy))
-       ("python-pip" ,(@ (gnu packages python-xyz) python-pip))
-       ("python-virtualenv" ,(@ (gnu packages python-xyz) python-virtualenv))))
+     `(("python-numpy" ,(@ (gnu packages python-xyz) python-numpy))))
     (home-page "https://github.com/JuliaPy/PyCall.jl")
     (synopsis "Call Python functions from the Julia language")
-    (description "This package provides the ability to directly call and fully interoperate with Python from the Julia language.  You can import arbitrary Python modules from Julia, call Python functions (with automatic conversion of types between Julia and Python), define Python classes from Julia methods, and share large data structures between Julia and Python without copying them.")
+    (description "This package provides the ability to directly call and fully
+interoperate with Python from the Julia language.  You can import arbitrary
+Python modules from Julia, call Python functions (with automatic conversion of
+types between Julia and Python), define Python classes from Julia methods, and
+share large data structures between Julia and Python without copying them.")
     (license license:expat)))
 
 (define-public julia-conda
