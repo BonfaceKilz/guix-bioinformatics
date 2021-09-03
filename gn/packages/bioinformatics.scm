@@ -502,8 +502,8 @@ collapses them into a non-redundant graph structure.")
     (license license:expat)))
 
 (define-public pangenie
-  (let ((commit "1f3d2d247702e8c90620b8b1c5f6ea866c9aab19") ; April 30, 2021
-        (revision "1"))
+  (let ((commit "e779076827022d1416ab9fabf99a03d8f4725956") ; September 2, 2021 from phasing-tests branch
+        (revision "2"))
     (package
       (name "pangenie")
       (version (git-version "0.0.0" revision commit))
@@ -514,7 +514,7 @@ collapses them into a non-redundant graph structure.")
                (commit commit)))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0qp15dfngg37lk64yn2q8kglkazdwi1vpfr2r783bcx5pywr4n5w"))))
+         (base32 "1mphrvidaz328kcwrjgz8q5i4iwnz6ygl6279lm2acv4zgqhmp5i"))))
       (build-system cmake-build-system)
       (arguments
        `(#:configure-flags (list (string-append "-DCMAKE_BUILD_RPATH="
