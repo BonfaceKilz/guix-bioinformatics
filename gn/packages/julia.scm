@@ -440,11 +440,10 @@ properties
 ;; TODO: Unbundle extra assets? assets/html/
 ;; see also: js inputs: src/Writers/HTMLWriter.jl
 ;;           latex inputs: src/Writers/LaTeXWriter.jl
-;;           needs pip: src/Deps.jl
 (define-public julia-documenter
   (package
     (name "julia-documenter")
-    (version "0.27.2")
+    (version "0.27.6")
     (source
       (origin
         (method git-fetch)
@@ -453,16 +452,32 @@ properties
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32
-          "0x99ns9fvnpm5jrqgfssfxdspxlx82qx7w5g0jy1x530yknk8ijq"))))
+         (base32 "1y6rql7cxc7hfhc8rfq1mdmffp70sqzyh4vnnq93fziwrc8c8sbj"))))
     (build-system julia-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'patch-source
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "src/Deps.jl"
+               (("pip install")
+                (string-append (assoc-ref inputs "python") "/bin/pip install")))
+             #t))
+         )
+       ))
     (propagated-inputs
-     `(("julia-docstringextensions" ,julia-docstringextensions)
+     `(("julia-ansicoloredprinters" ,julia-ansicoloredprinters)
+       ("julia-docstringextensions" ,julia-docstringextensions)
        ("julia-iocapture" ,julia-iocapture)
        ("julia-json" ,julia-json)))
+    (inputs
+     `(
+       ("python" ,python-wrapper)
+       ))
     (native-inputs
      `(("git" ,(S "git-minimal"))
-       ("julia-documentermarkdown" ,julia-documentermarkdown)))
+       ("julia-documentermarkdown" ,julia-documentermarkdown)
+       ("julia-documentertools" ,julia-documentertools)))
     (home-page "https://juliadocs.github.io/Documenter.jl")
     (synopsis "Documentation generator for Julia")
     (description "This package provides a documentation generator for Julia.")
@@ -542,21 +557,111 @@ properties
         (sha256
          (base32 "05p57p8xlkn42m1lv9gq4hl96vp7hpj19d51p828ai1rbpcpi3a6"))))
     (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))    ; Tests require network.
     (inputs
      ;; We don't want to propagate the bootstrap version.
      ;; Cycle with Documenter.jl in later versions.
      `(("julia-documenter" ,julia-documenter-0.22)))
     (propagated-inputs
-     `(
-       ("julia-docstringextensions" ,julia-docstringextensions)
+     `(("julia-docstringextensions" ,julia-docstringextensions)
        ("julia-gumbo" ,julia-gumbo)
-       ;("julia-sass" ,julia-sass)
-       ))
+       ("julia-sass" ,julia-sass)))
+    (native-inputs
+     `(("julia-example" ,julia-example)))
     (home-page "https://github.com/JuliaDocs/DocumenterTools.jl")
     (synopsis "Extra tools for setting up Documenter")
     (description "This package contains utilities for setting up documentation
 generation with @code{Documenter.jl}.")
     (license license:expat)))
+
+;; raedy to upstream
+(define-public julia-ansicoloredprinters
+  (package
+    (name "julia-ansicoloredprinters")
+    (version "0.0.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaDocs/ANSIColoredPrinters.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0dp5agljr0g50s5gn0pr70wrz01ggck6pb40ay3l4szhswq7mqzf"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/JuliaDocs/ANSIColoredPrinters.jl")
+    (synopsis "ANSI escape code translator")
+    (description "@code{ANSIColoredPrinters.jl} converts a text qualified by
+ANSI escape codes to another format.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-sass
+  (package
+    (name "julia-sass")
+    (version "0.2.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/piever/Sass.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0y7kkkj717h5cj659ssry89i5r64symr6pvhr6vv4qmaxrnjxj92"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-libsass-jll" ,julia-libsass-jll)))
+    (home-page "https://github.com/piever/Sass.jl")
+    (synopsis "Compile scss and sass file to css in Julia")
+    (description "This library provides a simple Julian API to use the
+@code{libsass} library to compile scss and sass files to css.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-libsass-jll
+  (let ((commit "69bf10603aad0ebf1f6df088c5fd7c4a5d1eb0ca"))
+    (package
+      (name "julia-libsass-jll")
+      (version "3.5.5+0")                 ;tag not created upstream
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/libsass_jll.jl")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "1fb6rf422533bsmfslvc20ag1hr50bf9xaj32rvh7nv593sbiygn"))))
+      (build-system julia-build-system)
+      (arguments
+       `(#:tests? #f                      ; no runtests.jl
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'override-binary-path
+             (lambda* (#:key inputs #:allow-other-keys)
+               (map
+                (lambda (wrapper)
+                  (substitute* wrapper
+                    (("generate_wrapper_header.*")
+                     (string-append
+                      "generate_wrapper_header(\"libsass\", \""
+                      (assoc-ref inputs "libsass") "\")\n"))))
+                ;; There's a Julia file for each platform, override them all
+                (find-files "src/wrappers/" "\\.jl$"))
+               #t)))))
+      (inputs
+       `(("libsass" ,(@ (gnu packages web) libsass))))
+      (propagated-inputs
+       `(("julia-jllwrappers" ,julia-jllwrappers)))
+      (home-page "https://github.com/JuliaBinaryWrappers/libsass_jll.jl")
+      (synopsis "Julia wrapper for libsass")
+      (description "This package provides a wrapper for libsass  It is an
+autogenerated source package constructed using @code{BinaryBuilder.jl}. The
+originating @code{build_tarballs.jl} script can be found on the community
+build tree Yggdrasil.")
+      (license license:expat))))
 
 ;; ready to upstream
 ;; if the test suite passes
@@ -1106,7 +1211,7 @@ implemented in Julia.")
 (define-public julia-doublefloats
   (package
     (name "julia-doublefloats")
-    (version "1.1.21")
+    (version "1.1.23")
     (source
       (origin
         (method git-fetch)
@@ -1115,10 +1220,11 @@ implemented in Julia.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0bpx2y05mmnk77lsg3gnxcjvag5h75nk5pyv0xrw53a8b62ja57y"))))
+         (base32 "0qdkcmjknlan25dbgqw101zvgb5ly8v4pf1xikj6k2x96k8c6c8g"))))
     (build-system julia-build-system)
     (propagated-inputs
-     `(("julia-polynomials" ,julia-polynomials)
+     `(("julia-genericlinearalgebra" ,julia-genericlinearalgebra)
+       ("julia-polynomials" ,julia-polynomials)
        ("julia-quadmath" ,julia-quadmath)
        ("julia-requires" ,julia-requires)
        ("julia-specialfunctions" ,julia-specialfunctions)))
@@ -1136,7 +1242,7 @@ floats and complex types.")
 (define-public julia-polynomials
   (package
     (name "julia-polynomials")
-    (version "2.0.12")
+    (version "2.0.14")
     (source
       (origin
         (method git-fetch)
@@ -1145,7 +1251,7 @@ floats and complex types.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1ydxw1ich5gkd6mlrr6x4clyjkr0xkmlf0l054g4k73symw2bc7x"))))
+         (base32 "07yb98fm9yhhan0n3iwmd9dz7zpj4kal99z5h1px1q5zpmjn68xa"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-intervals" ,julia-intervals)
@@ -1153,7 +1259,8 @@ floats and complex types.")
        ("julia-recipesbase" ,julia-recipesbase)))
     (native-inputs
      `(("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-specialfunctions" ,julia-specialfunctions)))
+       ("julia-specialfunctions" ,julia-specialfunctions)
+       ("julia-staticarrays" ,julia-staticarrays)))
     (home-page "https://github.com/JuliaMath/Polynomials.jl")
     (synopsis "Polynomial manipulations in Julia")
     (description "This package provides basic arithmetic, integration,
@@ -1197,7 +1304,7 @@ polynomials.")
 (define-public julia-infinity
   (package
     (name "julia-infinity")
-    (version "0.2.3")
+    (version "0.2.4")
     (source
       (origin
         (method git-fetch)
@@ -1206,7 +1313,7 @@ polynomials.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1bw7p88l8svb7455srz0jmw8ap17r2wwgz5y02vr9s8cg4lbsps5"))))
+         (base32 "1941lwvrdjnrynigzixxin3chpg1ba6xplvcwc89x0f6z658hwmm"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-compat" ,julia-compat)
@@ -1219,7 +1326,7 @@ polynomials.")
     (synopsis "Representation of infinity in Julia")
     (description "This package provides representations for infinity and
 negative infinity in Julia.")
-    (license license:gpl3)))
+    (license license:expat)))
 
 ;; TODO: Keep this in sync with tzdata in base.scm
 ;; Package can use more work
@@ -1387,7 +1494,7 @@ that still support Julia versions older than 1.6.")
 (define-public julia-structarrays
   (package
     (name "julia-structarrays")
-    (version "0.6.0")
+    (version "0.6.1")
     (source
       (origin
         (method git-fetch)
@@ -1396,7 +1503,7 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "05yxsmzi82fp9f0bg5kihpcls4xjxdy4chnnflmg8h4i457pbr5v"))))
+         (base32 "1scmwv016pqdl6mx6i3c2bkqf1kwbzcymgwzdq9hp6bq627zmr3v"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-dataapi" ,julia-dataapi)
