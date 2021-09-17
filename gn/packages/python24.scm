@@ -4,6 +4,7 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix build-system copy)
   #:use-module (guix build-system python)
   #:use-module (gn packages databases)
   #:use-module (gn packages python)
@@ -11,6 +12,7 @@
   #:use-module (past packages tls)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages databases)
+  #:use-module (gnu packages elf)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages python-xyz)
@@ -388,6 +390,7 @@ for Python.  The design goals are:
 @end itemize")
     (license license:gpl2+)))
 
+;; It seems this isn't the correct DIRECT binary
 (define-public python24-direct
   (package
     (name "python24-direct")
@@ -457,3 +460,48 @@ algorithm can be found in Gablonsky's
 @url{http://repository.lib.ncsu.edu/ir/bitstream/1840.16/3920/1/etd.pdf,
 thesis}.")
     (license license:expat)))
+
+; env IPFS_PATH=/export/ipfs/ ipfs add direct.so
+; added QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA direct.so
+; penguin2:~/tmp$ env IPFS_PATH=/export/ipfs/ ipfs pin add QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA
+; pinned QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA recursively
+
+(define-public python24-direct-gn
+  (package
+    (name "python24-direct-gn")
+    (version "GN")
+    (source (origin
+              (method url-fetch)
+              (uri "http://ipfs.genenetwork.org/ipfs/QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA")
+              (file-name "direct.so")
+              (sha256
+               (base32
+                "0kj11dbi25k0wvyxxsylx7dsc7wm7rja799fymklkdd8h561la4i"))))
+    (build-system copy-build-system)
+    (arguments
+     `(#:install-plan
+       '(("direct.so" "lib/python2.4/site-packages/"))
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'unpack
+           (lambda* (#:key inputs #:allow-other-keys)
+             (copy-file (assoc-ref inputs "source") "direct.so")
+             #t))
+         (add-after 'unpack 'patchelf
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; Writable so we can use patchelf, executable so it is useful.
+             ;; After installation the writable bit is stripped off.
+             (chmod "direct.so" #o777)
+             (invoke "patchelf"
+                     "--set-rpath"
+                     (string-append (assoc-ref inputs "gcc:lib") "/lib")
+                     "direct.so")
+             #t)))))
+    (inputs
+     `(("gcc:lib" ,gcc "lib")))
+    (native-inputs
+     `(("patchelf" ,patchelf)))
+    (home-page "")
+    (synopsis "")
+    (description "")
+    (license #f)))
