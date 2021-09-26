@@ -1,4 +1,4 @@
-(define-module (gn packages images)
+(define-module (gn packages kaleido)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix build-system gnu)
   #:use-module (gnu packages)
@@ -25,14 +25,13 @@
 ;; Officially kaleido is built against 88.0.4324.150, but this is close enough. We have to copy a bunch of options from the Guix chromium package because it is so complex and fragile, making it hard to just inherit from that previous version. The rest we can use against the inherited inferior.
 
 ;; Adapted from the manual:
-(define %channel-commit "a58f9966a50b6cb558fa57b369a5b16de02af255")
 (define channels
   ;; This is the old revision from which we want to
   ;; extract ungoogled-chromium.
   (list (channel
           (name 'guix)
           (url "https://git.savannah.gnu.org/git/guix.git")
-          (commit %channel-commit))))
+          (commit "a58f9966a50b6cb558fa57b369a5b16de02af255"))))
 
 (define inferior
     ;; An inferior representing the above revision.
@@ -304,12 +303,12 @@
   (list
     (origin
       (method url-fetch)
-      (uri (string-append "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/patches/ungoogled-chromium-extension-search-path.patch?id=" %channel-commit))
+      (uri "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/patches/ungoogled-chromium-extension-search-path.patch?id=a58f9966a50b6cb558fa57b369a5b16de02af255")
       (file-name "ungoogled-chromium-extension-search-path.patch")
       (sha256 (base32 "1yjlcp4jg0cfgrwijqqvlh9vfyxcz48v3ww3vdp3lpaz13ppvplz")))
     (origin
       (method url-fetch)
-      (uri (string-append "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/patches/ungoogled-chromium-system-nspr.patch?id=" %channel-commit))
+      (uri "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/patches/ungoogled-chromium-system-nspr.patch?id=a58f9966a50b6cb558fa57b369a5b16de02af255")
       (file-name "ungoogled-chromium-system-nspr.patch")
       (sha256 (base32 "02a3y7paaxib8jrzhggwzmvk53s20avq5a6qvdial30wi270dx1h")))))
 
@@ -426,6 +425,8 @@
         `((srfi srfi-1)
           ,@modules))
        ((#:tests? _ #f) #f)             ; TODO: enable after successfully building.
+       ;; As inherited from ungoogled-chromium.
+       ;((#:validate-runpath? _ #f) #f)
        ((#:configure-flags flags)
         ;`(list
         ;   "import(\"//build/args/headless.gn\")"
@@ -469,6 +470,9 @@
                (with-output-to-file "repos/kaleido/version"
                  (lambda _
                    (format #t "~a~%" ,version)))
+               (with-output-to-file "repos/kaleido/py/kaleido/_version.py"
+                 (lambda _
+                   (format #t "__version__= \"~a\"~%" ,version)))
                (mkdir-p "out/Release")
                ;; Adapted from /repos/mac_scripts/build_kaleido.
                ;; There is no append-to-file macro.
@@ -512,6 +516,13 @@ executable(\"kaleido\") {
                  ;(format #t "Dumping configure flags...\n")
                  ;(invoke "gn" "args" "out/Release" "--list")
                  )))
+           (add-before 'build 'unpack-mathjax
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((unzip (string-append (assoc-ref inputs "unzip") "/bin/unzip")))
+                 (mkdir-p "repos/build/kaleido/etc")
+                 (invoke unzip "repos/vendor/Mathjax-2.7.5.zip" "-d" "repos/build/kaleido/etc")
+                 (rename-file "repos/build/kaleido/etc/Mathjax-2.7.5" "repos/build/kaleido/etc/mathjax")
+                 #t)))
            (replace 'build
              (lambda* (#:key (parallel-build? #t) #:allow-other-keys)
                (invoke "ninja" "-C" "out/Release"
@@ -520,23 +531,121 @@ executable(\"kaleido\") {
                                 "1")
                        "kaleido")
 
-               (mkdir-p "repos/build/kaleido/bin")
+               (mkdir-p "repos/build/kaleido/bin/swiftshader")
                (install-file "out/Release/kaleido" "repos/build/kaleido/bin")
-               (copy-recursively "out/Release/swiftshader/" "repos/build/kaleido/bin")
-               (install-file "repos/kaleido/version" "repos/build/kaleido/")
-               (install-file "LICENSE.txt" "repos/build/kakeido/")
-               (install-file "README.md" "repos/build/kakeido/")
+               (copy-recursively "out/Release/swiftshader" "repos/build/kaleido/bin/swiftshader")
+               (install-file "repos/kaleido/version" "repos/build/kaleido")
+               (install-file "LICENSE.txt" "repos/kaleido")
+               (install-file "README.md" "repos/kaleido")
+               (make-file-writable "repos/kaleido/LICENSE.txt")
+               (make-file-writable "repos/kaleido/py/setup.cfg")
 
+               ;; TODO! javascript bits.
+               ;(mkdir-p "repos/build/kaleido/js")
+               ;(mkdir-p "repos/kaleido/js/build")
+               ;; This is missing at least browserify, orca_next
+               ;(copy-recursively "third_party/node/node_modules" "repos/kaleido/js")
+               ;(with-directory-excursion "repos/kaleido/js"
+               ;  (invoke "npm" "run" "build"))
+               ;(copy-recursively "repos/kaleido/js/build" "repos/build/kaleido/js")
+
+               ;; This part isn't strictly necessary.
                (with-directory-excursion "repos/kaleido/py"
                  ;(invoke "python3" "setup.py" "package")    ; builds wheels
                  (invoke "python3" "setup.py" "package_source")
                  )
                ))
+           ;; Move this after 'install?
            (replace 'check
              (lambda* (#:key tests? #:allow-other-keys)
                (when tests?
+                 (setenv "PATH" (string-append (getenv "PATH") ":repos/build/kaleido/bin/kaleido"))
+                 (setenv "PYTHONPATH" (string-append (getenv "PYTHONPATH") ":repos/kaleido/py"))
                  (with-directory-excursion "repos/kaleido/tests"
                    (invoke "pytest" "-s" "test_py/")))))
+           (replace 'install
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let* ((out            (assoc-ref outputs "out"))
+                      (bin            (string-append out "/bin"))
+                      (exe            (string-append bin "/kaleido"))
+                      (lib            (string-append out "/lib"))
+                      (python         (string-append (assoc-ref inputs "python3") "/bin/python3"))
+                      ;(man            (string-append out "/share/man/man1"))
+                      ;(applications   (string-append out "/share/applications"))
+                      (libs           '(
+                                        "headless_lib.pak"
+                                        ;"chrome_100_percent.pak"
+                                        ;"chrome_200_percent.pak"
+                                        ;"resources.pak"
+                                        ;"v8_context_snapshot.bin"
+
+                                        ;; Chromium ships its own libGL
+                                        ;; implementation called ANGLE.
+                                        "libEGL.so" "libGLESv2.so"))
+                      (locales        (string-append lib "/locales"))
+                      (resources      (string-append lib "/resources"))
+                      ;(preferences    (assoc-ref inputs "master-preferences"))
+                      ;(gtk+           (assoc-ref inputs "gtk+"))
+                      ;(xdg-utils      (assoc-ref inputs "xdg-utils"))
+                      ;(sh             (which "sh"))
+                      )
+
+                 ;(substitute* '("chrome/app/resources/manpage.1.in"
+                 ;               "chrome/installer/linux/common/desktop.template")
+                 ;  (("@@MENUNAME@@") "Chromium")
+                 ;  (("@@PACKAGE@@") "chromium")
+                 ;  (("/usr/bin/@@USR_BIN_SYMLINK_NAME@@") exe))
+
+                 ;(mkdir-p man)
+                 ;(copy-file "chrome/app/resources/manpage.1.in"
+                 ;           (string-append man "/chromium.1"))
+
+                 ;(mkdir-p applications)
+                 ;(copy-file "chrome/installer/linux/common/desktop.template"
+                 ;           (string-append applications "/chromium.desktop"))
+
+                 ;(mkdir-p lib)
+                 ;(copy-file preferences (string-append lib "/master_preferences"))
+
+                 (with-directory-excursion "repos/kaleido/py"
+                   (invoke python3 "setup.py" "install"
+                           (string-append "--prefix=" out)
+                           "--single-version-externally-managed"
+                           "--root=/"))
+
+                 (with-directory-excursion "out/Release"
+                   (for-each (cut install-file <> lib) libs)
+                   (copy-file "kaleido" (string-append lib "/kaleido"))
+
+                   ;; locales need to be built!
+                   ;(copy-recursively "locales" locales)
+                   (copy-recursively "resources" resources)
+
+                   (mkdir-p bin)
+                   ;; Does this need to be replaced with a wrapper script?
+                   (symlink "../lib/kaleido" exe)
+                   ;(install-file "chromedriver" bin)
+
+                   (for-each (lambda (so)
+                               (install-file so (string-append lib "/swiftshader")))
+                             (find-files "swiftshader" "\\.so$"))
+
+                   ;(wrap-program exe
+                   ;  ;; Avoid file manager crash.  See <https://bugs.gnu.org/26593>.
+                   ;  `("XDG_DATA_DIRS" ":" prefix (,(string-append gtk+ "/share")))
+                   ;  `("PATH" ":" prefix (,(string-append xdg-utils "/bin"))))
+                   )
+
+                 ;(with-directory-excursion "chrome/app/theme/chromium"
+                 ;  (for-each
+                 ;   (lambda (size)
+                 ;     (let ((icons (string-append out "/share/icons/hicolor/"
+                 ;                                 size "x" size "/apps")))
+                 ;       (mkdir-p icons)
+                 ;       (copy-file (string-append "product_logo_" size ".png")
+                 ;                  (string-append icons "/chromium.png"))))
+                 ;   '("24" "48" "64" "128" "256")))
+                 )))
            ))
         ))
     (native-inputs
@@ -556,6 +665,7 @@ executable(\"kaleido\") {
            (file-name (git-file-name name version))
            (sha256
             (base32 "0p7vddwha4bmb0ihbvjgqwhwa7xmm7xnh2hff5r2xzz64rjcz47x"))))
+       ("unzip" ,unzip)
 
        ;,@(inferior-package-native-inputs inferior-ungoogled-chromium)
        ;,@(package-native-inputs inferior-ungoogled-chromium)
@@ -575,7 +685,11 @@ executable(\"kaleido\") {
 
        ;; This file contains defaults for new user profiles.
        ;("master-preferences" ,(local-file "../../master-preferences.json"))
-
+       ;,(origin
+       ;   (method url-fetch)
+       ;   (uri (string-append "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/aux-files/chromium/master-preferences.json?id=a58f9966a50b6cb558fa57b369a5b16de02af255")
+       ;        (file-name "master-preferences.json")
+       ;        (sha256 (base32 "1f12zq17865alydizg3457rvn350kkxa89zsk94bbbg49dmb8ab6"))))
        ;("python2-beautifulsoup4" ,(first (lookup-inferior-packages inferior "python2-beautifulsoup4")))
        ;("python2-html5lib" ,(first (lookup-inferior-packages inferior "python2-html5lib")))
        ;("python" ,(first (lookup-inferior-packages inferior "python2")))
