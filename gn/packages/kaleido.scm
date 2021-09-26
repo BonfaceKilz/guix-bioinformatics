@@ -569,7 +569,7 @@ executable(\"kaleido\") {
                       (bin            (string-append out "/bin"))
                       (exe            (string-append bin "/kaleido"))
                       (lib            (string-append out "/lib"))
-                      (python         (string-append (assoc-ref inputs "python3") "/bin/python3"))
+                      (python3        (string-append (assoc-ref inputs "python3") "/bin/python3"))
                       ;(man            (string-append out "/share/man/man1"))
                       ;(applications   (string-append out "/share/applications"))
                       (libs           '(
@@ -581,7 +581,8 @@ executable(\"kaleido\") {
 
                                         ;; Chromium ships its own libGL
                                         ;; implementation called ANGLE.
-                                        "libEGL.so" "libGLESv2.so"))
+                                        ;"libEGL.so" "libGLESv2.so"
+                                        ))
                       (locales        (string-append lib "/locales"))
                       (resources      (string-append lib "/resources"))
                       ;(preferences    (assoc-ref inputs "master-preferences"))
@@ -604,18 +605,20 @@ executable(\"kaleido\") {
                  ;(copy-file "chrome/installer/linux/common/desktop.template"
                  ;           (string-append applications "/chromium.desktop"))
 
-                 ;(mkdir-p lib)
-                 ;(copy-file preferences (string-append lib "/master_preferences"))
-
                  (with-directory-excursion "repos/kaleido/py"
                    (invoke python3 "setup.py" "install"
                            (string-append "--prefix=" out)
                            "--single-version-externally-managed"
                            "--root=/"))
 
+                 ;(mkdir-p lib)
+                 ;(copy-file preferences (string-append lib "/master_preferences"))
+
                  (with-directory-excursion "out/Release"
-                   (for-each (cut install-file <> lib) libs)
-                   (copy-file "kaleido" (string-append lib "/kaleido"))
+                   ;(for-each (cut install-file <> lib) libs)
+                   (install-file "headless_lib.pak" lib)
+                   ;(copy-file "kaleido" (string-append lib "/kaleido"))
+                   (install-file "kaleido" lib)
 
                    ;; locales need to be built!
                    ;(copy-recursively "locales" locales)
