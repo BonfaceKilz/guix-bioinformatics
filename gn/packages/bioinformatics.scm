@@ -2407,3 +2407,43 @@ To run the bundled rtg-tools software you will also need java.  The
 @code{icedtea:jdk} output should work nicely.")
    (license (list license:expat     ; bundled jsoncpp, klib
                   license:bsd-2))))
+
+;; TODO:
+;; Unbundle gatb-core.
+(define-public minia
+  (package
+    (name "minia")
+    (version "3.2.6")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (string-append "https://github.com/GATB/minia/releases"
+                            "/download/v" version
+                            "/minia-v" version "-Source.tar.gz"))
+        (sha256
+         (base32 "03zg1jh0yjw7546kax8xs0zwiqhaiqz044409jc3ss6nj968ay70"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:tests? #f          ; Tests are expected to be run manually.
+       #:configure-flags '("-DNO_SSE=ON")   ; Can be removed after unbundling gatb-core.
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'install 'remove-cruft
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-directory-excursion out
+                 (delete-file-recursively "lib")
+                 (delete-file-recursively "test")
+                 (delete-file "bin/h5cc")
+                 (delete-file "LICENSE")
+                 (delete-file "README.md")
+                 #t)))))))
+    (inputs
+     `(("zlib" ,zlib)))
+    (home-page "https://gatb.inria.fr/software/minia")
+    (synopsis "Short-read assembler based on a de Bruijn graph")
+    (description "Minia is a short-read assembler based on a de Bruijn graph,
+capable of assembling a human genome on a desktop computer in a day.  The output
+of Minia is a set of contigs.  Back when it was released, Minia produced results
+of similar contiguity and accuracy to other de Bruijn assemblers (e.g. Velvet).")
+    (license license:agpl3+)))
