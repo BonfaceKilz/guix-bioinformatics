@@ -374,28 +374,6 @@
                   "openh264" "opus" "snappy" "zlib")
           #t))))
 
-(define (make-lld-wrapper lld)
-  (define lld-as-ld
-    (computed-file "lld-ld"
-                   #~(begin
-                       (mkdir #$output)
-                       (mkdir (string-append #$output "/bin"))
-                       (symlink #$(file-append lld "/bin/lld")
-                                (string-append #$output "/bin/ld")))))
-
-  ;; Create a wrapper for LLD that inserts appropriate -rpath entries.
-  (define lld-wrapper
-    (make-ld-wrapper "lld-wrapper"
-                     #:binutils lld-as-ld))
-
-  ;; Clang looks for an 'ld.lld' executable, so we need to symlink it back.
-  (computed-file "lld-wrapped"
-                 #~(begin
-                     (mkdir #$output)
-                     (mkdir (string-append #$output "/bin"))
-                     (symlink #$(file-append lld-wrapper "/bin/ld")
-                              (string-append #$output "/bin/lld"))
-                     (symlink "lld" (string-append #$output "/bin/ld.lld")))))
 
 ;; Now lets start the package definition.
 (define-public kaleido
@@ -405,9 +383,6 @@
     (name "kaleido")
     (version "0.2.1")
     (source (origin
-    ;          (inherit (package-source ungoogled-chromium))
-    ;          (modules '())
-    ;          (snippet #f)))
               (method url-fetch)
               (uri (string-append "https://commondatastorage.googleapis.com"
                                   "/chromium-browser-official/chromium-"
@@ -426,45 +401,31 @@
           ,@modules))
        ((#:tests? _ #f) #f)             ; TODO: enable after successfully building.
        ;; As inherited from ungoogled-chromium.
-       ;((#:validate-runpath? _ #f) #f)
+       ((#:validate-runpath? _ #f) #f)
        ((#:configure-flags flags)
-        ;`(list
-        ;   "import(\"//build/args/headless.gn\")"
-        ;   "enable_nacl=false"
-        ;   "is_component_build=false"
-        ;   "symbol_level=0"
-        ;   "blink_symbol_level=0"
-        ;   "is_debug=false"
-        ;   "use_sysroot=false"
-        ;   "safe_browsing_mode=0"
-        ;   )
         `(append
            ;; First we modify the inherited configure-flags.
            (fold delete ,flags
-                 '(
-                   "use_pulseaudio=true"
+                 '("use_pulseaudio=true"
                    "link_pulseaudio=true"
                    "use_vaapi=true"
                    "rtc_use_pipewire=true"
-                   "rtc_link_pipewire=true"
-                   ))
-        ;   ,flags
-           (list
-             "import(\"//build/args/headless.gn\")"
-             ;"enable_nacl=false"           ; duplicate
-             "is_component_build=false"
-             "symbol_level=0"
-             "blink_symbol_level=0"
-             ;"is_debug=false"              ; duplicate
-             )
-           )
-        )
+                   "rtc_link_pipewire=true"))
+           (list "import(\"//build/args/headless.gn\")"
+                 "is_component_build=false"
+                 "symbol_level=0"
+                 "blink_symbol_level=0"
+                 ;; These two for locales.
+                 ;; Note to self: not correct
+                 ;"import(\"//build/config/locales.gni\")"
+                 ;"is_android=0"
+                 )))
        ((#:phases phases)
         `(modify-phases ,phases
            (add-after 'unpack 'unpack-kaleido-source
              (lambda* (#:key inputs #:allow-other-keys)
                (copy-recursively (assoc-ref inputs "kaleido-source") ".")
-               ))
+               #t))
            (add-before 'configure 'prepare-kaleido-build-environment
              (lambda _
                (with-output-to-file "repos/kaleido/version"
@@ -490,20 +451,7 @@ executable(\"kaleido\") {
 
                (mkdir-p "headless/app")
                (copy-recursively "repos/kaleido/cc" "headless/app")
-               ;(with-output-to-file "out/Release/args.gn"
-               ;(lambda _
-               ;  (format #t
-               ;          "import(\"//build/args/headless.gn\")~@
-               ;          enable_nacl=false~@
-               ;          is_component_build=false~@
-               ;          ~@
-               ;          symbol_level=0~@
-               ;          blink_symbol_level=0~@
-               ;          is_debug=false~@
-               ;          ~@
-               ;          target_cpu=\"~a\"~%"
-               ;          "x64")))   ; x86_64 -> x64, aarch64 -> arm64, armhf -> arm
-               ))
+               #t))
            (replace 'configure
              (lambda* (#:key configure-flags #:allow-other-keys)
                (let ((args (string-join configure-flags " ")))
@@ -551,10 +499,7 @@ executable(\"kaleido\") {
 
                ;; This part isn't strictly necessary.
                (with-directory-excursion "repos/kaleido/py"
-                 ;(invoke "python3" "setup.py" "package")    ; builds wheels
-                 (invoke "python3" "setup.py" "package_source")
-                 )
-               ))
+                 (invoke "python3" "setup.py" "package_source"))))
            ;; Move this after 'install?
            (replace 'check
              (lambda* (#:key tests? #:allow-other-keys)
@@ -570,40 +515,8 @@ executable(\"kaleido\") {
                       (exe            (string-append bin "/kaleido"))
                       (lib            (string-append out "/lib"))
                       (python3        (string-append (assoc-ref inputs "python3") "/bin/python3"))
-                      ;(man            (string-append out "/share/man/man1"))
-                      ;(applications   (string-append out "/share/applications"))
-                      (libs           '(
-                                        "headless_lib.pak"
-                                        ;"chrome_100_percent.pak"
-                                        ;"chrome_200_percent.pak"
-                                        ;"resources.pak"
-                                        ;"v8_context_snapshot.bin"
-
-                                        ;; Chromium ships its own libGL
-                                        ;; implementation called ANGLE.
-                                        ;"libEGL.so" "libGLESv2.so"
-                                        ))
                       (locales        (string-append lib "/locales"))
-                      (resources      (string-append lib "/resources"))
-                      ;(preferences    (assoc-ref inputs "master-preferences"))
-                      ;(gtk+           (assoc-ref inputs "gtk+"))
-                      ;(xdg-utils      (assoc-ref inputs "xdg-utils"))
-                      ;(sh             (which "sh"))
-                      )
-
-                 ;(substitute* '("chrome/app/resources/manpage.1.in"
-                 ;               "chrome/installer/linux/common/desktop.template")
-                 ;  (("@@MENUNAME@@") "Chromium")
-                 ;  (("@@PACKAGE@@") "chromium")
-                 ;  (("/usr/bin/@@USR_BIN_SYMLINK_NAME@@") exe))
-
-                 ;(mkdir-p man)
-                 ;(copy-file "chrome/app/resources/manpage.1.in"
-                 ;           (string-append man "/chromium.1"))
-
-                 ;(mkdir-p applications)
-                 ;(copy-file "chrome/installer/linux/common/desktop.template"
-                 ;           (string-append applications "/chromium.desktop"))
+                      (resources      (string-append lib "/resources")))
 
                  (with-directory-excursion "repos/kaleido/py"
                    (invoke python3 "setup.py" "install"
@@ -611,13 +524,8 @@ executable(\"kaleido\") {
                            "--single-version-externally-managed"
                            "--root=/"))
 
-                 ;(mkdir-p lib)
-                 ;(copy-file preferences (string-append lib "/master_preferences"))
-
                  (with-directory-excursion "out/Release"
-                   ;(for-each (cut install-file <> lib) libs)
                    (install-file "headless_lib.pak" lib)
-                   ;(copy-file "kaleido" (string-append lib "/kaleido"))
                    (install-file "kaleido" lib)
 
                    ;; locales need to be built!
@@ -627,37 +535,16 @@ executable(\"kaleido\") {
                    (mkdir-p bin)
                    ;; Does this need to be replaced with a wrapper script?
                    (symlink "../lib/kaleido" exe)
-                   ;(install-file "chromedriver" bin)
 
                    (for-each (lambda (so)
                                (install-file so (string-append lib "/swiftshader")))
-                             (find-files "swiftshader" "\\.so$"))
-
-                   ;(wrap-program exe
-                   ;  ;; Avoid file manager crash.  See <https://bugs.gnu.org/26593>.
-                   ;  `("XDG_DATA_DIRS" ":" prefix (,(string-append gtk+ "/share")))
-                   ;  `("PATH" ":" prefix (,(string-append xdg-utils "/bin"))))
-                   )
-
-                 ;(with-directory-excursion "chrome/app/theme/chromium"
-                 ;  (for-each
-                 ;   (lambda (size)
-                 ;     (let ((icons (string-append out "/share/icons/hicolor/"
-                 ;                                 size "x" size "/apps")))
-                 ;       (mkdir-p icons)
-                 ;       (copy-file (string-append "product_logo_" size ".png")
-                 ;                  (string-append icons "/chromium.png"))))
-                 ;   '("24" "48" "64" "128" "256")))
-                 )))
-           ))
-        ))
+                             (find-files "swiftshader" "\\.so$")))
+                 #t)))))))
     (native-inputs
      `(
        ;("gn" ,gn)
        ("poppler" ,poppler)
        ("python3" ,python)
-       ("python-pandas" ,python-pandas)
-       ("python-plotly" ,python-plotly)
        ("python-pytest" ,python-pytest)
        ("kaleido-source"
         ,(origin
@@ -673,37 +560,14 @@ executable(\"kaleido\") {
        ;,@(inferior-package-native-inputs inferior-ungoogled-chromium)
        ;,@(package-native-inputs inferior-ungoogled-chromium)
        ,@(package-native-inputs ungoogled-chromium)
-
-       ;("bison" ,(first (lookup-inferior-packages inferior "bison")))
-       ;("clang" ,(first (lookup-inferior-packages inferior "clang" "11")))
-       ;("gn" ,(first (lookup-inferior-packages inferior "gn")))
-       ;("gperf" ,(first (lookup-inferior-packages inferior "gperf")))
-       ;("ld-wrapper" ,(make-lld-wrapper (first (lookup-inferior-packages inferior "lld"))))
-       ;;("ld-wrapper" ,(make-lld-wrapper lld))
-       ;("ninja" ,(first (lookup-inferior-packages inferior "ninja")))
-       ;("node" ,(first (lookup-inferior-packages inferior "node")))
-       ;("pkg-config" ,(specification->package "pkg-config"))
-       ;;("pkg-config" ,(first (lookup-inferior-packages inferior "pkg-config")))
-       ;("which" ,(first (lookup-inferior-packages inferior "which")))
-
-       ;; This file contains defaults for new user profiles.
-       ;("master-preferences" ,(local-file "../../master-preferences.json"))
-       ;,(origin
-       ;   (method url-fetch)
-       ;   (uri (string-append "https://git.savannah.gnu.org/cgit/guix.git/plain/gnu/packages/aux-files/chromium/master-preferences.json?id=a58f9966a50b6cb558fa57b369a5b16de02af255")
-       ;        (file-name "master-preferences.json")
-       ;        (sha256 (base32 "1f12zq17865alydizg3457rvn350kkxa89zsk94bbbg49dmb8ab6"))))
-       ;("python2-beautifulsoup4" ,(first (lookup-inferior-packages inferior "python2-beautifulsoup4")))
-       ;("python2-html5lib" ,(first (lookup-inferior-packages inferior "python2-html5lib")))
-       ;("python" ,(first (lookup-inferior-packages inferior "python2")))
-       ;("wayland-scanner" ,(first (lookup-inferior-packages inferior "wayland")))
        ))
-    (inputs
+    (propagated-inputs
      `(
-       ;("nspr" ,(first (lookup-inferior-packages inferior "nspr")))
-       ;,@(inferior-package-inputs inferior-ungoogled-chromium)
-       ;,@(package-inputs inferior-ungoogled-chromium)
-       ,@(package-inputs ungoogled-chromium)
+       ("python-pandas" ,python-pandas)
+       ("python-plotly" ,python-plotly)
+       ;,@(inferior-package-native-inputs inferior-ungoogled-chromium)
+       ;,@(package-native-inputs inferior-ungoogled-chromium)
+       ,@(package-propagated-inputs ungoogled-chromium)
        ))
     (home-page "https://github.com/plotly/Kaleido")
     (synopsis "Static image export for web-based visualization libraries")
