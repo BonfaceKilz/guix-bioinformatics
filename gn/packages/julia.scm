@@ -204,37 +204,33 @@ distributed computing.")
 
 ;; ready to upstream
 (define-public julia-pyplot
-  ;; Test suite was fixed since the last release.
-  (let ((commit "52a83c88fc10f159d044db5e14563f524562898b")
-        (revision "1"))
-    (package
-      (name "julia-pyplot")
-      (version (git-version "2.9.0" revision commit))
-      (source
-        (origin
-          (method git-fetch)
-          (uri (git-reference
-                 (url "https://github.com/JuliaPy/PyPlot.jl")
-                 (commit commit)))
-          (file-name (git-file-name name version))
-          (sha256
-           (base32
-            "1nbr9lva4s042l9n67xckak87lhn9q5jpajc18y7vk5r1vr89n5l"))))
-      (build-system julia-build-system)
-      (propagated-inputs
-       `(("julia-colors" ,julia-colors)
-         ("julia-latexstrings" ,julia-latexstrings)
-         ("julia-pycall" ,julia-pycall)
-         ("julia-versionparsing" ,julia-versionparsing)
-         ;; python-matplotlib is expected to be available at runtime.
-         ("python-matplotlib" ,(@ (gnu packages python-xyz) python-matplotlib))))
-      (home-page "https://github.com/JuliaPy/PyPlot.jl")
-      (synopsis "Plotting for Julia based on matplotlib.pyplot")
-      (description "This module provides a Julia interface to the Matplotlib
+  (package
+    (name "julia-pyplot")
+    (version "2.10.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPy/PyPlot.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "007zs0imfgs69f30pp2a3rc93kl0qiq7qjx6ig35z4wzkmps4skd"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     `(("julia-colors" ,julia-colors)
+       ("julia-latexstrings" ,julia-latexstrings)
+       ("julia-pycall" ,julia-pycall)
+       ("julia-versionparsing" ,julia-versionparsing)
+       ;; python-matplotlib is expected to be available at runtime.
+       ("python-matplotlib" ,(S "python-matplotlib"))))
+    (home-page "https://github.com/JuliaPy/PyPlot.jl")
+    (synopsis "Plotting for Julia based on matplotlib.pyplot")
+    (description "This module provides a Julia interface to the Matplotlib
 plotting library from Python, and specifically to the @code{matplotlib.pyplot}
 module.  PyPlot uses the Julia PyCall package to call Matplotlib directly from
 Julia with little or no overhead (arrays are passed without making a copy).")
-      (license license:expat))))
+    (license license:expat)))
 
 (define-public julia-conda
   (package
@@ -619,7 +615,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
 (define-public julia-configurations
   (package
     (name "julia-configurations")
-    (version "0.16.0")
+    (version "0.16.4")
     (source
       (origin
         (method git-fetch)
@@ -628,7 +624,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "033wc6bqslvv6fkknlc725432j2vc2wcji2167klnx3qwlac2965"))))
+         (base32 "1b23p0zk8dx2sf01cnw177mqci7qd81b9s32ixz9clsh0r0icl1b"))))
     (build-system julia-build-system)
     (arguments
      `(#:phases
@@ -664,7 +660,7 @@ between different option/configuration file formats such as @code{TOML}.")
 (define-public julia-expronicon
   (package
     (name "julia-expronicon")
-    (version "0.6.9")
+    (version "0.6.10")
     (source
       (origin
         (method git-fetch)
@@ -673,10 +669,16 @@ between different option/configuration file formats such as @code{TOML}.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0lbzfn1li2ph02z6hl5286bj6bf17g63vfp6qn4cz40d760fcw8a"))))
+         (base32 "0h8aaynqlxrkn8575k5vqmhzil4vvxchhf0bcxa6zwawp558gj2y"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))        ; Tests try to read SSL certificates.
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'skip-network-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               ;; This test tries to access the Julia package registry.
+               ((".*expand\\.jl.*") "")))))))
     (propagated-inputs
      `(("julia-mlstyle" ,julia-mlstyle)))
     (native-inputs
@@ -1171,7 +1173,7 @@ that still support Julia versions older than 1.6.")
 (define-public julia-structarrays
   (package
     (name "julia-structarrays")
-    (version "0.6.1")
+    (version "0.6.3")
     (source
       (origin
         (method git-fetch)
@@ -1180,7 +1182,7 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1scmwv016pqdl6mx6i3c2bkqf1kwbzcymgwzdq9hp6bq627zmr3v"))))
+         (base32 "0rjcpyjwzg70n87q5r9c5i1qzigavncslxssm3rk5a3y549py56v"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-dataapi" ,julia-dataapi)
@@ -1302,7 +1304,7 @@ is column based (meaning each field of the @code{struct} is stored in a separate
 (define-public julia-gr
   (package
     (name "julia-gr")
-    (version "0.57.5")
+    (version "0.58.1")
     (source
       (origin
         (method git-fetch)
@@ -1311,7 +1313,7 @@ is column based (meaning each field of the @code{struct} is stored in a separate
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "14nra7fx2g8y2ll3saxgccanzbcl5s58qzgd2jlha3r0ngfhrvxg"))))
+         (base32 "18zxa1w2wmrf44c5l10qbh99zjdp7h94gxlymh47cf5kj5fc4xmx"))))
     (build-system julia-build-system)
     (propagated-inputs
      `(("julia-gr-jll" ,julia-gr-jll)))
@@ -1321,11 +1323,11 @@ is column based (meaning each field of the @code{struct} is stored in a separate
 visualisation applications.")
     (license license:expat)))
 
-;; TODO: Unbundle fonts
+;; TODO: Unbundle fonts: lib/gks/fonts/
 (define-public gr-framework
   (package
     (name "gr-framework")
-    (version "0.57.3")
+    (version "0.58.1")
     (source
       (origin
         (method git-fetch)
@@ -1334,7 +1336,7 @@ visualisation applications.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1w11rjikipqbj7wjary49g3ky2rnh132h948w008k9irbyj7j6c1"))
+         (base32 "0q1rz4iyxbh0dc22y4w28ry3hr0yypdwdm6pw2zlwgjya7wkbvsw"))
         (modules '((guix build utils)))
         (snippet
          '(begin
@@ -1344,7 +1346,11 @@ visualisation applications.")
     (arguments
      `(#:tests? #f))    ; no test target
     (inputs
-     `(("cairo" ,(S "cairo"))
+     ;; Missing? opengl, zeromq
+     ;; opengl found. "unsuitable qt version"
+     `(("bzip2" ,(S "bzip2"))
+       ("cairo" ,(S "cairo"))
+       ("fontconfig" ,(S "fontconfig"))
        ("ffmpeg" ,(S "ffmpeg"))
        ("freetype" ,(@ (gnu packages fontutils) freetype))
        ("ghostscript" ,(S "ghostscript"))
@@ -1375,7 +1381,7 @@ in Julia).")
 (define-public julia-gr-jll
   (package
     (name "julia-gr-jll")
-    (version "0.57.3+0")
+    (version "0.58.1+0")
     (source
       (origin
         (method git-fetch)
@@ -1384,7 +1390,7 @@ in Julia).")
                (commit (string-append "GR-v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0a568qxxdrfi951s0lhy5081yw8pw6sv39vfkzxw5cxic92w6rbs"))))
+         (base32 "16m22n0wh86v3lh0im2pc9bg381djbmqji5hjx42j6aaz634gqiq"))))
     (build-system julia-build-system)
     (arguments
      '(#:tests? #f  ; no runtests
