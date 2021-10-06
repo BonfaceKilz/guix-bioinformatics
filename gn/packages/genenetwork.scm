@@ -25,6 +25,7 @@
   #:use-module (gnu packages databases)
   #:use-module (gnu packages ghostscript)
   #:use-module (gnu packages golang)
+  #:use-module (gnu packages graph)
   #:use-module (gnu packages graphviz)
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages python)
@@ -98,7 +99,7 @@
 
 
 (define-public genenetwork3
-  (let ((commit "c9ee473ff7797f6bbd7507eb55c772a3a646acee"))
+  (let ((commit "77c274b79c3ec01de60e90db3299763cb58f715b"))
     (package
       (name "genenetwork3")
       (version (string-append "0.0.1-guix-" (string-take commit 7)))
@@ -111,13 +112,14 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1z25nr45kzy3vpk8gc1cq9r4j89dgpdmb83s1pgp75m9dcij5863"))))
+           "0ha70ibr7dqz0kzmgccx5l6nrmmf2a2mj7scg6jllx232crjby72"))))
       (propagated-inputs `(("coreutils" ,coreutils)
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("csvdiff" ,go-github-com-aswinkarthik-csvdiff)
                            ("python" ,python-wrapper)
                            ("python-bcrypt" ,python-bcrypt)
                            ("python-flask" ,python-flask)
+                           ("python-flask-cors" ,python-flask-cors)
                            ("python-ipfshttpclient" ,python-ipfshttpclient)
                            ("python-mypy" ,python-mypy)
                            ("python-mypy-extensions" ,python-mypy-extensions)
@@ -127,6 +129,7 @@
                            ("python-redis" ,python-redis)
                            ("python-requests" ,python-requests)
                            ("python-scipy" ,python-scipy)
+                           ("python-plotly" ,python-plotly)
                            ("python-sqlalchemy-stubs"
                             ,python-sqlalchemy-stubs)
                            ("r-optparse" ,r-optparse)
