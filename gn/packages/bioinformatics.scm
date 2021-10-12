@@ -455,7 +455,7 @@ reads.")
 (define-public gfaffix
   (package
     (name "gfaffix")
-    (version "0.1.2")
+    (version "0.1.2.2")
     (source
       (origin
         (method git-fetch)
@@ -464,7 +464,7 @@ reads.")
                (commit version)))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0xpzi0zvaa4pajs4vbp3vkwj2ha8pi62ly7bd8cpf3fi6r32pgdz"))
+         (base32 "1sh244yyhkaxbd635qjyig0wyxc57h8r1pwvs1vgdvlniw6h2cxy"))
         (modules '((guix build utils)))
         (snippet
          '(begin
