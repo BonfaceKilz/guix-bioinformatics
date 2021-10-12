@@ -202,36 +202,6 @@ leave-one-chromosome-out}, computation of kinship matrices, and support for
 distributed computing.")
     (license license:gpl3)))
 
-;; ready to upstream
-(define-public julia-pyplot
-  (package
-    (name "julia-pyplot")
-    (version "2.10.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaPy/PyPlot.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "007zs0imfgs69f30pp2a3rc93kl0qiq7qjx6ig35z4wzkmps4skd"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-colors" ,julia-colors)
-       ("julia-latexstrings" ,julia-latexstrings)
-       ("julia-pycall" ,julia-pycall)
-       ("julia-versionparsing" ,julia-versionparsing)
-       ;; python-matplotlib is expected to be available at runtime.
-       ("python-matplotlib" ,(S "python-matplotlib"))))
-    (home-page "https://github.com/JuliaPy/PyPlot.jl")
-    (synopsis "Plotting for Julia based on matplotlib.pyplot")
-    (description "This module provides a Julia interface to the Matplotlib
-plotting library from Python, and specifically to the @code{matplotlib.pyplot}
-module.  PyPlot uses the Julia PyCall package to call Matplotlib directly from
-Julia with little or no overhead (arrays are passed without making a copy).")
-    (license license:expat)))
-
 (define-public julia-conda
   (package
     (name "julia-conda")
@@ -290,29 +260,6 @@ Julia with little or no overhead (arrays are passed without making a copy).")
     (home-page "https://github.com/JuliaPy/Conda.jl")
     (synopsis "Conda managing Julia binary dependencies")
     (description "This package allows one to use @code{conda} as a cross-platform binary provider for Julia for other Julia packages, especially to install binaries that have complicated dependencies like Python.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-latexstrings
-  (package
-    (name "julia-latexstrings")
-    (version "1.2.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/stevengj/LaTeXStrings.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "117z27krcf8fydgp6mb0pgn75r4gng9qs7v90qb4bqzsry3faadp"))))
-    (build-system julia-build-system)
-    (native-inputs
-     `(("julia-documenter" ,julia-documenter)))
-    (home-page "https://github.com/stevengj/LaTeXStrings.jl")
-    (synopsis "Input and display of LaTeX equation strings")
-    (description "This is a small package to make it easier to type LaTeX
-equations in string literals in the Julia language.")
     (license license:expat)))
 
 (define-public julia-distributions
@@ -458,84 +405,6 @@ optimization of functions.")
     (description "Plots is a plotting API and toolset.")
     (license license:expat)))
 
-;; ready to upstream
-(define-public julia-bson
-  (package
-    (name "julia-bson")
-    (version "0.3.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaIO/BSON.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1l5608ma2ys7v2gpcqbiv9mwfc6yrlqkihrfx1pf7fgv5llhd4fn"))))
-    (build-system julia-build-system)
-    (native-inputs
-     `(("julia-dataframes" ,julia-dataframes)))
-    (home-page "https://github.com/JuliaIO/BSON.jl")
-    (synopsis "Binary JSON serialisation format")
-    (description "@code{BSON.jl} is a Julia package for working with the Binary
-JSON serialisation format.  It can be used as a general store for Julia data
-structures.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-dataframes
-  (package
-    (name "julia-dataframes")
-    (version "1.2.2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaData/DataFrames.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1bk0amrghgjrkyn1mm4ac23swwbgszl1d0qyl9137qj5zvv9dasp"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'skip-failing-test
-           (lambda _
-             ;; Tests with non-standard colors.
-             (substitute* "test/show.jl"
-               (("test (sprint\\(show, df, context=:color=>true)" _ test)
-                (string-append "test_nowarn " test)))
-             (substitute* "test/io.jl"
-               (("testset \\\"improved.*" all)
-                (string-append all "return\n")))
-             (substitute* "test/join.jl"
-               (("test (levels\\(outerjoin\\(B)" _ test)
-                (string-append "test_nowarn " test)))
-             #t)))))
-    (propagated-inputs
-     `(("julia-dataapi" ,julia-dataapi)
-       ("julia-invertedindices" ,julia-invertedindices)
-       ("julia-iteratorinterfaceextensions" ,julia-iteratorinterfaceextensions)
-       ("julia-missings" ,julia-missings)
-       ("julia-pooledarrays" ,julia-pooledarrays)
-       ("julia-prettytables" ,julia-prettytables)
-       ("julia-reexport" ,julia-reexport)
-       ("julia-sortingalgorithms" ,julia-sortingalgorithms)
-       ("julia-tables" ,julia-tables)
-       ("julia-tabletraits" ,julia-tabletraits)))
-    (native-inputs
-     `(("julia-categoricalarrays" ,julia-categoricalarrays)
-       ("julia-combinatorics" ,julia-combinatorics)
-       ("julia-datastructures" ,julia-datastructures)
-       ("julia-datavalues" ,julia-datavalues)
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-unitful" ,julia-unitful)))
-    (home-page "https://dataframes.juliadata.org/stable/")
-    (synopsis "In-memory tabular data")
-    (description "Tools for working with tabular data in Julia.")
-    (license license:expat)))
-
 ;; TODO: unbundle javascript calls to cdn.jsdelivr.net
 (define-public julia-pluto
   (package
@@ -609,85 +478,6 @@ dependencies between them and takes care of execution.")
     (synopsis "Helper package for Julia Pluto")
     (description "This package helps to make @code{html\"<input>\"} a bit more
 native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-configurations
-  (package
-    (name "julia-configurations")
-    (version "0.16.4")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/Roger-luo/Configurations.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1b23p0zk8dx2sf01cnw177mqci7qd81b9s32ixz9clsh0r0icl1b"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'fix-tests
-           (lambda _
-             (substitute* "test/runtests.jl"
-               (("option.toml") "test/option.toml"))
-             #t))
-         (add-after 'unpack 'dont-use-exproniconlite
-           (lambda _
-             (substitute* '("Project.toml"
-                            "src/Configurations.jl"
-                            "test/runtests.jl")
-               (("ExproniconLite") "Expronicon"))
-             (substitute* "Project.toml"
-               (("55351af7-c7e9-48d6-89ff-24e801d99491")
-                "6b7a57c9-7cc1-4fdf-b7f5-e857abae3636"))
-             #t)))))
-    (propagated-inputs
-     `(("julia-crayons" ,julia-crayons)
-       ("julia-expronicon" ,julia-expronicon)
-       ("julia-orderedcollections" ,julia-orderedcollections)))
-    (home-page "https://configurations.rogerluo.dev/stable/")
-    (synopsis "Options and configurations in Julia")
-    (description "@code{Configurations.jl} provides a macro @code{@@option} to
-let you define @code{structs} to represent options/configurations, and serialize
-between different option/configuration file formats such as @code{TOML}.")
-    (license license:expat)))
-
-;; ready to upstream
-;; ExproniconLite.jl is autogenerated from this package.
-(define-public julia-expronicon
-  (package
-    (name "julia-expronicon")
-    (version "0.6.10")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/Roger-luo/Expronicon.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0h8aaynqlxrkn8575k5vqmhzil4vvxchhf0bcxa6zwawp558gj2y"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'skip-network-tests
-           (lambda _
-             (substitute* "test/runtests.jl"
-               ;; This test tries to access the Julia package registry.
-               ((".*expand\\.jl.*") "")))))))
-    (propagated-inputs
-     `(("julia-mlstyle" ,julia-mlstyle)))
-    (native-inputs
-     `(("julia-documenter" ,julia-documenter)))
-    (home-page "https://expronicon.rogerluo.dev/dev/")
-    (synopsis "Collective tools for metaprogramming on Julia Expr")
-    (description "This package provides a collection of tools for
-metaprogramming on Julia Expr, the meta programming standard library for
-@code{MLStyle}.")
     (license license:expat)))
 
 ;; ready to upstream
@@ -1167,41 +957,6 @@ that still support Julia versions older than 1.6.")
     (home-page "https://github.com/JuliaGeometry/GeometryBasics.jl")
     (synopsis "Basic Geometry Types")
     (description "This package aims to offer a standard set of Geometry types, which easily work with metadata, query frameworks on geometries and different memory layouts.  The aim is to create a solid basis for Graphics/Plotting, finite elements analysis, Geo applications, and general geometry manipulations - while offering a julian API, that still allows performant C-interop.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-structarrays
-  (package
-    (name "julia-structarrays")
-    (version "0.6.3")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaArrays/StructArrays.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0rjcpyjwzg70n87q5r9c5i1qzigavncslxssm3rk5a3y549py56v"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-dataapi" ,julia-dataapi)
-       ("julia-staticarrays" ,julia-staticarrays)
-       ("julia-tables" ,julia-tables)))
-    (native-inputs
-     `(("julia-documenter" ,julia-documenter)
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-pooledarrays" ,julia-pooledarrays)
-       ("julia-typedtables" ,julia-typedtables)
-       ("julia-weakrefstrings" ,julia-weakrefstrings)))
-    (home-page "https://github.com/JuliaArrays/StructArrays.jl")
-    (synopsis "Efficient implementation of struct arrays in Julia")
-    (description "This package introduces the type @code{StructArray} which is
-an @code{AbstractArray} whose elements are @code{struct} (for example
-@code{NamedTuples}, or @code{ComplexF64}, or a custom user defined
-@code{struct}).  While a @code{StructArray} iterates @code{structs}, the layout
-is column based (meaning each field of the @code{struct} is stored in a separate
-@code{Array}).")
     (license license:expat)))
 
 (define-public julia-earcut-jll
