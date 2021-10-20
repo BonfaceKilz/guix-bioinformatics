@@ -1078,60 +1078,6 @@ that still support Julia versions older than 1.6.")
 visualisation applications.")
     (license license:expat)))
 
-;; TODO: Unbundle fonts: lib/gks/fonts/
-(define-public gr-framework
-  (package
-    (name "gr-framework")
-    (version "0.58.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/sciapp/gr")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "0q1rz4iyxbh0dc22y4w28ry3hr0yypdwdm6pw2zlwgjya7wkbvsw"))
-        (modules '((guix build utils)))
-        (snippet
-         '(begin
-            (delete-file-recursively "3rdparty")
-            #t))))
-    (build-system cmake-build-system)
-    (arguments
-     `(#:tests? #f))    ; no test target
-    (inputs
-     ;; Missing? opengl, zeromq
-     ;; opengl found. "unsuitable qt version"
-     `(("bzip2" ,(S "bzip2"))
-       ("cairo" ,(S "cairo"))
-       ("fontconfig" ,(S "fontconfig"))
-       ("ffmpeg" ,(S "ffmpeg"))
-       ("freetype" ,(@ (gnu packages fontutils) freetype))
-       ("ghostscript" ,(S "ghostscript"))
-       ("glfw" ,(S "glfw"))
-       ("libjpeg-turbo" ,(@ (gnu packages image) libjpeg-turbo))
-       ("libpng" ,(@ (gnu packages image) libpng))
-       ("libtiff" ,(S "libtiff"))
-       ("libx11" ,(@ (gnu packages xorg) libx11))
-       ("libxft" ,(@ (gnu packages xorg) libxft))
-       ("libxt" ,(@ (gnu packages xorg) libxt))
-       ("pixman" ,(S "pixman"))
-       ("qtbase" ,(@ (gnu packages qt) qtbase-5))
-       ("qhull" ,(@ (gnu packages maths) qhull))
-       ("zlib" ,zlib)))
-    (home-page "https://gr-framework.org/")
-    (synopsis "Graphics library for visualisation applications")
-    (description "GR is a universal framework for cross-platform visualization
-applications.  It offers developers a compact, portable and consistent graphics
-library for their programs.  Applications range from publication quality 2D
-graphs to the representation of complex 3D scenes.  GR is essentially based on
-an implementation of a @acronym{GKS, Graphical Kernel System}.  As a
-self-contained system it can quickly and easily be integrated into existing
-applications (i.e. using the @code{ctypes} mechanism in Python or @code{ccall}
-in Julia).")
-    (license license:expat)))
-
 ;; ready to upstream
 (define-public julia-gr-jll
   (package
