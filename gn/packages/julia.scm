@@ -737,6 +737,7 @@ differentiation, evaluation, and root finding over dense univariate
 polynomials.")
     (license license:expat)))
 
+;; This package depends on TimeZones.jl.
 (define-public julia-intervals
   (package
     (name "julia-intervals")
@@ -754,13 +755,14 @@ polynomials.")
     (arguments
      `(#:tests? #f))    ; TODO: Fix! broken with timezone stuff
     (propagated-inputs
-     `(
-       ("julia-documenter" ,julia-documenter)
-       ("julia-infinity" ,julia-infinity)
-       ("julia-recipesbase" ,julia-recipesbase)
-       ))
+     `(("julia-recipesbase" ,julia-recipesbase)
+       ("julia-timezones" ,julia-timezones)))
     (native-inputs
-     `(
+     `(("julia-documenter" ,julia-documenter)
+       ;("julia-imagemagick" ,julia-imagemagick)
+       ;("julia-infinity" ,julia-infinity)
+       ;("julia-plots" ,julia-plots)
+       ;("julia-visualregressiontests" ,julia-visualregressiontests)
        ))
     (home-page "https://github.com/invenia/Intervals.jl")
     (synopsis "Non-iterable ranges")
@@ -784,14 +786,20 @@ polynomials.")
         (sha256
          (base32 "1941lwvrdjnrynigzixxin3chpg1ba6xplvcwc89x0f6z658hwmm"))))
     (build-system julia-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'remove-timezones.jl
+           (lambda _
+             (substitute* "test/runtests.jl"
+               (("using TimeZones.*") "")
+               ((".*infextendedtime.*") ""))
+             #t)))))
     (propagated-inputs
-     `(("julia-compat" ,julia-compat)
-       ("julia-requires" ,julia-requires)
-       ("julia-timezones" ,julia-timezones)))
+     `(("julia-requires" ,julia-requires)))
     (native-inputs
-     `(("julia-compat" ,julia-compat)
-       ("julia-timezones" ,julia-timezones)))
-    (home-page "https://juliahub.com/docs/Infinity/")
+     `(("julia-compat" ,julia-compat)))
+    (home-page "https://docs.juliahub.com/Infinity/")
     (synopsis "Representation of infinity in Julia")
     (description "This package provides representations for infinity and
 negative infinity in Julia.")
@@ -799,6 +807,7 @@ negative infinity in Julia.")
 
 ;; TODO: Keep this in sync with tzdata in base.scm
 ;; Package can use more work
+;; Need to figure out how to generate Artifacts.toml from tzdata package
 (define-public julia-timezones
   (package
     (name "julia-timezones")
@@ -894,33 +903,30 @@ that still support Julia versions older than 1.6.")
         (sha256
          (base32 "0fsqm89dqrn9bd466v79544hcd5ljn5ikg6x94hfcashjwa5y0g2"))))
     (build-system julia-build-system)
-    ;(arguments
-    ; `(#:tests? #f))   ; GTK.jl not packaged yet
+    (arguments
+     `(#:tests? #f))   ; GTK.jl not packaged yet
     (propagated-inputs
-     `(
-       ;("julia-colortypes" ,julia-colortypes)
-       ;("julia-colorvectorspace" ,julia-colorvectorspace)
-       ;("julia-fileio" ,julia-fileio)
+     `(("julia-colortypes" ,julia-colortypes)
+       ("julia-colorvectorspace" ,julia-colorvectorspace)
+       ("julia-fileio" ,julia-fileio)
        ;("julia-imagefiltering" ,julia-imagefiltering)
-       ;("julia-imagemagick" ,julia-imagemagick)
+       ("julia-imagemagick" ,julia-imagemagick)
        ;("julia-quartzimageio" ,julia-quartzimageio)
-       ;("julia-requires" ,julia-requires)
-       ))
-    (native-inputs
-     `(
-       ;("julia-gtk" ,julia-gtk)
-       ;("julia-plots" ,julia-plots)
-       ;("julia-testimages" ,julia-testimages)
-       ))
+       ("julia-requires" ,julia-requires)))
+    ;(native-inputs
+    ; `(;("julia-gtk" ,julia-gtk)
+    ;   ("julia-plots" ,julia-plots)
+    ;   ("julia-testimages" ,julia-testimages)))
     (home-page "https://github.com/JuliaPlots/VisualRegressionTests.jl")
     (synopsis "Automated integrated regression tests for graphics libraries")
     (description "Easy regression testing for visual packages.  Automated tests compare similarity between a newly generated image and a reference image using the Images package.  While in interactive mode, the tests can optionally pop up a Gtk GUI window showing a side-by-side comparison of the test and reference image, and then optionally overwrite the reference image with the test image.  This allows for straightforward regression testing of image data, even when the \"correct\" images change over time.")
     (license license:expat)))
 
+;; ready to upstream
 (define-public julia-geometrybasics
   (package
     (name "julia-geometrybasics")
-    (version "0.3.13")
+    (version "0.4.1")
     (source
       (origin
         (method git-fetch)
@@ -929,36 +935,40 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "05wq41s6c69zay2awgdhjld8gsycdb5jbvf6a785i3f12av6ndk0"))))
+         (base32 "057j3hjpli3q5b98cqkpi4p10x2k9pyksrz62hjmv1kb5qzdvhsj"))))
     (build-system julia-build-system)
     (arguments
-     `(;#:tests? #f
-       #:phases
+     `(#:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'remove-earcut
            (lambda _
              (substitute* '("Project.toml"
                             "src/GeometryBasics.jl")
                ((".*EarCut.*") ""))
-             #t)))
-     ))
+             #t))
+         (add-after 'unpack 'skip-incompatible-test
+           (lambda _
+             (substitute* "test/runtests.jl"
+               (("@testset.*MetaT and heterogeneous data.*" all)
+                (string-append all "return\n")))
+             #t)))))
     (propagated-inputs
-     `(
-       ;("julia-earcut-jll" ,julia-earcut-jll)
-       ("julia-itertools" ,julia-itertools)
+     `(("julia-itertools" ,julia-itertools)
        ("julia-staticarrays" ,julia-staticarrays)
        ("julia-structarrays" ,julia-structarrays)
-       ("julia-tables" ,julia-tables)
-       ))
+       ("julia-tables" ,julia-tables)))
     (native-inputs
-     `(
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ))
+     `(("julia-offsetarrays" ,julia-offsetarrays)))
     (home-page "https://github.com/JuliaGeometry/GeometryBasics.jl")
     (synopsis "Basic Geometry Types")
-    (description "This package aims to offer a standard set of Geometry types, which easily work with metadata, query frameworks on geometries and different memory layouts.  The aim is to create a solid basis for Graphics/Plotting, finite elements analysis, Geo applications, and general geometry manipulations - while offering a julian API, that still allows performant C-interop.")
+    (description "This package aims to offer a standard set of Geometry types,
+which easily work with metadata, query frameworks on geometries and different
+memory layouts.  The aim is to create a solid basis for Graphics/Plotting,
+finite elements analysis, Geo applications, and general geometry manipulations
+- while offering a Julian API, that still allows performant C-interop.")
     (license license:expat)))
 
+;; https://github.com/JuliaPackaging/Yggdrasil/tree/7e9ec714d786c4c841a80bdf75b84570c5bda7a1/E/EarCut
 (define-public julia-earcut-jll
   ;; Only release tag contains just a license file.
   (let ((commit "b234ae0c064af12eb5482c7474a64af8be0f511e")
@@ -1004,7 +1014,7 @@ that still support Julia versions older than 1.6.")
 (define-public earcut
   (package
     (name "earcut")
-    (version "0.12.4")
+    (version "2.2.3")
     (source
       (origin
         (method git-fetch)
@@ -1013,7 +1023,7 @@ that still support Julia versions older than 1.6.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1lfvh7shr82g10z3ydw7rll80nyi8nba41ykkgrghh95gvr6m3k7"))
+         (base32 "19qpmpz2sh80lqpvvn08r0k28s3v0vlzb72kg3b56rcwxxknkk5l"))
         (modules '((guix build utils)))
         (snippet
          '(begin
@@ -1022,10 +1032,8 @@ that still support Julia versions older than 1.6.")
             #t))))
     (build-system cmake-build-system)
     (arguments
-     `(;#:tests? #f
-       #:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
-                           "-DEARCUT_BUILD_VIZ=OFF"
-                           )
+     `(#:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
+                           "-DEARCUT_BUILD_VIZ=OFF")
        #:phases
        (modify-phases %standard-phases
          (replace 'check
@@ -1048,10 +1056,10 @@ that still support Julia versions older than 1.6.")
        ))
     (native-inputs
      `(
-       ;("boost" ,(@ (gnu packages boost) boost))   ; not needed for tests?
+       ;("boost" ,(@ (gnu packages boost) boost))   ; for bench
        ))
     (home-page "https://github.com/mapbox/earcut.hpp")
-    (synopsis "")
+    (synopsis "Header version of EarCut.js")
     (description "")
     (license license:expat)))
 
@@ -1109,7 +1117,7 @@ visualisation applications.")
                ;; There's a Julia file for each platform, override them all
                (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs
-     `(("gr-framework" ,gr-framework)))
+     `(("gr-framework" ,(S "gr-framework"))))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)
        ("julia-bzip2-jll" ,julia-bzip2-jll)
