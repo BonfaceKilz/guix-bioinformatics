@@ -771,40 +771,6 @@ polynomials.")
                      AbstractInterval, along with its subtypes Interval and AnchoredInterval, and also Bound.")
     (license license:expat)))
 
-;; ready to upstream
-(define-public julia-infinity
-  (package
-    (name "julia-infinity")
-    (version "0.2.4")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/cjdoris/Infinity.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "1941lwvrdjnrynigzixxin3chpg1ba6xplvcwc89x0f6z658hwmm"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'remove-timezones.jl
-           (lambda _
-             (substitute* "test/runtests.jl"
-               (("using TimeZones.*") "")
-               ((".*infextendedtime.*") ""))
-             #t)))))
-    (propagated-inputs
-     `(("julia-requires" ,julia-requires)))
-    (native-inputs
-     `(("julia-compat" ,julia-compat)))
-    (home-page "https://docs.juliahub.com/Infinity/")
-    (synopsis "Representation of infinity in Julia")
-    (description "This package provides representations for infinity and
-negative infinity in Julia.")
-    (license license:expat)))
-
 ;; TODO: Keep this in sync with tzdata in base.scm
 ;; Package can use more work
 ;; Need to figure out how to generate Artifacts.toml from tzdata package
@@ -922,52 +888,6 @@ that still support Julia versions older than 1.6.")
     (description "Easy regression testing for visual packages.  Automated tests compare similarity between a newly generated image and a reference image using the Images package.  While in interactive mode, the tests can optionally pop up a Gtk GUI window showing a side-by-side comparison of the test and reference image, and then optionally overwrite the reference image with the test image.  This allows for straightforward regression testing of image data, even when the \"correct\" images change over time.")
     (license license:expat)))
 
-;; ready to upstream
-(define-public julia-geometrybasics
-  (package
-    (name "julia-geometrybasics")
-    (version "0.4.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaGeometry/GeometryBasics.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "057j3hjpli3q5b98cqkpi4p10x2k9pyksrz62hjmv1kb5qzdvhsj"))))
-    (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'remove-earcut
-           (lambda _
-             (substitute* '("Project.toml"
-                            "src/GeometryBasics.jl")
-               ((".*EarCut.*") ""))
-             #t))
-         (add-after 'unpack 'skip-incompatible-test
-           (lambda _
-             (substitute* "test/runtests.jl"
-               (("@testset.*MetaT and heterogeneous data.*" all)
-                (string-append all "return\n")))
-             #t)))))
-    (propagated-inputs
-     `(("julia-itertools" ,julia-itertools)
-       ("julia-staticarrays" ,julia-staticarrays)
-       ("julia-structarrays" ,julia-structarrays)
-       ("julia-tables" ,julia-tables)))
-    (native-inputs
-     `(("julia-offsetarrays" ,julia-offsetarrays)))
-    (home-page "https://github.com/JuliaGeometry/GeometryBasics.jl")
-    (synopsis "Basic Geometry Types")
-    (description "This package aims to offer a standard set of Geometry types,
-which easily work with metadata, query frameworks on geometries and different
-memory layouts.  The aim is to create a solid basis for Graphics/Plotting,
-finite elements analysis, Geo applications, and general geometry manipulations
-- while offering a Julian API, that still allows performant C-interop.")
-    (license license:expat)))
-
 ;; https://github.com/JuliaPackaging/Yggdrasil/tree/7e9ec714d786c4c841a80bdf75b84570c5bda7a1/E/EarCut
 (define-public julia-earcut-jll
   ;; Only release tag contains just a license file.
@@ -1061,79 +981,6 @@ finite elements analysis, Geo applications, and general geometry manipulations
     (home-page "https://github.com/mapbox/earcut.hpp")
     (synopsis "Header version of EarCut.js")
     (description "")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-gr
-  (package
-    (name "julia-gr")
-    (version "0.58.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/jheinen/GR.jl")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "18zxa1w2wmrf44c5l10qbh99zjdp7h94gxlymh47cf5kj5fc4xmx"))))
-    (build-system julia-build-system)
-    (propagated-inputs
-     `(("julia-gr-jll" ,julia-gr-jll)))
-    (home-page "https://github.com/jheinen/GR.jl")
-    (synopsis "Plotting for Julia based on GR")
-    (description "This module provides a Julia interface to GR, a framework for
-visualisation applications.")
-    (license license:expat)))
-
-;; ready to upstream
-(define-public julia-gr-jll
-  (package
-    (name "julia-gr-jll")
-    (version "0.58.1+0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/JuliaBinaryWrappers/GR_jll.jl")
-               (commit (string-append "GR-v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32 "16m22n0wh86v3lh0im2pc9bg381djbmqji5hjx42j6aaz634gqiq"))))
-    (build-system julia-build-system)
-    (arguments
-     '(#:tests? #f  ; no runtests
-       #:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'override-binary-path
-           (lambda* (#:key inputs #:allow-other-keys)
-             (map
-               (lambda (wrapper)
-                 (substitute* wrapper
-                   (("generate_wrapper_header.*")
-                    (string-append
-                      "generate_wrapper_header(\"GR\", \""
-                      (assoc-ref inputs "gr-framework") "\")\n"))))
-               ;; There's a Julia file for each platform, override them all
-               (find-files "src/wrappers/" "\\.jl$")))))))
-    (inputs
-     `(("gr-framework" ,(S "gr-framework"))))
-    (propagated-inputs
-     `(("julia-jllwrappers" ,julia-jllwrappers)
-       ("julia-bzip2-jll" ,julia-bzip2-jll)
-       ("julia-cairo-jll" ,julia-cairo-jll)
-       ("julia-ffmpeg-jll" ,julia-ffmpeg-jll)
-       ("julia-fontconfig-jll" ,julia-fontconfig-jll)
-       ("julia-glfw-jll" ,julia-glfw-jll)
-       ("julia-jpegturbo-jll" ,julia-jpegturbo-jll)
-       ("julia-libpng-jll" ,julia-libpng-jll)
-       ("julia-libtiff-jll" ,julia-libtiff-jll)
-       ("julia-pixman-jll" ,julia-pixman-jll)
-       ("julia-qt5base-jll" ,julia-qt5base-jll)
-       ("julia-zlib-jll" ,julia-zlib-jll)))
-    (home-page "https://github.com/JuliaBinaryWrappers/GR_jll.jl")
-    (synopsis "GR framework library wrappers")
-    (description "This package provides a wrapper for the GR framework.")
     (license license:expat)))
 
 (define-public julia-binaryprovider
