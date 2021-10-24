@@ -4,9 +4,9 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
-  #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system julia)
+  #:use-module (guix build-system trivial)
   #:use-module (gnu packages)
   #:use-module (gn packages cran)
   #:use-module (gnu packages bioinformatics)
@@ -516,7 +516,7 @@ and numerical functions for statistical computing.")
     (license license:expat)))
 
 ;; ready to upstream
-(define-public rmath-julia
+(define-public rmath-for-julia-rmath-jll
   ;; More recent commits fix various build issues
   (let ((commit "5c5dfd6baca358103fbb47cc03dc0ecee04fb1ff")
         (revision "1"))
@@ -589,9 +589,9 @@ functions.")
     (propagated-inputs
      `(("julia-rmath-jll" ,julia-rmath-jll)))
     (inputs
-     `(("rmath" ,rmath-julia)))
+     `(("rmath" ,rmath-for-julia-rmath-jll)))
     (native-inputs
-     `(("rmath" ,rmath-julia)))
+     `(("rmath" ,rmath-for-julia-rmath-jll)))
     (home-page "https://github.com/JuliaStats/Rmath.jl")
     (synopsis "Emulate R's d-p-q-r functions for probability distributions")
     (description "This package provides an archive of functions that emulate
@@ -630,7 +630,7 @@ R's d-p-q-r functions for probability distributions.  It is a wrapper around
               ;; There's a Julia file for each platform, override them all
               (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs
-     `(("rmath" ,rmath-julia)))
+     `(("rmath" ,rmath-for-julia-rmath-jll)))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)))
     (home-page "https://github.com/JuliaBinaryWrappers/Rmath_jll.jl")
@@ -923,7 +923,7 @@ that still support Julia versions older than 1.6.")
               (find-files "src/wrappers/" "\\.jl$"))
              #t)))))
     (inputs                             ;required by artifacts
-     `(("earcut" ,earcut)))
+     `(("earcut" ,earcut-for-julia-earcut-jll)))
     (propagated-inputs
      `(("julia-jllwrappers" ,julia-jllwrappers)))
     (home-page "https://github.com/JuliaBinaryWrappers/EarCut_jll.jl")
@@ -931,9 +931,9 @@ that still support Julia versions older than 1.6.")
     (description "")
     (license license:expat))))
 
-(define-public earcut
+(define-public earcut-for-julia-earcut-jll
   (package
-    (name "earcut")
+    (name "earcut-for-julia-earcut-jll")
     (version "2.2.3")
     (source
       (origin
@@ -950,37 +950,49 @@ that still support Julia versions older than 1.6.")
             (substitute* "CMakeLists.txt"
               ((".*add_subdirectory.*") ""))
             #t))))
-    (build-system cmake-build-system)
+    (build-system trivial-build-system)
     (arguments
-     `(#:configure-flags '("-DEARCUT_BUILD_BENCH=OFF"
-                           "-DEARCUT_BUILD_VIZ=OFF")
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
-             (when tests?
-               (invoke "./tests"))
-             #t))
-         ;; no install target, but no shared library either
-         ;(replace 'install
-         ;  (lambda* (#:key outputs #:allow-other-keys)
-         ;    (let ((out (assoc-ref outputs "out")))
-         )
-       ))
-    (propagated-inputs
-     `(
-       ))
+     `(#:modules ((guix build utils))
+       #:builder
+       (let ((out (assoc-ref %outputs "out"))
+             (source (assoc-ref %build-inputs "source"))
+             (cwrapper.cpp (assoc-ref %build-inputs "cwrapper.cpp")))
+         (begin
+           (use-modules (guix build utils))
+           (setenv "PATH"
+                   (string-append
+                     (assoc-ref %build-inputs "gcc-toolchain") "/bin:"
+                     (assoc-ref %build-inputs "xz") "/bin"))
+           (invoke
+             (string-append (assoc-ref %build-inputs "tar") "/bin/tar") "xvf" source)
+           (copy-file
+             (string-append ,name "-" ,version "-checkout/include/mapbox/earcut.hpp")
+             "earcut.h")
+           (copy-file cwrapper.cpp "cwrapper.cpp")
+           (invoke ,(cxx-for-target)
+                  "-std=c++11"
+                  "-fPIC"
+                  "-shared"
+                  "-o" "libearcut.so"
+                  "cwrapper.cpp")
+           (install-file "libearcut.so"
+                         (string-append out "/lib"))))))
     (inputs
-     `(
-       ;("glfw" ,(@ (gnu packages gl) glfw))    ; for VIZ
-       ))
+     `(("gcc-toolchain" ,(S "gcc-toolchain"))
+       ("cwrapper.cpp"
+        ,(origin
+           (method url-fetch)
+           (uri "https://raw.githubusercontent.com/JuliaPackaging/Yggdrasil/7e9ec714d786c4c841a80bdf75b84570c5bda7a1/E/EarCut/bundled/cwrapper.cpp")
+           (file-name (string-append "cwrapper-for-earcut-for-julia-earcut-jll-" version ".cpp"))
+           (sha256
+            (base32 "0yf0r20306qsk1yrls5cz34vpfiazfdqc44f3mqmi76yq1ii0n09"))))))
     (native-inputs
-     `(
-       ;("boost" ,(@ (gnu packages boost) boost))   ; for bench
-       ))
+     `(("tar" ,(S "tar"))
+       ("xz" ,(S "xz"))))
     (home-page "https://github.com/mapbox/earcut.hpp")
     (synopsis "Header version of EarCut.js")
     (description "")
+    (properties '((hidden? . #t)))
     (license license:expat)))
 
 (define-public julia-binaryprovider
