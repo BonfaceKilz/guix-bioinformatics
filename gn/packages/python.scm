@@ -632,17 +632,18 @@ the older versions.")
     (name "python-htmlgen")
     (version "2.0.0")
     (source
-     (origin
-       (method url-fetch)
-       (uri (string-append
-	     "https://github.com/srittau/python-htmlgen/archive/v"
-	     version ".tar.gz"))
-       (sha256
-	(base32
-	 "0qx8dsh0kb79qk2a9gdxdjij21ja3hzya277sjk5imk60aiwa6l9"))))
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/srittau/python-htmlgen")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32
+          "11hfx5x3jg4hyfxzav6ypsb57mahb5nk6qzg4zn1pyy1lilllqj6"))))
     (build-system python-build-system)
-    (arguments
-     `(#:tests? #f))
+    (native-inputs
+     `(("python-asserts" ,python-asserts)))
     (synopsis "Python HTML 5 Generator")
     (description "This is a python library for generating html from classes.")
     (home-page "https://github.com/srittau/python-htmlgen")
@@ -650,6 +651,26 @@ the older versions.")
 
 (define-public python2-htmlgen
   (package-with-python2 python-htmlgen))
+
+(define-public python-asserts
+  (package
+    (name "python-asserts")
+    (version "0.10.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/srittau/python-asserts")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "10lzdbhyl1s1fpq34prhi288wcigrk0z4hphql20pyjxx6yla8ya"))))
+    (build-system python-build-system)
+    (synopsis "Stand-alone Assertions for Python")
+    (description "This is a python library that can provide assertions in a
+stand-alone manner.")
+    (home-page "https://github.com/srittau/python-asserts")
+    (license license:expat)))
 
 (define-public python-version
 (let ((commit "e5aadc720bb74c535f29e5a2de5cd9697efe8d7c"))
