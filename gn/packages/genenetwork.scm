@@ -186,6 +186,7 @@
          ("glibc-utf8-locales" ,glibc-utf8-locales)
          ("nginx" ,nginx)
          ("python" ,python-wrapper)
+         ("python-deprecated" ,python-deprecated)
          ("python-pillow" ,python-pillow)
          ("python-coverage" ,python-coverage)
          ("python-configparser" ,python-configparser) ;; maintenance/scripts
