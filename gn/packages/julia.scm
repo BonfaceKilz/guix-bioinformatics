@@ -297,12 +297,12 @@ distributed computing.")
     (description "Julia package for probability distributions and associated
 functions.  Particularly, @code{Distributions} implements:
 @enumerate
-@enum Moments (e.g mean, variance, skewness, and kurtosis), entropy, and other
+@item Moments (e.g mean, variance, skewness, and kurtosis), entropy, and other
 properties
-@enum Probability density/mass functions (pdf) and their logarithm (logpdf)
-@enum Moment generating functions and characteristic functions
-@enum Sampling from population or from a distribution
-@enum Maximum likelihood estimation
+@item Probability density/mass functions (pdf) and their logarithm (logpdf)
+@item Moment generating functions and characteristic functions
+@item Sampling from population or from a distribution
+@item Maximum likelihood estimation
 @end enumerate")
     (license license:expat)))
 

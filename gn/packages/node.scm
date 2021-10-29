@@ -1648,7 +1648,7 @@ from C are supported as well as some other extensions from Ruby.")
        ;("node-winston-compat" ,node-winston-compat)
        ))
     (home-page "https://github.com/winstonjs/winston-transport")
-    (synopsis "Base stream implementations for winston@3 and up")
+    (synopsis "Base stream implementations for winston@@3 and up")
     (description "The base TransportStream implementation for winston >= 3. Use these to write ecosystem Transports for winston.")
     (license license:expat)))
 
