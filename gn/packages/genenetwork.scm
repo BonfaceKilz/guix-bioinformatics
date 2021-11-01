@@ -129,6 +129,7 @@
                            ("python-redis" ,python-redis)
                            ("python-requests" ,python-requests)
                            ("python-scipy" ,python-scipy)
+                           ("python-pingouin" ,python-pingouin)
                            ("python-plotly" ,python-plotly)
                            ("python-sqlalchemy-stubs"
                             ,python-sqlalchemy-stubs)
