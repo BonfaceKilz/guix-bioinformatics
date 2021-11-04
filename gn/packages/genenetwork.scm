@@ -99,7 +99,7 @@
 
 
 (define-public genenetwork3
-  (let ((commit "77c274b79c3ec01de60e90db3299763cb58f715b"))
+  (let ((commit "9e0fa5f3bbad6ad8c1d3306e986f58d6e6ac9c16"))
     (package
       (name "genenetwork3")
       (version (string-append "0.0.1-guix-" (string-take commit 7)))
@@ -112,7 +112,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "0ha70ibr7dqz0kzmgccx5l6nrmmf2a2mj7scg6jllx232crjby72"))))
+           "1nrxdshm7ilhkkwhcfddgrgg5cdm8vlcl71nfvh1bfxcl5153xld"))))
       (propagated-inputs `(("coreutils" ,coreutils)
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("csvdiff" ,go-github-com-aswinkarthik-csvdiff)
