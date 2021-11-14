@@ -1484,7 +1484,7 @@ suitable for long reads, but works also well with short reads.")
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
-                       (url "https://github.com/arvados/bh20-seq-resource")
+                       (url "https://github.com/pubseq/bh20-seq-resource")
                        (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
@@ -1518,7 +1518,7 @@ suitable for long reads, but works also well with short reads.")
          ("python-pytest" ,python-pytest-4)
          ("python-pytest-runner" ,python-pytest-runner-2)
          ("python-uritemplate" ,python-uritemplate)))
-      (home-page "https://github.com/arvados/bh20-seq-resource")
+      (home-page "https://github.com/pubseq/bh20-seq-resource")
       (synopsis
        "Tool to upload SARS-CoV-19 sequences and service to kick off analysis")
       (description "This repository provides a sequence uploader for the
