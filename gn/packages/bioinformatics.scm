@@ -21,6 +21,7 @@
   #:use-module (gn packages python)
   #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
+  #:use-module (gnu packages assembly)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
@@ -35,6 +36,7 @@
   #:use-module (gnu packages curl)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages datastructures)
+  #:use-module (gnu packages digest)
   #:use-module (gnu packages elf)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
@@ -2447,3 +2449,64 @@ capable of assembling a human genome on a desktop computer in a day.  The output
 of Minia is a set of contigs.  Back when it was released, Minia produced results
 of similar contiguity and accuracy to other de Bruijn assemblers (e.g. Velvet).")
     (license license:agpl3+)))
+
+(define-public metaeuk
+  (package
+    (name "metaeuk")
+    (version "5-34c21f2")       ; As seen upstream.
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/soedinglab/metaeuk")
+                     (commit version)
+                     (recursive? #t)))      ; Only contains the tests.
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "0pqiqy3wycn9h3y699b5drd3y4zmz087bwgdxx6wbbqqipa6wk0j"))
+              (modules '((guix build utils)))
+              (snippet
+               '(begin
+                  ;(delete-file-recursively "lib/mmseqs/lib/gzstream")
+                  (delete-file-recursively "lib/mmseqs/lib/simde")
+                  (delete-file-recursively "lib/mmseqs/lib/xxhash")
+                  (delete-file-recursively "lib/mmseqs/lib/zstd")))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:configure-flags '("-DUSE_SYSTEM_ZSTD=YES")
+       #:substitutable? #f      ; We want the native build.
+       #:tests? #f              ; TODO
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'use-shared-libraries
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "lib/mmseqs/CMakeLists.txt"
+               (("libzstd\\.a") "libzstd.so")
+               (("libzstd_static") "libzstd_shared")
+               ;(("lib/gzstream")
+               ; (string-append (assoc-ref inputs "gzstream") "/include"))
+               (("lib/xxhash")
+                (string-append (assoc-ref inputs "xxhash") "/include"))
+               (("lib/simde")
+                (string-append (assoc-ref inputs "simde") "/include/simde")))
+             #t)))))
+    (inputs
+     `(("bzip2" ,bzip2)
+       ("zlib" ,zlib)
+       ("zstd:lib" ,zstd "lib")))
+    (native-inputs
+     `(;("gzstream" ,gzstream)
+       ("simde" ,simde)
+       ("xxd" ,xxd)
+       ("xxhash" ,xxhash)))
+    (home-page "https://github.com/soedinglab/metaeuk")
+    (synopsis
+     "Gene discovery and annotation for large-scale eukaryotic metagenomics")
+    (description
+     "MetaEuk is a modular toolkit designed for large-scale gene discovery and
+annotation in eukaryotic metagenomic contigs.  MetaEuk combines the fast and
+sensitive homology search capabilities of
+@url{https://github.com/soedinglab/MMseqs2, MMseqs2} with a dynamic programming
+procedure to recover optimal exons sets.  It reduces redundancies in multiple
+discoveries of the same gene and resolves conflicting gene predictions on the
+same strand.")
+    (license license:gpl3)))
