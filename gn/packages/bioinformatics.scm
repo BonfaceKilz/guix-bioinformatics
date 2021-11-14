@@ -66,6 +66,7 @@
   #:use-module (gnu packages serialization)
   #:use-module (gnu packages shells)
   #:use-module (gnu packages statistics)
+  #:use-module (gnu packages sqlite)
   #:use-module (gnu packages tcl)
   #:use-module (gnu packages time)
   #:use-module (gnu packages tls)
@@ -2510,3 +2511,92 @@ procedure to recover optimal exons sets.  It reduces redundancies in multiple
 discoveries of the same gene and resolves conflicting gene predictions on the
 same strand.")
     (license license:gpl3)))
+
+(define-public augustus
+  (package
+    (name "augustus")
+    (version "3.4.0")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/Gaius-Augustus/Augustus")
+                     (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "1nc4nddcxi98fb14vmgj7x5aw5vglm4amzraqibgzmigpqnca68f"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:make-flags (list (string-append "CC=" ,(cc-for-target))
+                          (string-append "CXX=" ,(cxx-for-target)))
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)    ; No configure script
+         (add-after 'unpack 'adjust-sources
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "common.mk"
+               ;; Has the wrong version.
+               (("AUGVERSION = .*")
+                (string-append "AUGVERSION = " ,version "\n"))
+               ;; Looks for ancient version of mysql.
+               (("COMPGENEPRED = ")
+                "SQLITE=true\nMYSQL = false\nCOMPGENEPRED = "))
+             (substitute* "src/Makefile"
+               (("/usr/include/lpsolve")
+                (string-append (assoc-ref inputs "lpsolve") "/include/lpsolve")))
+             (substitute* (find-files "auxprogs" "Makefile")
+               (("/usr/include/bamtools")
+                (string-append (assoc-ref inputs "bamtools") "/include/bamtools"))
+               (("/usr/include/htslib")
+                (string-append (assoc-ref inputs "htslib") "/include/htslib"))
+               (("/usr/include/boost")
+                (string-append (assoc-ref inputs "boost") "/include/boost")))
+             #t))
+         (replace 'check
+           (lambda args
+             ;; These tests rely on mysql.
+             ;(apply (assoc-ref %standard-phases 'check)
+             ;       `(,@args #:test-target "unit_test"))
+             (apply (assoc-ref %standard-phases 'check)
+                    `(,@args #:test-target "test"))))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (bin (string-append out "/bin"))
+                    (share (string-append out "/share/augstus"))
+                    (scripts (string-append share "/scripts")))
+               ;; Install targets taken from Debian.
+               (install-file "auxprogs/bam2wig/bam2wig" bin)
+               (install-file "auxprogs/compileSpliceCands/compileSpliceCands" bin)
+               (install-file "auxprogs/homGeneMapping/src/homGeneMapping" bin)
+               (install-file "auxprogs/joingenes/joingenes" bin)
+               (mkdir-p scripts)
+               (copy-recursively "scripts" scripts)
+               (copy-recursively "config" share)
+               (with-directory-excursion "scripts"
+                 (for-each delete-file (cons "executeTestCGP.py"
+                                             (find-files "." "\\.txt$"))))
+               (for-each make-file-writable (find-files out "\\.gz$"))
+               #t))))))
+    (inputs
+     `(("boost" ,boost)
+       ("htslib" ,htslib)
+       ("perl" ,perl)
+       ("python" ,python)
+       ("sqlite" ,sqlite)
+       ("zlib" ,zlib)))
+    (native-inputs
+     `(("bamtools" ,bamtools)
+       ("gsl" ,gsl)
+       ("gzip" ,gzip)
+       ("lpsolve" ,lpsolve)
+       ("samtools" ,samtools)
+       ("suitesparse" ,suitesparse)))
+    (home-page "http://bioinf.uni-greifswald.de/webaugustus/")
+    (synopsis "Genome annotation with AUGUSTUS")
+    (description "Augustus can be used as an ab initio program, which means it
+bases its prediction purely on the sequence.  AUGUSTUS may also incorporate
+hints on the gene structure coming from extrinsic sources such as EST, MS/MS,
+protein alignments and syntenic genomic alignments.")
+    (license (license:non-copyleft
+               "https://opensource.org/licenses/artistic-license-1.0"
+               "Artistic-license-1.0"))))
