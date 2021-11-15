@@ -45,6 +45,7 @@
   #:use-module (gnu packages guile)
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
+  #:use-module (gnu packages java)
   #:use-module (gnu packages jemalloc)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages machine-learning)
@@ -2600,3 +2601,201 @@ protein alignments and syntenic genomic alignments.")
     (license (license:non-copyleft
                "https://opensource.org/licenses/artistic-license-1.0"
                "Artistic-license-1.0"))))
+
+(define-public sepp
+  (package
+    (name "sepp")
+    (version "4.5.1")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/smirarab/sepp")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "1bw5gjhymq0a4slkk7pr5dl4jb9bnwv4qpn26mvwp8fx3aszvmij"))
+              (modules '((guix build utils)))
+              (snippet
+               '(begin
+                  (delete-file-recursively "tools/bundled")
+                  (mkdir-p "tools/bundled/Linux")
+                  (for-each (lambda (file)
+                              (with-output-to-file
+                                (string-append "tools/bundled/Linux/" file)
+                                (lambda _
+                                  (format #t ""))))
+                            '("guppy-32" "guppy-64"
+                              "hmmalign-32" "hmmalign-64"
+                              "hmmbuild-32" "hmmbuild-64"
+                              "hmmsearch-32" "hmmsearch-64"
+                              "pplacer-32" "pplacer-64"))
+                  ;; TODO: Rebuild java blob.
+                  ;(delete-file-recursively "tools/merge/lib")
+                  ;(delete-file "tools/merge/seppJsonMerger.jar")
+                  ;; This is a circular reference to the top directory ...
+                  (delete-file-recursively "sepp-package/sepp")))))
+    (build-system python-build-system)
+    (arguments
+     `(#:tests? #f      ; Test suite hangs.
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'check 'pre-check
+           (lambda* (#:key tests? inputs outputs #:allow-other-keys)
+             (let ((hmmer   (string-append (assoc-ref inputs "hmmer") "/bin/"))
+                   (pplacer (string-append (assoc-ref inputs "pplacer") "/bin/"))
+                   (tools   "tools/bundled/Linux/"))
+               (for-each
+                 (lambda (target package)
+                   (delete-file (string-append tools target))
+                   (symlink (string-append package (string-drop-right target 3))
+                            (string-append tools target)))
+                 (list "guppy-32" "guppy-64"
+                       "hmmalign-32" "hmmalign-64"
+                       "hmmbuild-32" "hmmbuild-64"
+                       "hmmsearch-32" "hmmsearch-64"
+                       "pplacer-32" "pplacer-64")
+                 (list pplacer pplacer
+                       hmmer hmmer
+                       hmmer hmmer
+                       hmmer hmmer
+                       pplacer pplacer))
+               #t)))
+         (replace 'check
+           (lambda* (#:key tests? inputs outputs #:allow-other-keys)
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               ;; This test is upset we removed the Darwin binary.
+               (delete-file "test/unittest/testConfig.py")
+               ;; This test is missing its config file.
+               (delete-file "test/unittest/testUPP.py")
+               (invoke "nosetests" "-w" "test/unittest"))))
+         (replace 'build
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out       (assoc-ref outputs "out"))
+                    (home.path (string-append out "/share/sepp")))
+               (setenv "HOME" home.path)
+               (mkdir-p (string-append home.path "/.sepp"))
+               ;; configure with '-c' so our pretend bundled
+               ;; libraries aren't actually installed.
+               (invoke "python" "setup.py" "config" "-c")
+               #t)))
+         (add-after 'install 'copy-home.path
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((out       (assoc-ref outputs "out"))
+                    (home.path (string-append out "/share/sepp")))
+               (with-output-to-file (string-append out "/home.path")
+                 (lambda _
+                   (format #t "~a/.sepp"
+                           home.path)))
+               (with-output-to-file (string-append home.path "/.sepp/main.config")
+                 (lambda _
+                   (format #t "[pplacer]~@
+                           path=~a/bin/pplacer~@
+                           ~@
+                           [hmmalign]~@
+                           path=~a/bin/hmmalign~@
+                           ~@
+                           [hmmsearch]~@
+                           path=~a/bin/hmmsearch~@
+                           piped=False~@
+                           elim=10000~@
+                           filters=True~@
+                           ~@
+                           [hmmbuild]~@
+                           path=~a/bin/hmmbuild~@
+                           ~@
+                           [jsonmerger]~@
+                           path=~a/share/sepp/seppJsonMerger.jar~@
+                           ~@
+                           [exhaustive]~@
+                           strategy = centroid~@
+                           minsubsetsize = 2~@
+                           placementminsubsetsizefacotr = 4~@
+                           placer = pplacer~@
+                           weight_placement_by_alignment = True~%"
+                           (assoc-ref inputs "pplacer")
+                           (assoc-ref inputs "hmmer")
+                           (assoc-ref inputs "hmmer")
+                           (assoc-ref inputs "hmmer")
+                           out)))
+               (install-file "tools/merge/seppJsonMerger.jar"
+                             home.path)
+               (copy-file (string-append out "/home.path")
+                          (string-append (site-packages inputs outputs) "/home.path"))
+               #t))))))
+    (inputs
+     `(("hmmer" ,hmmer)
+       ("java" ,icedtea-8)
+       ("pplacer" ,pplacer)
+       ("python-dendropy" ,python-dendropy)))
+    (native-inputs
+     `(("python-nose" ,python-nose)))
+    (home-page "https://github.com/smirarab/sepp")
+    (synopsis "SATe enabled phylogenetic placement")
+    (description "SEPP operates by using a divide-and-conquer strategy adopted
+from SATe-II (@url{Liu et al. (Systematic Biology 2012),
+http://sysbio.oxfordjournals.org/content/61/1/90.full.pdf+html?sid=dd32838d-89dc-4bda-8008-6f948146341f}
+and @url{Liu et. al. (Science 2009),
+http://www.sciencemag.org/content/324/5934/1561.abstract}) to construct an
+Ensemble of @acronym{HMMs, Hidden Markov Models} to represent the input
+multiple sequence alignment `A`.  It then computes the fit of each query
+sequence in `X` to each HMM in the ensemble, and uses the highest scoring HMM to
+add the sequence to the input tree `T`.  This technique improves the accuracy of
+the placements of the query sequences compared to using a single HMM to
+represent the input alignment.  SEPP uses tools in HMMER to construct HMMs,
+compute the fit of sequences to HMMs, and add sequences to the alignment `A`.
+SEPP uses @code{pplacer} to add query sequences to the input tree `T`, after
+they are added to the alignment `A`.  SEPP is also used in other software,
+including @acronym{TIPP, taxonomic identical using phylogenetic placement} and
+@acronym{UPP, ultra-large alignments using phylogeny-aware profiles}.")
+    (license license:gpl3+)))
+
+(define-public busco
+  (package
+    (name "busco")
+    (version "5.2.2")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://gitlab.com/ezlab/busco")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "0l5bxg5311svfszqysd5dkakq7zsdgrv9a1iiwjsvjdz66f7db1p"))))
+    (build-system python-build-system)
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+             (when tests?
+               (begin (add-installed-pythonpath inputs outputs)
+                      (invoke "python" "setup.py" "check")))))
+         (add-after 'install 'wrap-binary
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (wrap-program (string-append out "/bin/busco")
+                 `("PATH" ":" prefix
+                   (,(string-append (assoc-ref inputs "augustus") "/bin")
+                     ,(string-append (assoc-ref inputs "blast") "/bin")
+                     ,(string-append (assoc-ref inputs "hmmer") "/bin")
+                     ,(string-append (assoc-ref inputs "metaeuk") "/bin")
+                     ,(string-append (assoc-ref inputs "prodigal") "/bin")
+                     ,(string-append (assoc-ref inputs "r") "/bin")
+                     ,(string-append (assoc-ref inputs "sepp") "/bin"))))
+               #t))))))
+    (inputs
+     `(("augustus" ,augustus)
+       ("blast" ,blast+)
+       ("hmmer" ,hmmer)
+       ("metaeuk" ,metaeuk)
+       ("prodigal" ,prodigal)
+       ("python-biopython" ,python-biopython)
+       ("python-pandas" ,python-pandas)
+       ("r" ,r)
+       ("sepp" ,sepp)))
+    (home-page "https://busco.ezlab.org/")
+    (synopsis "Assess genome assembly and annotation completeness")
+    (description "Assess genome assembly and annotation completeness with
+Benchmarking Universal Single-Copy Orthologs.")
+    (license license:expat)))
