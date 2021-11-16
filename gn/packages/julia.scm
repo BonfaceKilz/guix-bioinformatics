@@ -40,6 +40,7 @@
        `(#:tests? #f    ; no test suite
          #:phases
          (modify-phases %standard-phases
+           (delete 'link-depot)     ; Not really needed on this package.
            (add-after 'unpack 'patch-source
              (lambda* (#:key inputs #:allow-other-keys)
                (chmod "runpluto.sh" #o555)  ; it starts as #o444
@@ -222,7 +223,7 @@ distributed computing.")
        #:phases
        (modify-phases %standard-phases
          ;(delete 'precompile)
-         (add-after 'unpack 'hardcode-conda-path
+         (add-after 'link-depot 'hardcode-conda-path
            (lambda* (#:key inputs #:allow-other-keys)
              (substitute* "src/Conda.jl"
                (("bin_dir\\(ROOTENV\\), \"conda\"") (string-append "\"" (assoc-ref inputs "conda") "/bin/\", \"conda\"")))
@@ -424,12 +425,12 @@ optimization of functions.")
      `(#:tests? #f      ; Test suite fails to load HTTP.jl.
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'dont-check-for-upgrades
+         (add-after 'link-depot 'dont-check-for-upgrades
            (lambda _
              (substitute* "frontend/components/Welcome.js"
                (("local_index !== -1") "false"))
              #t))
-         (add-after 'unpack 'skip-network-tests
+         (add-after 'link-depot 'skip-network-tests
            (lambda _
              (substitute* "test/runtests.jl"
                ;; Attempts to update the package registry.
@@ -498,7 +499,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (arguments
      `(#:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'adjust-test-suite
+         (add-after 'link-depot 'adjust-test-suite
            (lambda _
              (substitute* "test/misc.jl"
                (("test logmvbeta\\(1") "test_nowarn logmvbeta(1"))
@@ -537,6 +538,7 @@ and numerical functions for statistical computing.")
        `(#:phases
          (modify-phases %standard-phases
            (delete 'precompile)     ; No Project.toml.
+           (delete 'link-depot)     ; Not really needed on this package.
            (replace 'check
              (lambda* (#:key tests? #:allow-other-keys)
                (when tests?
@@ -579,7 +581,7 @@ functions.")
     (arguments
      `(#:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'link-to-librmath-directly
+         (add-after 'link-depot 'link-to-librmath-directly
            (lambda* (#:key inputs #:allow-other-keys)
              (let* ((rmath    (assoc-ref inputs "rmath"))
                     (librmath (string-append rmath "/lib/libRmath-julia.so")))
@@ -618,7 +620,7 @@ R's d-p-q-r functions for probability distributions.  It is a wrapper around
      '(#:tests? #f  ; no runtests
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'override-binary-path
+         (add-after 'link-depot 'override-binary-path
            (lambda* (#:key inputs #:allow-other-keys)
              (map
               (lambda (wrapper)
@@ -656,7 +658,7 @@ R's d-p-q-r functions for probability distributions.  It is a wrapper around
     (arguments
      `(#:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'skip-optim-tests
+         (add-after 'link-depot 'skip-optim-tests
            (lambda _
              (substitute* "test/examples.jl"
                ;; Prevent a cycle with Optim.jl.
@@ -792,7 +794,7 @@ polynomials.")
      `(#:tests? #f    ; Tests attempt to download timezone information
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'patch-tzdata
+         (add-after 'link-depot 'patch-tzdata
            (lambda* (#:key inputs #:allow-other-keys)
              ;(substitute* "src/tzdata/TZData.jl"
              ;  (("(COMPILED_DIR = ).*" _ key)
@@ -910,7 +912,7 @@ that still support Julia versions older than 1.6.")
      `(#:tests? #f                      ; no runtests.jl
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'override-binary-path
+         (add-after 'link-depot 'override-binary-path
            (lambda* (#:key inputs #:allow-other-keys)
              (map
               (lambda (wrapper)
