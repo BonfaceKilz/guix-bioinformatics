@@ -2476,7 +2476,6 @@ of similar contiguity and accuracy to other de Bruijn assemblers (e.g. Velvet)."
     (arguments
      `(#:configure-flags '("-DUSE_SYSTEM_ZSTD=YES")
        #:substitutable? #f      ; We want the native build.
-       #:tests? #f              ; TODO
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'use-shared-libraries
@@ -2490,13 +2489,20 @@ of similar contiguity and accuracy to other de Bruijn assemblers (e.g. Velvet)."
                 (string-append (assoc-ref inputs "xxhash") "/include"))
                (("lib/simde")
                 (string-append (assoc-ref inputs "simde") "/include/simde")))
-             #t)))))
+             #t))
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (with-directory-excursion
+                 (string-append "../" ,name "-" ,version "-checkout/tests")
+                 (invoke "./run.sh" "../../build/src/metaeuk"))))))))
     (inputs
      `(("bzip2" ,bzip2)
        ("zlib" ,zlib)
        ("zstd:lib" ,zstd "lib")))
     (native-inputs
      `(;("gzstream" ,gzstream)
+       ("perl" ,perl)
        ("simde" ,simde)
        ("xxd" ,xxd)
        ("xxhash" ,xxhash)))
