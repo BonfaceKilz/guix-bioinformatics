@@ -1245,44 +1245,6 @@ handles recursion and lists.")
      "A tool to create Python classes that represent JSON objects defined in JSG.")
     (license license:asl2.0)))
 
-(define-public python-sparqlwrapper
-  (package
-    (name "python-sparqlwrapper")
-    (version "1.8.5")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "SPARQLWrapper" version))
-        (sha256
-         (base32
-          "0g7va1l37iq96abqqn6b4a6sjxxh5m3h1svsw1h1c56siidnp9nn"))))
-    (build-system python-build-system)
-    (arguments
-     '(#:tests? #f  ; 2to3 doesn't quite do it for the test suite.
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
-             (if tests?
-               (begin ;; from run_tests_py3.sh
-                      (invoke "2to3" "-wn" "--no-diffs" "test")
-                      (substitute* "test/wrapper_test.py"
-                        (("urllib2._opener") "urllib.request._opener"))
-                      (setenv "PYTHONPATH"
-                              (string-append "SPARQLWrapper:"
-                                             (getenv "PYTHONPATH")))
-                      (invoke "nosetests"))
-               #t))))))
-    (propagated-inputs
-     `(("python-rdflib" ,python-rdflib)))
-    (native-inputs
-     `(("python-nose" ,python-nose)))
-    (home-page "https://rdflib.dev/sparqlwrapper/")
-    (synopsis "SPARQL Endpoint interface to Python")
-    (description
-     "THis package provides a SPARQL Endpoint interface to Python.")
-    (license license:w3c)))
-
 (define-public python-sparql-slurper
   (package
     (name "python-sparql-slurper")
