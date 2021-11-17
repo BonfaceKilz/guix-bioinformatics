@@ -495,6 +495,36 @@ tables with minimal effort.")
     (description "Style sheets for xtermjs")
     (license license:expat)))
 
+
+(define-public javascript-xterm-addon-fit
+  (package
+    (inherit javascript-xterm)
+    (name "javascript-xterm-addon-fit")
+    (version "0.5.0") ; Nov 16 2021
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/xterm-addon-fit@" version
+                   "/lib/xterm-addon-fit.min.js"))
+       (sha256
+        (base32
+         "0x47zj8wknisjjjqz6sasjn94nm803h5br8frypsbwhmdw6v9nak"))))
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir
+                 (string-append out "/share/genenetwork2/javascript/xterm"))
+                (source (assoc-ref %build-inputs "source")))
+           (mkdir-p targetdir)
+           (copy-file source (string-append targetdir "xterm-addon-fit-min.js"))))))
+    (native-inputs `(("source" ,source)))
+    (synopsis "xterm terminal addon")
+    (description "An addon for xterm.js that enables fitting the terminal's dimensions to a containing element")
+    (license license:expat)))
+
 (define-public javascript-datatables-buttons
   (package
     (name "javascript-datatables-buttons")
