@@ -253,6 +253,9 @@
          ("javascript-zxcvbn" ,javascript-zxcvbn)
          ("javascript-jquery-ui" ,javascript-jquery-ui)
          ("javascript-jquery-cookie" ,javascript-jquery-cookie)
+	 ("javascript-xterm" ,javascript-xterm)
+	 ("javascript-xterm-style" ,javascript-xterm-style)
+	 ("javascript-xterm-addon-fit",javascript-xterm-addon-fit)
          ("javascript-font-awesome" ,javascript-font-awesome)))
       (inputs
        `(("javascript-colorbox" ,(package-source javascript-colorbox))))
