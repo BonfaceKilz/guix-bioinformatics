@@ -1022,3 +1022,27 @@ that still support Julia versions older than 1.6.")
     (synopsis "binary provider for Julia")
     (description "Packages are installed to a @code{Prefix}; a folder that acts similar to the @code{/usr/local} directory on Unix-like systems, containing a @code{bin} folder for binaries, a @code{lib} folder for libraries, etc... @code{Prefix} objects can have tarballs @code{install()}'ed within them, @code{uninstall()}'ed from them, etc...")
     (license license:expat)))
+
+(define-public julia-softglobalscope
+  (package
+    (name "julia-softglobalscope")
+    (version "1.1.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/stevengj/SoftGlobalScope.jl")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1n3l0al1vw5jpb4k9a29a71666cdb617nmiqg34wcmyfzrxpvv39"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/stevengj/SoftGlobalScope.jl")
+    (synopsis "utilities for soft global scope in interactive Julia environments")
+    (description 
+"SoftGlobalScope is a package for the Julia language that simplifies the 
+variable scoping rules for code in global scope. It is intended for 
+interactive shells (the REPL, IJulia, etcetera) to make it easier to work 
+interactively with Julia, especially for beginners.")
+    (license license:expat)))
+
