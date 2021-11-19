@@ -1794,3 +1794,29 @@ window to get to RStudio for example.")
      "This extension adds a toolbar overlay to Flask applications containing
 useful information for debugging.")
     (license license:bsd-3)))
+
+(define-public python-requirements-parser
+  (package
+    (name "python-requirements-parser")
+    (version "0.2.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "requirements-parser" version))
+        (sha256
+          (base32 "1m2fgnyrh4vb5canm7cp30b04f7vh8869z6kb2gsw19dbj4ywqsr"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:tests? #f))
+    (native-inputs
+      `(("python-coverage" ,python-coverage)
+        ("python-coveralls" ,python-coveralls)
+        ("python-nose" ,python-nose)))
+    (home-page "https://github.com/davidfischer/requirements-parser")
+    (synopsis "Parses Pip requirement files")
+    (description 
+"This is a small Python module for parsing Pip requirement files.
+The goal of the project is to parse everything in the Pip requirement
+file format spec.")
+    (license license:bsd-3)))
+
