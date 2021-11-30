@@ -7,7 +7,8 @@
   #:use-module (guix packages)
   #:export (virtuoso-configuration
             virtuoso-configuration-package
-            virtuoso-configuration-http-server-port))
+            virtuoso-configuration-http-server-port
+            virtuoso-service-type))
 
 ;;;
 ;;; Virtuoso
