@@ -10,6 +10,7 @@
   #:use-module (guix build-system ant)
   #:use-module (guix build-system cargo)
   #:use-module (guix build-system cmake)
+  #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
   #:use-module (guix build-system python)
@@ -2805,3 +2806,82 @@ including @acronym{TIPP, taxonomic identical using phylogenetic placement} and
     (description "Assess genome assembly and annotation completeness with
 Benchmarking Universal Single-Copy Orthologs.")
     (license license:expat)))
+
+(define-public mutation-simulator
+  (let ((commit "9cb6bd2acf8201151bc610be14963e65b41d8899")     ; March 25, 2021
+        (revision "1"))
+    (package
+      (name "mutation-simulator")
+      (version (git-version "2.0.3" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/mkpython3/mutation-simulator")
+                       (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "1yxn5v5x804rm5ra1srmnph468yk7amsgfsj6h20rd6nmj2j0g9c"))))
+      (build-system copy-build-system)
+      (arguments
+       `(#:install-plan
+         '(("mutation-simulator.py" "bin/"))
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'install 'wrap-script
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let* ((out (assoc-ref outputs "out"))
+                      (script (string-append out "/bin/mutation-simulator.py")))
+                 ;; wrap-script doesn't accept arguments
+                 (wrap-program script
+                   `("PYTHONPATH" ":" prefix (,(getenv "PYTHONPATH"))))
+                 (chmod script #o555)
+                 ;; When using wrap-script.
+                 (when (file-exists?
+                         (string-append out "/bin/.mutation-simulator.py-real"))
+                   (chmod (string-append out "/bin/.mutation-simulator.py-real")
+                          #o555))
+                 #t)))
+           (add-after 'wrap-script 'check
+             (lambda* (#:key tests? outputs #:allow-other-keys)
+               (when tests?
+                 (invoke (string-append (assoc-ref outputs "out")
+                                        "/bin/mutation-simulator.py")
+                         "Test/test.fa" "rmt" "Test/test.rmt")))))))
+      (inputs
+       `(("bash" ,bash-minimal)                         ; for wrap-program
+         ;("guile" ,(@ (gnu packages guile) guile-3.0))  ; for wrap-script
+         ("python" ,python)
+         ("python-blist" ,python-blist)
+         ("python-pyfaidx" ,python-pyfaidx)
+         ("python-numpy" ,python-numpy)
+         ("python-tqdm" ,python-tqdm)))
+      (home-page "https://github.com/mkpython3/mutation-simulator")
+      (synopsis "Simulate mutations on given fasta files")
+      (description "Mutation-Simulator is a Python tool for simulating SNPs and
+SVs in any reference genome with cohesive documentation about implemented
+mutations.  With Mutation-Simulator, the new file format @acronym{RMT, Random
+Mutation Tables} is introduced, which gives more simulation power to the user by
+creating an interface for more natural simulations within specific genomes.
+Mutation-Simulator provides 3 different modes to simulate SNPs, insertions,
+deletions, tandem duplications, inversions, translocations and interchromosomal
+translocations from the commandline or with highly configureable RMT files.")
+      (license license:gpl3+))))
+
+(define-public python-blist
+  (package
+    (name "python-blist")
+    (version "1.3.6")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "blist" version))
+        (sha256
+         (base32 "1hqz9pqbwx0czvq9bjdqjqh5bwfksva1is0anfazig81n18c84is"))
+        (patches (search-patches "blist-stopiteration.patch"))))
+    (build-system python-build-system)
+    (home-page "http://stutzbachenterprises.com/blist/")
+    (synopsis "List-like type for Python with better asymptotic performance")
+    (description
+     "This package provides a list-like type for Python with better asymptotic
+performance and similar performance on small lists.")
+    (license license:bsd-3)))
