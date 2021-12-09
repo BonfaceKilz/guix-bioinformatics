@@ -102,7 +102,7 @@
   (let ((commit "9e0fa5f3bbad6ad8c1d3306e986f58d6e6ac9c16"))
     (package
       (name "genenetwork3")
-      (version (string-append "0.0.1-guix-" (string-take commit 7)))
+      (version (git-version "0.1.0" "0" commit))
       (source
        (origin
          (method git-fetch)
