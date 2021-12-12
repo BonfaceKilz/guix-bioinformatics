@@ -3,6 +3,7 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix build-system go)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages node)
   #:use-module (gnu packages version-control))
 
@@ -22,6 +23,16 @@
      `(#:install-source? #f
        #:phases
        (modify-phases %standard-phases
+         (add-after 'patch-source-shebangs 'unpatch-example-shebangs
+           ;; If we don't do this then git repos created with this version of
+           ;; gitea will use the build environment's bash for the different
+           ;; git repo hooks.
+           (lambda _
+             (substitute*
+               (find-files "src/integrations/gitea-repositories-meta"
+                           "(\\.sample|gitea|(post|pre)-receive|update)")
+               (("#!/gnu/store/.*/bin/bash") "#!/bin/bash")
+               (("#!/gnu/store/.*/bin/sh") "#!/bin/sh"))))
          (add-before 'build 'prepare-build
            (lambda _
              (setenv "TAGS" "bindata sqlite sqlite_unlock_notify")
@@ -32,14 +43,12 @@
                (invoke "make" "build"))))
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
-             (if tests?
-               (begin
-                 (with-directory-excursion "src"
-                   (invoke "make" "test")
-                   ;; Gitea requires git with lfs support to run tests.
-                   ;(invoke "make" "test-sqlite")
-                   (invoke "make" "test-sqlite-migration")))
-               #t)))
+             (when tests?
+               (with-directory-excursion "src"
+                 (invoke "make" "test")
+                 ;; Gitea requires git with lfs support to run tests.
+                 ;(invoke "make" "test-sqlite")
+                 (invoke "make" "test-sqlite-migration")))))
          (replace 'install
            (lambda _
              (with-directory-excursion "src"
@@ -55,7 +64,8 @@
     (native-inputs
      `(("node" ,node)))
     (inputs
-     `(("git" ,git)))
+     `(("bash" ,bash-minimal)
+       ("git" ,git)))
     (home-page "https://gitea.io/")
     (synopsis "Self-hosted git service")
     ;; TODO: Rewrite description
