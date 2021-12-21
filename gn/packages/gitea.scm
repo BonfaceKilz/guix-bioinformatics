@@ -71,4 +71,6 @@
     ;; TODO: Rewrite description
     (description "Gitea is a painless self-hosted Git service.  It is similar
 to GitHub, Bitbucket, and GitLab.")
+    (properties
+      '((release-monitoring-url . "https://github.com/go-gitea/gitea/releases")))
     (license license:expat)))
