@@ -55,7 +55,7 @@ Errors while running CTest
   ;; retain this variable.
   (let ((older-version "1.26.0")) ;; retain this because sometimes the libs are older
     (package
-      (inherit ldc-bootstrap)
+      (inherit (@@ (gnu packages dlang) ldc-bootstrap-0.17))
       (name "ldc")
       (version "1.26.0")
       (source
@@ -122,7 +122,7 @@ Errors while running CTest
       (native-inputs
        `(("llvm" ,llvm)
          ("clang" ,clang)
-         ("ldc" ,ldc-bootstrap)
+         ("ldc" ,(@@ (gnu packages dlang) ldc-bootstrap-0.17))
          ("python-lit" ,python-lit)
          ("python-wrapper" ,python-wrapper)
          ("unzip" ,unzip)
