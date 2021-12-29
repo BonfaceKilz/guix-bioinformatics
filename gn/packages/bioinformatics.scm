@@ -2211,6 +2211,9 @@ cases include:
 @end enumerate\n")
     (license license:expat)))
 
+(define-public python2-bx-python
+  (package-with-python2 python-bx-python))
+
 (define-public hap.py
   (package
    (name "hap.py")
