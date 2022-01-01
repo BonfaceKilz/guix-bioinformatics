@@ -121,7 +121,7 @@
                            ("python-bcrypt" ,python-bcrypt)
                            ("python-flask" ,python-flask)
                            ("python-flask-cors" ,python-flask-cors)
-                           ("python-flask-socketio" ,python-flask-socketio)
+                           ;; ("python-flask-socketio" ,python-flask-socketio)
                            ("python-ipfshttpclient" ,python-ipfshttpclient)
                            ("python-mypy" ,python-mypy)
                            ("python-mypy-extensions" ,python-mypy-extensions)
@@ -256,9 +256,9 @@
          ("javascript-zxcvbn" ,javascript-zxcvbn)
          ("javascript-jquery-ui" ,javascript-jquery-ui)
          ("javascript-jquery-cookie" ,javascript-jquery-cookie)
-	 ("javascript-xterm" ,javascript-xterm)
-	 ("javascript-xterm-style" ,javascript-xterm-style)
-	 ("javascript-xterm-addon-fit",javascript-xterm-addon-fit)
+         ("javascript-xterm" ,javascript-xterm)
+         ("javascript-xterm-style" ,javascript-xterm-style)
+         ("javascript-xterm-addon-fit",javascript-xterm-addon-fit)
          ("javascript-font-awesome" ,javascript-font-awesome)))
       (inputs
        `(("javascript-colorbox" ,(package-source javascript-colorbox))))
@@ -268,6 +268,8 @@
          #:phases
          (modify-phases %standard-phases
             (delete 'reset-gzip-timestamps)
+            (replace 'install
+                (lambda _ #t))
             (add-after 'unpack 'fix-paths-scripts
               (lambda _
                 (substitute* "bin/genenetwork2"
@@ -379,6 +381,7 @@
             ;      (install-file (string-append %genenetwork-graph "/dependency-graph.html") output-dir)
             ;      #t)))
 
+            #!
             (add-after 'install 'generate-dependency-file
               (lambda* (#:key inputs outputs #:allow-other-keys)
                 (call-with-output-file
@@ -387,7 +390,8 @@
                      "/lib/python"
                      (python-version (assoc-ref inputs "python"))
                      "/site-packages"
-                     "/wqflask/DEPENDENCIES.md")
+                     "/wqflask/DEPENDENCIES.md"
+                     )
                   (lambda (port)
                     (format
                      port "
@@ -416,7 +420,9 @@
                              "| **[" name "](" home-page ")** v"
                              version"| "
                              description " |\n")))
-                        (package-propagated-inputs this-package)))))))))))
+                        (package-propagated-inputs this-package))))))))
+                        !# 
+                        )))
       (home-page "http://genenetwork.org/")
       (synopsis "Full genenetwork services")
       (description "Genenetwork installation sumo.")
