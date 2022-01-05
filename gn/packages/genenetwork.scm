@@ -118,7 +118,6 @@
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("python" ,python-wrapper)
                            ("csvdiff" ,csvdiff)
-                           ("pudb" ,pudb) ;; For debugging
                            ("python-bcrypt" ,python-bcrypt)
                            ("python-flask" ,python-flask)
                            ("python-flask-cors" ,python-flask-cors)
