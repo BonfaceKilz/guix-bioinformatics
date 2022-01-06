@@ -118,6 +118,7 @@
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("python" ,python-wrapper)
                            ("csvdiff" ,csvdiff)
+                           ("diffutils" ,diffutils)
                            ("python-bcrypt" ,python-bcrypt)
                            ("python-flask" ,python-flask)
                            ("python-flask-cors" ,python-flask-cors)
