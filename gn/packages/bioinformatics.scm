@@ -477,12 +477,7 @@ reads.")
               (("^handlegraph.*") "handlegraph = \"0.7\"\n"))))))
     (build-system cargo-build-system)
     (arguments
-     `(#:rust ,(let ((rust-1.49 (@@ (gnu packages rust) rust-1.49)))
-                 (if (> (string->number (version-major+minor (package-version rust-1.49)))
-                        (string->number (version-major+minor (package-version rust))))
-                     rust-1.49
-                     rust))
-       #:cargo-inputs
+     `(#:cargo-inputs
        (("rust-clap" ,rust-clap-3)
         ("rust-rustc-hash" ,rust-rustc-hash-1)
         ("rust-regex" ,rust-regex-1)

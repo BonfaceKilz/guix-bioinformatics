@@ -5,8 +5,7 @@
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix build-system cargo)
-  #:use-module (gnu packages crates-io)
-  #:use-module (gnu packages rust))
+  #:use-module (gnu packages crates-io))
 
 
 (define-public rust-handlegraph-0.7
@@ -24,12 +23,7 @@
          (base32
           "1frlcdwhycjvizb0gfb0v36vxjdi0jxagl2l2v6dzdjxpaawv9rs"))))
     (arguments
-     `(#:rust ,(let ((rust-1.47 (@@ (gnu packages rust) rust-1.47)))
-                 (if (> (string->number (version-major+minor (package-version rust-1.47)))
-                        (string->number (version-major+minor (package-version rust))))
-                     rust-1.47
-                     rust))
-       #:cargo-inputs
+     `(#:cargo-inputs
        (("rust-anyhow" ,rust-anyhow-1)
         ("rust-boomphf" ,rust-boomphf-0.5)
         ("rust-bstr" ,rust-bstr-0.2)
