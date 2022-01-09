@@ -537,47 +537,6 @@ functionality to JupyterHub deployments.")
     (description "The @code{util.is*} functions introduced in Node v0.12.")
     (license license:expat)))
 
-(define-public node-debug
-  (package
-    (name "node-debug")
-    (version "4.1.1")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/visionmedia/debug")
-               (commit version)))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "09g4smxkq8n2f9k4wiq5fhav91zmszl3kxr0fmn8wfbvswgrshx5"))))
-    (build-system node-build-system)
-    (arguments
-     '(#:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'build)))) ; Building requires browserify.
-    (inputs
-     `(("node-ms" ,node-ms)))
-    (native-inputs
-     `(
-       ;("node-brfs" ,node-brfs)
-       ;("node-browserify" ,node-browserify)
-       ;("node-coveralls" ,node-coveralls)
-       ;("node-istanbul" ,node-istanbul)
-       ;("node-karma" ,node-karma)
-       ;("node-karma-browserify" ,node-karma-browserify)
-       ;("node-karma-chrome-launcher" ,node-karma-chrome-launcher)
-       ;("node-karma-mocha" ,node-karma-mocha)
-       ;("node-mocha" ,node-mocha)
-       ;("node-mocha-lcov-reporter" ,node-mocha-lcov-reporter)
-       ;("node-xo" ,node-xo)
-       ))
-    (home-page "https://github.com/visionmedia/debug")
-    (synopsis "small debugging utility")
-    (description "A tiny JavaScript debugging utility modelled after Node.js core's debugging technique. Works in Node.js and web browsers.")
-    (license license:expat)))
-
 (define-public node-decamelize
   (package
     (name "node-decamelize")
@@ -887,29 +846,6 @@ library that supports websockets.  It is suitable for implementing components
 such as reverse proxies and load balancers.")
     (license license:expat)))
 
-(define-public node-inherits
-  (package
-    (name "node-inherits")
-    (version "2.0.4")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/isaacs/inherits")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0cpsr5yqwkxpbbbbl0rwk4mcby6zbx841k2zb4c3gb1579i5wq9p"))))
-    (build-system node-build-system)
-    (arguments '(#:tests? #f))
-    ;(native-inputs
-    ; `(("node-tap" ,node-tap)))
-    (home-page "https://github.com/isaacs/inherits")
-    (synopsis "Easy simple tiny inheritance in JavaScript")
-    (description "Easy simple tiny inheritance in JavaScript.")
-    (license license:isc)))
-
 (define-public node-is-arrayish
   (package
     (name "node-is-arrayish")
@@ -1138,35 +1074,6 @@ such as reverse proxies and load balancers.")
     (description "Minimalistic StatsD client for Node.js programs.")
     (license license:expat)))
 
-(define-public node-ms
-  (package
-    (name "node-ms")
-    (version "2.1.2")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/zeit/ms")
-               (commit version)))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1pjxzbi4j8pinlsc7yxvfrh0b47kb2dc4lfc2rjq4wx5bdwl33fj"))))
-    (build-system node-build-system)
-    (arguments '(#:tests? #f))
-    (native-inputs
-     `(
-       ;("node-eslint" ,node-eslint)
-       ;("node-expect-js" ,node-expect-js)
-       ;("node-husky" ,node-husky)
-       ;("node-lint-staged" ,node-lint-staged)
-       ;("node-mocha" ,node-mocha)
-       ))
-    (home-page "https://github.com/zeit/ms")
-    (synopsis "Tiny milisecond conversion utility")
-    (description "Tiny millisecond conversion utility.")
-    (license license:expat)))
-
 (define-public node-one-time
   (package
     (name "node-one-time")
@@ -1258,50 +1165,6 @@ Google web applications, such as Google Search, Gmail, Google Docs, Google+
 Google Maps, and others.")
     (license license:asl2.0)))
 
-(define-public node-readable-stream
-  (package
-    (name "node-readable-stream")
-    (version "3.4.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/nodejs/readable-stream")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1n27wwndizcnh7qc209y697lzr1xwv2c4xmi2bgpgk0zxhw215j8"))))
-    (build-system node-build-system)
-    (arguments '(#:tests? #f))
-    (inputs
-     `(("node-inherits" ,node-inherits)
-       ("node-string_decoder" ,node-string_decoder)
-       ("node-util-deprecate" ,node-util-deprecate)))
-    (native-inputs
-     `(
-       ;("node-babel" ,node-babel)
-       ;("node-airtap" ,node-airtap)
-       ;("node-assert" ,node-assert)
-       ;("node-bl" ,node-bl)
-       ;("node-deep-strict-equal" ,node-deep-strict-equal)
-       ;("node-glob" ,node-glob)
-       ;("node-gunzip-maybe" ,node-gunzip-maybe)
-       ;("node-hyperquest" ,node-hyperquest)
-       ;("node-lolex" ,node-lolex)
-       ;("node-nyc" ,node-nyc)
-       ;("node-pump" ,node-pump)
-       ;("node-rimraf" ,node-rimraf)
-       ;("node-tap" ,node-tap)
-       ;("node-tape" ,node-tape)
-       ;("node-tar-fs" ,node-tar-fs)
-       ;("node-util-promisify" ,node-util-promisify)
-       ))
-    (home-page "https://nodejs.org/api/stream.html")
-    (synopsis "Node-core streams for userland")
-    (description "This package is a mirror of the streams implementations in Node.js.")
-    (license license:expat)))
-
 (define-public node-requires-port
   (package
     (name "node-requires-port")
@@ -1328,32 +1191,6 @@ Google Maps, and others.")
     (home-page "https://github.com/unshiftio/requires-port")
     (synopsis "Check if a protocol requires a certain port number to be added to an URL.")
     (description "Check if a protocol requires a certain port number to be added to an URL.")
-    (license license:expat)))
-
-(define-public node-safe-buffer
-  (package
-    (name "node-safe-buffer")
-    (version "5.2.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/feross/safe-buffer")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "1972bv22h0wi7ky2ig8a0glz23ddjwcccjn5pvh1laa5n0jcz6zx"))))
-    (build-system node-build-system)
-    (arguments '(#:tests? #f))
-    (native-inputs
-     `(
-       ;("node-standard" ,node-standard)
-       ;("node-tape" ,node-tape)
-       ))
-    (home-page "https://github.com/feross/safe-buffer")
-    (synopsis "Safer Node.js Buffer API")
-    (description "Safer Node.js Buffer API.")
     (license license:expat)))
 
 (define-public node-simple-swizzle
@@ -1453,36 +1290,6 @@ Google Maps, and others.")
     (description "@code{strftime} for JavaScript.  Works in (at least) node.js
 and browsers.  Supports localization and timezones.  Most standard specifiers
 from C are supported as well as some other extensions from Ruby.")
-    (license license:expat)))
-
-(define-public node-string_decoder
-  (package
-    (name "node-string_decoder")
-    (version "1.3.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/nodejs/string_decoder")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0xxvyya9fl9rlkqwmxzqzbz4rdr3jgw4vf37hff7cgscxkhg266k"))))
-    (build-system node-build-system)
-    (arguments '(#:tests? #f))
-    (inputs
-     `(("node-safe-buffer" ,node-safe-buffer)))
-    (native-inputs
-     `(
-       ;("node-babel-polyfill" ,node-babel-polyfill)
-       ;("node-core-util-is" ,node-core-util-is)
-       ("node-inherits" ,node-inherits)
-       ;("node-tap" ,node-tap)
-       ))
-    (home-page "https://github.com/nodejs/string_decoder")
-    (synopsis "'string_decoder' module from Node.js core")
-    (description "'string_decoder' module from Node.js core.")
     (license license:expat)))
 
 (define-public node-text-hex
