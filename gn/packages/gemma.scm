@@ -114,7 +114,7 @@ genome-wide association studies (GWAS).")
        (uri (rubygems-uri "bio-gemma-wrapper" version))
        (sha256
         (base32
-         "1d6vp9k5jc01qlsl05ivki390indf7kyxrvkiqbai3nwljzkhl8y"))))
+         "0v006ym8j9p4khnxasf0xp7a7q8345625z0s1m3215p5mjp1g3p3"))))
     (build-system ruby-build-system)
     (inputs `(
       ("gemma-gn2" ,gemma-gn2)
