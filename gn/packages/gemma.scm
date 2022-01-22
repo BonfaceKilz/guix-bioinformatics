@@ -107,7 +107,7 @@ genome-wide association studies (GWAS).")
 (define-public gemma-wrapper
   (package
     (name "gemma-wrapper")
-    (version "0.99.5")
+    (version "0.99.6")
     (source
      (origin
        (method url-fetch)
