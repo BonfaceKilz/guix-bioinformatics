@@ -119,9 +119,11 @@ genome-wide association studies (GWAS).")
     (inputs `(
       ("gemma-gn2" ,gemma-gn2)
       ("parallel" ,parallel) ;; gnu parallel
-    ))
+      ))
+    (propagated-inputs `(
+      ("coreutils" ,coreutils))) ;; gemma-wrapper uses 'cat'
     (arguments
-     `(#:tests? #f
+     `(#:tests? #f  ;; from release 0.99.7 tests should run
        #:phases
        (modify-phases %standard-phases
          (add-before
