@@ -3,6 +3,7 @@
 (define-module (gn packages bioinformatics)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
+  #:use-module (guix gexp)
   #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix git-download)
@@ -32,6 +33,7 @@
   #:use-module (gnu packages check)
   #:use-module (gnu packages cmake)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages cpp)
   #:use-module (gnu packages cran)
   #:use-module (gnu packages crates-io)
   #:use-module (gnu packages curl)
@@ -1289,64 +1291,70 @@ dictionaries to record a queryable version of the graph.")
       (description "")
       (license license:lgpl2.0+)))) ; README just says "lpgl".
 
-;; TODO: Unbundle BBHash, concurrentqueue, parallel-hashmap zstr
+;; TODO: Unbundle BBHash, parallel-hashmap, zstr
 (define-public graphaligner
   (package
-   (name "graphaligner")
-   (version "1.0.10")
-   (source (origin
-     (method url-fetch)
-     (uri (string-append "https://github.com/maickrau/GraphAligner/files/"
-                         "3879798/GraphAligner.tar.gz"))
-     (file-name (string-append name "-" version ".tar.gz"))
-     (sha256
-      (base32 "0sk0cfjw44wslmlgplzwcqi0w4862vhf75p4x6syalvyi34pw3ck"))))
-   (build-system gnu-build-system)
-   (arguments
-    `(#:tests? #f ; no tests
-      #:make-flags '("all")
-      #:phases
-      (modify-phases %standard-phases
-        (add-after 'unpack 'patch-source
-          (lambda* (#:key inputs #:allow-other-keys)
-            (let ((sdsl (assoc-ref inputs "sdsl-lite")))
-              (substitute* "makefile"
-                (("VERSION .*") (string-append "VERSION = " ,version "\n"))))
-            #t))
-        (delete 'configure) ; no configure phase
-        (replace 'install
-          (lambda* (#:key outputs #:allow-other-keys)
-            (let ((out (assoc-ref outputs "out")))
-              (for-each
-                (lambda (program)
-                  (install-file program (string-append out "/bin")))
-                (find-files "bin" "."))
-              (for-each
-                (lambda (header)
-                  (install-file header (string-append out "/include")))
-                (find-files "src" "\\.h(pp)?$")))
-            #t)))))
-   (native-inputs
-    `(("pkg-config" ,pkg-config)
-      ("protobuf" ,protobuf "static")
-      ("sdsl-lite" ,sdsl-lite)
-      ("sparsehash" ,sparsehash)
-      ("zlib" ,zlib "static")))
-   (inputs
-    `(("boost" ,boost-static)
-      ("jemalloc" ,jemalloc)
-      ("libdivsufsort" ,libdivsufsort)
-      ("mummer" ,mummer)
-      ("protobuf" ,protobuf)
-      ("zlib" ,zlib)))
-   (home-page "https://github.com/maickrau/GraphAligner")
-   (synopsis "Seed-and-extend program for aligning  genome graphs")
-   (description "Seed-and-extend program for aligning long error-prone reads to
+    (name "graphaligner")
+    (version "1.0.14")
+    (source (origin
+      (method url-fetch)
+      (uri (string-append "https://github.com/maickrau/GraphAligner/files/"
+                          "7813545/GraphAligner.tar.gz"))
+      (file-name (string-append name "-" version ".tar.gz"))
+      (sha256
+       (base32 "1y4vwp03fl2ck6bnyn0sc97vgvdb8i0yfzjk5mv5gk0bc7a4f0n1"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+       #:tests? #f ; no tests
+       #:make-flags
+       #~(list (string-append "VERSION=" #$version))
+       #:phases
+       #~(modify-phases %standard-phases
+           (delete 'configure) ; no configure phase
+           (add-after 'unpack 'patch-source
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((concurrentqueue (assoc-ref inputs "concurrentqueue")))
+                 (delete-file-recursively "concurrentqueue")
+                 (substitute* "makefile"
+                   (("-Iconcurrentqueue")
+                    (string-append "-I" concurrentqueue "/include/concurrentqueue"))
+                   (("^JEMALLOCFLAGS.*")
+                    "JEMALLOCFLAGS= `pkg-config --libs jemalloc`\n")
+                   ;; No need to build statically.
+                   (("-Wl,-Bstatic") "")
+                   (("-static-libstdc\\+\\+") "")))))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (for-each
+                   (lambda (program)
+                     (install-file program (string-append out "/bin")))
+                   (find-files "bin"))
+                 (for-each
+                   (lambda (header)
+                     (install-file header (string-append out "/include")))
+                   (find-files "src" "\\.h(pp)?$"))))))))
+    (native-inputs
+     `(("pkg-config" ,pkg-config)
+       ("sparsehash" ,sparsehash)))
+    (inputs
+     `(("boost" ,boost)
+       ("concurrentqueue" ,concurrentqueue)
+       ("jemalloc" ,jemalloc)
+       ("libdivsufsort" ,libdivsufsort)
+       ("mummer" ,mummer)
+       ("protobuf" ,protobuf)
+       ("sdsl-lite" ,sdsl-lite)
+       ("zlib" ,zlib)))
+    (home-page "https://github.com/maickrau/GraphAligner")
+    (synopsis "Seed-and-extend program for aligning  genome graphs")
+    (description "Seed-and-extend program for aligning long error-prone reads to
 genome graphs.  For a description of the bitvector alignment extension
 algorithm, see
 @url{https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz162/5372677
 here}.")
-   (license license:expat)))
+    (license license:expat)))
 
 (define-public mummer
   (package
