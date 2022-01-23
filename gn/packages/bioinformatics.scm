@@ -2892,3 +2892,150 @@ translocations from the commandline or with highly configureable RMT files.")
      "This package provides a list-like type for Python with better asymptotic
 performance and similar performance on small lists.")
     (license license:bsd-3)))
+
+(define-public verkko
+  (let ((commit "9323e71f46b0ea1725202ebe911142d0d1288c45")     ; Jan 22, 2022
+        (revision "1"))
+    (package
+      (name "verkko")
+      (version (git-version "1.0_beta" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/marbl/verkko")
+                       (commit commit)
+                       (recursive? #t)))    ; Needs canu
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "0pb66mlz8r9hrvlcfw9zwxqzzns7221pm2z9mrjisvniwq8ggqmh"))))
+      (build-system gnu-build-system)
+      (arguments
+       (list
+         #:make-flags
+         #~(list (string-append "CC=" #$(cc-for-target))
+                 (string-append "VERSION= verkko " #$version)
+                 "BUILDOPTIMIZED=1")
+         #:phases
+         #~(modify-phases %standard-phases
+             (delete 'configure)        ; No configure script.
+             (add-after 'unpack 'chdir
+               (lambda _ (chdir "src")))
+             (add-after 'chdir 'patch-source
+               (lambda* (#:key inputs #:allow-other-keys)
+                 (substitute* "verkko.sh"
+                   (("\"#!/bin/sh\"")
+                    (string-append "\"#!" (which "sh") "\""))
+                   ;; Hardcode the paths to some binaries
+                   (("\\$\\(which MBG\\)")
+                    (search-input-file inputs "/bin/MBG"))
+                   (("\\$\\(which GraphAligner\\)")
+                    (search-input-file inputs "/bin/GraphAligner"))
+                   (("snakemake --nocolor")
+                    (string-append (search-input-file
+                                    inputs
+                                    "/bin/snakemake")
+                                   " --nocolor")))
+                 (substitute* (find-files "Snakefiles")
+                   (("#!/bin/sh") (string-append "#!" (which "sh"))))))
+             (replace 'check
+               (lambda* (#:key tests? inputs #:allow-other-keys)
+                 (let ((hifi.fastq.gz (assoc-ref inputs "hifi.fastq.gz"))
+                       (ont.fastq.gz  (assoc-ref inputs "ont.fastq.gz")))
+                   (when tests?
+                     (invoke "../bin/verkko" "-d" "asm"
+                             "--hifi" hifi.fastq.gz
+                             "--nano" ont.fastq.gz)))))
+             (replace 'install
+               (lambda* (#:key outputs #:allow-other-keys)
+                 (let ((out (assoc-ref outputs "out")))
+                   (with-directory-excursion "../"
+                     (copy-recursively "bin" (string-append out "/bin"))
+                     (copy-recursively "lib" (string-append out "/lib")))))))))
+      (inputs
+       (list graphaligner
+             mbg
+             python-wrapper
+             snakemake))
+      (native-inputs
+       `(("perl" ,perl)
+         ;; Provided by upstream to test the build:
+         ("hifi.fastq.gz"       ; 118 MiB
+          ,(origin
+             (method url-fetch)
+             (uri "https://obj.umiacs.umd.edu/sergek/shared/ecoli_hifi_subset24x.fastq.gz")
+             (sha256
+              (base32 "1nh5jzwnlf0r37rcgqwsjlszb8i0w5pfwp3rb5h869qp5qdlms8z"))))
+         ("ont.fastq.gz"        ; 244 MiB
+          ,(origin
+             (method url-fetch)
+             (uri "https://obj.umiacs.umd.edu/sergek/shared/ecoli_ont_subset50x.fastq.gz")
+             (sha256
+              (base32 "056pkf1dx76zs88vi4zgcbzrgvqqvlq9mpnyvmdszyhy0cj00smy"))))))
+      (home-page "https://github.com/marbl/verkko")
+      (synopsis "Hybrid genome assembly pipeline for telomere-to-telomere
+assembly of PacBio HiFi and Oxford Nanopore reads")
+      (description "Verkko is a hybrid genome assembly pipeline developed for
+telomere-to-telomere assembly of PacBio HiFi and Oxford Nanopore reads.  Verkko
+is Finnish for net, mesh and graph.  Verkko uses Canu to correct remaining
+errors in the HiFi reads, builds a multiplex de Bruijn graph using MBG, aligns
+the Oxford Nanopore reads to the graph using GraphAligner, progressively
+resolves loops and tangles first with the HiFi reads then with the aligned
+Oxford Nanopore reads, and finally creates contig consensus sequences using
+Canu's consensus module.")
+      (license license:public-domain))))
+
+(define-public mbg
+  (package
+    (name "mbg")
+    (version "1.0.8")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/maickrau/MBG")
+                    (commit (string-append "v" version))
+                    (recursive? #t)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "14p0vk6qfyf7ha8x30dk8hi16c5n8fpzi96k2vwmg17mlcf0hkgj"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+       #:tests? #f                      ; No tests.
+       #:make-flags
+       #~(list (string-append "VERSION=" #$version))
+       #:phases
+       #~(modify-phases %standard-phases
+           (delete 'configure)          ; No configure script.
+           (add-after 'unpack 'use-packaged-inputs
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((cxxopts (dirname (search-input-file inputs
+                                        "/include/cxxopts.hpp")))
+                     (concurrentqueue
+                       (search-input-directory inputs
+                        "/include/concurrentqueue")))
+                 (delete-file-recursively "cxxopts")
+                 (delete-file-recursively "concurrentqueue")
+                 (substitute* "makefile"
+                   (("-Icxxopts/include") (string-append "-I" cxxopts))
+                   (("-Iconcurrentqueue") (string-append "-I" concurrentqueue))
+                   ;; No need to build statically.
+                   (("-Wl,-Bstatic") "")
+                   (("-static-libstdc\\+\\+") "")))))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (install-file "bin/MBG" (string-append out "/bin"))))))))
+    (inputs (list concurrentqueue
+                  ;; parallel-hashmap
+                  ;; zstr
+                  zlib))
+    (native-inputs (list cxxopts))
+    (home-page "https://github.com/maickrau/MBG")
+    (synopsis "Minimizer based sparse de Bruijn Graph constructor")
+    (description
+     "Minimizer based sparse de Bruijn Graph constructor.  Homopolymer compress
+input sequences, pick syncmers from hpc-compressed sequences, connect syncmers
+with an edge if they are adjacent in a read, unitigify and homopolymer
+decompress.  Suggested input is PacBio HiFi/CCS reads.")
+    (license license:expat)))
