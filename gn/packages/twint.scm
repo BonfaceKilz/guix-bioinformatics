@@ -129,62 +129,6 @@
      "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python")
     (license #f)))
 
-;; TODO: Upstream
-(define-public python-aiohttp-3.7.2
-  (package
-    (inherit python-aiohttp)
-    (version "3.7.2")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (pypi-uri "aiohttp" version))
-       (sha256
-        (base32
-         "0w30pq8x4sf9bhr29nrb4qxhm75mpz2a51nkalrd9rj1k3simnn6"))))
-    (arguments
-     `(#:tests? #f))
-    (propagated-inputs
-     `(("python-typing-extensions" ,python-typing-extensions)
-       ,@(package-propagated-inputs python-aiohttp)))))
-
-;; TODO: Upstream
-(define-public python-aiohttp-socks-0.5.5
-  (package
-    (inherit python-aiohttp-socks)
-    (name "python-aiohttp-socks-0.5.5")
-    (version "0.5.5")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-             (url "https://github.com/romis2012/aiohttp-socks")
-             (commit (string-append "v" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32
-         "0ivl4x12pscmpyn7z14h0lr8shsjc244pbvfafi1fmp1ddfzgw1l"))))
-    (arguments
-     `(#:tests? #f))
-    (propagated-inputs
-     `(("python-aiohttp" ,(specification->package "python-aiohttp@3.7.2"))
-       ("python-socks" ,python-socks)))))
-
-(define-public python-yarl-1.6.2
-  (package
-    (inherit python-yarl)
-    (name "python-yarl-1.6.2")
-    (version "1.6.2")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (pypi-uri "yarl" version))
-       (sha256
-        (base32
-         "1dk6nyhkbhmlfqxislb9a8hqdi3s8jyip3krk6c8c92pkasljny4"))))
-    (propagated-inputs
-     `(("python-typing-extensions" ,python-typing-extensions)
-       ,@(package-propagated-inputs python-yarl)))))
-
 (define-public python-twint
   (package
     (name "python-twint")
@@ -228,13 +172,13 @@
                   ", str(t.likes_count))"))))))))
     (propagated-inputs
      `(("python-pycares" ,python-pycares)
-       ("python-aiohttp-socks" ,python-aiohttp-socks-0.5.5)
+       ("python-aiohttp-socks" ,python-aiohttp-socks)
        ("python-beautifulsoup4" ,python-beautifulsoup4)
        ("python-cchardet" ,python-cchardet)
        ("python-elasticsearch" ,python-elasticsearch)
        ("python-fake-useragent" ,python-fake-useragent)
        ("python-geopy" ,python-geopy)
-       ("python-yarl" ,python-yarl-1.6.2)
+       ("python-yarl" ,python-yarl)
        ("python-googletransx" ,python-googletransx)
        ("python-pandas" ,python-pandas)
        ("python-schedule" ,python-schedule)))
