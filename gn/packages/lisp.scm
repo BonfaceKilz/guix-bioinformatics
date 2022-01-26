@@ -233,3 +233,36 @@ with the same arguments again, rather than re-doing the computation.")
 (define-public ecl-fare-memoization
   (sbcl-package->ecl-package sbcl-fare-memoization))
 
+(define-public sbcl-meta
+  (let ((commit "74faea662139fbbfb9c99341aaed989f5b0e9da3")
+        (revision "0"))
+    (package
+      (name "sbcl-meta")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://gitlab.common-lisp.net/frideau/meta")
+                (commit commit)))
+          (sha256
+           (base32 "08s53zj3mcx82kszp1bg2vsb4kydvkc70kj4hpq9h1l5a1wh44cy"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("meta.asd")))
+      (inputs
+        (list sbcl-named-readtables))
+      (home-page "https://gitlab.common-lisp.net/frideau/meta")
+      (synopsis "Recursive-descent parser DSL for common-lisp")
+      (description 
+"Recursive-descent parser DSL that is a simpler alternative to parser
+generators.")
+      (license license:bsd-3))))
+
+(define-public cl-meta
+  (sbcl-package->cl-source-package sbcl-meta))
+
+(define-public ecl-meta
+  (sbcl-package->ecl-package sbcl-meta))
+
