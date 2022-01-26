@@ -266,3 +266,41 @@ generators.")
 (define-public ecl-meta
   (sbcl-package->ecl-package sbcl-meta))
 
+(define-public sbcl-scribble
+  (let ((commit "4e5369bec6d5e4eed4f99c3dc009fce3e3427cd3")
+        (revision "0"))
+    (package
+      (name "sbcl-scribble")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://gitlab.common-lisp.net/frideau/scribble")
+                (commit commit)))
+          (sha256
+           (base32 "056qi6vw9bk19s42mapyg55mimhhvhlwgny080v9mhv4fhnqi196"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("scribble.asd")))
+      (native-inputs
+        (list sbcl-babel))
+      (inputs
+        (list sbcl-fare-utils
+              ;; sbcl-fare-matcher
+              sbcl-fare-memoization
+              sbcl-fare-quasiquote
+              sbcl-meta
+              sbcl-named-readtables))
+      (home-page "https://gitlab.common-lisp.net/frideau/scribble")
+      (synopsis "SCRibe-like reader extension for Common Lisp")
+      (description "SCRibe-like reader extension for Common Lisp.")
+      (license license:llgpl))))
+
+(define-public cl-scribble
+  (sbcl-package->cl-source-package sbcl-scribble))
+
+(define-public ecl-scribble
+  (sbcl-package->ecl-package sbcl-scribble))
+
