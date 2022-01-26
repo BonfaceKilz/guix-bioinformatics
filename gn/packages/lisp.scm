@@ -110,3 +110,35 @@ with a star added at the end.")
 (define-public ecl-defstar
   (sbcl-package->ecl-package sbcl-defstar))
 
+(define-public sbcl-2am
+  (let ((commit "1d2fd21bbd8f26ec91b962705cab098dd7b5f11c")
+        (revision "0"))
+    (package
+      (name "sbcl-2am")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://gitlab.common-lisp.net/dkochmanski/2am")
+                (commit commit)))
+          (sha256
+           (base32 "0zgx4ymyzvfg44z36yr4l87cd9mprajd7sycr2zc67ab6330rynf"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("2am.asd")))
+      (home-page "https://gitlab.common-lisp.net/dkochmanski/2am")
+      (synopsis "Small testing framework based on 1am")
+      (description
+"Small testing framework for Common Lisp.  The entire API consists of:
+@code{test}, @code{is}, @code{signals}, @code{finishes}, @code{run},
+suite and @code{setf} suite.")
+      (license license:expat))))
+
+(define-public cl-2am
+  (sbcl-package->cl-source-package sbcl-2am))
+
+(define-public ecl-2am
+  (sbcl-package->ecl-package sbcl-2am))
+
