@@ -196,3 +196,40 @@ fringilla labore. Tellus penatibus arcu ligula nisi.")
 (define-public ecl-lorem-ipsum
   (sbcl-package->ecl-package sbcl-lorem-ipsum))
 
+(define-public sbcl-fare-memoization
+  (let ((commit "8b43ac6bcc0057d1a92052e39b6d34c05c2eb7e4")
+        (revision "0"))
+    (package
+      (name "sbcl-fare-memoization")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://gitlab.common-lisp.net/frideau/fare-memoization")
+                (commit commit)))
+          (sha256
+           (base32 "1blmrb4c9gsxj87scz74z1s8w9d1w2r48fyxj0y1sw3vr6bsbb8f"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("fare-memoization.asd")))
+      (native-inputs
+        (list sbcl-hu.dwim.stefil))
+      (inputs
+        (list sbcl-named-readtables))
+      (home-page "https://gitlab.common-lisp.net/frideau/fare-memoization")
+      (synopsis "Memoization library for common-lisp")
+      (description
+"The @code{fare-memoization} library builds on an age-old idea:
+dynamically memoizing Lisp functions.  A memoized function remembers
+results from previous computations, and returns cached results when called
+with the same arguments again, rather than re-doing the computation.")
+      (license license:expat))))
+
+(define-public cl-fare-memoization
+  (sbcl-package->cl-source-package sbcl-fare-memoization))
+
+(define-public ecl-fare-memoization
+  (sbcl-package->ecl-package sbcl-fare-memoization))
+
