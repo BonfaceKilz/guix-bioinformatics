@@ -76,3 +76,37 @@
 (define-public ecl-snakes
   (sbcl-package->ecl-package sbcl-snakes))
 
+(define-public sbcl-defstar
+  (let ((commit "132829dac9f84fa7202a0c5793aa6accb8d2662a")
+        (revision "0"))
+    (package
+      (name "sbcl-defstar")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://github.com/lisp-maintainers/defstar")
+                (commit commit)))
+          (sha256
+           (base32 "0n6m3aqvdfnsrhlhqjcy72d1i55lbkjg13ij5c7vw003p1n78wxi"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("defstar.asd")))
+      (home-page "https://github.com/lisp-maintainers/defstar")
+      (synopsis "Type declarations for defun et all")
+      (description
+"@code{defstar} is a collection of Common Lisp macros that can be used in
+place of @code{defun}, @code{defmethod}, @code{defgeneric}, @code{defvar},
+@code{defparameter}, @code{flet}, @code{labels}, @code{let}* and
+@code{lambda}. Each macro has the same name as the form it replaces,
+with a star added at the end.")
+      (license license:gpl3))))
+
+(define-public cl-defstar
+  (sbcl-package->cl-source-package sbcl-defstar))
+
+(define-public ecl-defstar
+  (sbcl-package->ecl-package sbcl-defstar))
+
