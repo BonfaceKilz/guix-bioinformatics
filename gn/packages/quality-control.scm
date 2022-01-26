@@ -10,12 +10,12 @@
 (define-public utf-8-lineseparator
   (package
     (name "utf-8-lineseparator")
-    (version "cj7")
+    (version "7")
     (source (origin
               (method git-fetch)
               (uri (git-reference
                     (url "https://github.com/pflanze/utf-8-lineseparator")
-                    (commit version)))
+                    (commit (string-append version))))
               (file-name (git-file-name name version))
               (sha256
                (base32
