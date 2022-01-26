@@ -142,3 +142,24 @@ suite and @code{setf} suite.")
 (define-public ecl-2am
   (sbcl-package->ecl-package sbcl-2am))
 
+(define-public sbcl-fwoar-lisputils
+  (let ((commit "7093110d43e91bc1685ad430da99785d9ec61dae")
+        (revision "0"))
+    (package
+      (name "sbcl-fwoar-lisputils")
+      (version "0.4.2")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://github.com/fiddlerwoaroof/fwoar.lisputils")
+                (commit commit)))
+          (sha256
+           (base32 "0wfy4k2xpnadzy6yfn5iavc8hv1m688942sc1yp8xkdm7pk0mvvi"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/source) ; FIXME
+      (home-page "https://github.com/fiddlerwoaroof/fwoar.lisputils")
+      (synopsis "Hodgepodge of useful Lisp snippets")
+      (description "A hodgepodge of useful Lisp snippets.")
+      (license license:expat))))
+
