@@ -39,3 +39,40 @@
   reports, mostly) through their web service.")
       (license license:bsd-3))))
 
+(define-public sbcl-snakes
+  (let ((commit "8c7eae579bb24539dbd584a81a1049f3d3ff8bf8")
+        (revision "0"))
+    (package
+      (name "sbcl-snakes")
+      (version "0.4.2")
+      (source 
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://github.com/BnMcGn/snakes")
+                (commit commit)))
+          (sha256
+           (base32 "1ibp919qcpm6kg67b507kpjzdlhpdjr7vkh9vabln3a75k8lnlsg"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (inputs
+        (list sbcl-alexandria 
+              sbcl-cl-cont 
+              sbcl-cl-utilities 
+              sbcl-closer-mop
+              sbcl-fiveam
+              sbcl-iterate))
+      (arguments
+       `(#:asd-files '("snakes.asd")))
+      (home-page "https://github.com/BnMcGn/snakes")
+      (synopsis "Python-like generators for Common Lisp")
+      (description
+  "Python style generators for Common Lisp. Includes a port of itertools.")
+      (license license:expat))))
+
+(define-public cl-snakes
+  (sbcl-package->cl-source-package sbcl-snakes))
+
+(define-public ecl-snakes
+  (sbcl-package->ecl-package sbcl-snakes))
+
