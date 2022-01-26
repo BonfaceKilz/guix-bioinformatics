@@ -98,6 +98,21 @@
       (description "Reimplementation of genenetwork/QTLReaper in Rust")
       (license #f))))
 
+;; Tests on the upstream python-seaborn package are broken. So, we
+;; create this temporary workaround.
+(define python-seaborn-without-tests
+  (package
+    (inherit python-seaborn)
+    (arguments
+     (substitute-keyword-arguments (package-arguments python-seaborn)
+       ((#:tests? _ #f) #f)))))
+
+(define python-pingouin-with-working-python-seaborn
+  (package
+    (inherit python-pingouin)
+    (propagated-inputs
+     `(("python-seaborn" ,python-seaborn-without-tests)
+       ,@(alist-delete "python-seaborn" (package-propagated-inputs python-pingouin))))))
 
 (define-public genenetwork3
   (let ((commit "784447b17d85a618005ac9acfc57f5b7ef8f5169"))
@@ -129,7 +144,7 @@
                            ("python-mysqlclient" ,python-mysqlclient)
                            ("python-numpy" ,python-numpy)
                            ("python-pandas" ,python-pandas)
-                           ("python-pingouin" ,python-pingouin)
+                           ("python-pingouin" ,python-pingouin-with-working-python-seaborn)
                            ("python-plotly" ,python-plotly)
                            ("python-pylint" ,python-pylint)
                            ("python-redis" ,python-redis)
