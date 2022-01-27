@@ -8,7 +8,6 @@
   #:use-module (gnu packages crates-graphics)
   #:use-module (gnu packages crates-io))
 
-
 (define-public rust-handlegraph-0.7
   (package
     (inherit rust-handlegraph-0.3)
@@ -110,4 +109,34 @@ program that can search across multiple notebooks for specific text,
 but limit itself to certain types of cells, source text, output data,
 or any combination.")
     (license license:gpl3+)))
+
+(define-public notebook-tools
+  (let ((commit "a9db1f4f90f6df72d28bf1235ca16b988d7b86be")
+        (revision "0"))
+    (package
+      (name "notebook-tools")
+      (version commit)
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/CADLabs/notebook-tools")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "0mmvqjfcsa6fq12rpay9w6ra1q8ijhmm1raqzi4d70y7wsbd20lw"))))
+      (build-system cargo-build-system)
+      (arguments
+       `(#:cargo-inputs
+         (("rust-clap" ,rust-clap-3)
+          ("rust-exitcode" ,rust-exitcode-1)
+          ("rust-term" ,rust-term-0.7)
+          ("rust-regex" ,rust-regex-1)
+          ("rust-serde" ,rust-serde-1)
+          ("rust-serde-json" ,rust-serde-json-1))))
+      (home-page "https://github.com/CADLabs/notebook-tools")
+      (synopsis "Rust CLI tools for manipulation of Jupyter Notebooks")
+      (description "Rust CLI tools for manipulation of Jupyter Notebooks.")
+      (license #f)))) ; There is no license.
 
