@@ -79,3 +79,35 @@
 Command Line Argument Parser.")
     (license (list license:expat license:asl2.0))))
 
+(define-public jrep
+  (package
+    (name "jrep")
+    (version "0.1.3")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/joshua-laughner/jrep")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0syvlc93w26v856hp5l8ik615dfrvax6hdfzw5kqhaww3siqjaj9"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-clap" ,rust-clap-for-jrep)
+        ("rust-exitcode" ,rust-exitcode-1)
+        ("rust-term" ,rust-term-0.7)
+        ("rust-regex" ,rust-regex-1)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-serde-json" ,rust-serde-json-1))))
+    (home-page "https://github.com/joshua-laughner/jrep/")
+    (synopsis "grep for Jupyter notebooks")
+    (description
+"@code{jrep} is @code{grep} for Jupyter notebooks.  It is a command line
+program that can search across multiple notebooks for specific text,
+but limit itself to certain types of cells, source text, output data,
+or any combination.")
+    (license license:gpl3+)))
+
