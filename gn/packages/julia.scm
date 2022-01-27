@@ -46,8 +46,7 @@
                (chmod "runpluto.sh" #o555)  ; it starts as #o444
                (substitute* "runpluto.sh"
                  ;; The arguments don't pass through the wrapper so we hardcode the port.
-                 (("\\$\\{1\\}") "4343"))
-               #t))
+                 (("\\$\\{1\\}") "4343"))))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
@@ -61,8 +60,7 @@
                          "runpluto.sh"
                          "notebooks"
                          "Project.toml"
-                         "Manifest.toml"))
-                 #t)))
+                         "Manifest.toml")))))
            (add-after 'install 'wrap-program
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
@@ -70,12 +68,10 @@
                  (wrap-script (string-append out "/runpluto.sh")
                    `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
                                         ,(string-append (assoc-ref inputs "coreutils") "/bin")))
-                   `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH"))))
-                 #t)))
+                   `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
            (replace 'precompile
              (lambda _
-               (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\"")
-               #t)))))
+               (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\""))))))
       (propagated-inputs
        `(;; from setup.py
          ("python-jupyter-server-proxy"
@@ -226,8 +222,7 @@ distributed computing.")
          (add-after 'link-depot 'hardcode-conda-path
            (lambda* (#:key inputs #:allow-other-keys)
              (substitute* "src/Conda.jl"
-               (("bin_dir\\(ROOTENV\\), \"conda\"") (string-append "\"" (assoc-ref inputs "conda") "/bin/\", \"conda\"")))
-             #t))
+               (("bin_dir\\(ROOTENV\\), \"conda\"") (string-append "\"" (assoc-ref inputs "conda") "/bin/\", \"conda\"")))))
          (add-before 'check 'pre-check
            (lambda* (#:key inputs #:allow-other-keys)
              ;(setenv "CONDA_JL_HOME" (string-append (assoc-ref inputs "conda") ))
@@ -324,7 +319,8 @@ properties
          (base32 "0bv281n999kmjlp9p3vl4vv4phdl17z4gdpvkjzxsyk6dvcg2nrf"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))    ; TODO: Fix test
+     `(#:tests? #f      ; TODO: Fix test
+       ))
     (propagated-inputs
      `(("julia-compat" ,julia-compat)
        ("julia-fillarrays" ,julia-fillarrays)
@@ -428,14 +424,12 @@ optimization of functions.")
          (add-after 'link-depot 'dont-check-for-upgrades
            (lambda _
              (substitute* "frontend/components/Welcome.js"
-               (("local_index !== -1") "false"))
-             #t))
+               (("local_index !== -1") "false"))))
          (add-after 'link-depot 'skip-network-tests
            (lambda _
              (substitute* "test/runtests.jl"
                ;; Attempts to update the package registry.
-               ((".*Basic.jl.*") ""))
-             #t)))))
+               ((".*Basic.jl.*") "")))))))
     (propagated-inputs
      `(("julia-configurations" ,julia-configurations)
        ("julia-fuzzycompletions" ,julia-fuzzycompletions)
@@ -502,8 +496,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
          (add-after 'link-depot 'adjust-test-suite
            (lambda _
              (substitute* "test/misc.jl"
-               (("test logmvbeta\\(1") "test_nowarn logmvbeta(1"))
-             #t)))))
+               (("test logmvbeta\\(1") "test_nowarn logmvbeta(1")))))))
     (propagated-inputs
      `(("julia-logexpfunctions" ,julia-logexpfunctions)
        ("julia-rmath" ,julia-rmath)
@@ -542,16 +535,14 @@ and numerical functions for statistical computing.")
            (replace 'check
              (lambda* (#:key tests? #:allow-other-keys)
                (when tests?
-                 (invoke "julia" "test.jl"))
-               #t))
+                 (invoke "julia" "test.jl"))))
            (add-before 'install 'build
              (lambda _
                (invoke "make")))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
-                 (install-file "src/libRmath-julia.so" (string-append out "/lib"))
-                 #t))))))
+                 (install-file "src/libRmath-julia.so" (string-append out "/lib"))))))))
       (home-page "https://github.com/JuliaStats/Rmath-julia")
       (synopsis "Rmath library from R")
       (description "This is a slightly modified version of the standalone Rmath
@@ -586,8 +577,7 @@ functions.")
              (let* ((rmath    (assoc-ref inputs "rmath"))
                     (librmath (string-append rmath "/lib/libRmath-julia.so")))
                (substitute* "src/Rmath.jl"
-                 (("libRmath\\)") (string-append "\"" librmath "\")")))
-               #t))))))
+                 (("libRmath\\)") (string-append "\"" librmath "\")")))))))))
     (propagated-inputs
      `(("julia-rmath-jll" ,julia-rmath-jll)))
     (inputs
@@ -663,8 +653,7 @@ R's d-p-q-r functions for probability distributions.  It is a wrapper around
              (substitute* "test/examples.jl"
                ;; Prevent a cycle with Optim.jl.
                (("^    SKIPFILE.*") "")
-               (("^    #SKIPFILE") "    SKIPFILE"))
-             #t)))))
+               (("^    #SKIPFILE") "    SKIPFILE")))))))
     (propagated-inputs
      `(("julia-nlsolversbase" ,julia-nlsolversbase)
        ("julia-nanmath" ,julia-nanmath)
@@ -892,7 +881,7 @@ that still support Julia versions older than 1.6.")
 
 ;; https://github.com/JuliaPackaging/Yggdrasil/tree/7e9ec714d786c4c841a80bdf75b84570c5bda7a1/E/EarCut
 (define-public julia-earcut-jll
-  ;; Only release tag contains just a license file.
+  ;; The only release tag contains just a license file.
   (let ((commit "b234ae0c064af12eb5482c7474a64af8be0f511e")
         (revision "1"))
   (package
@@ -921,9 +910,8 @@ that still support Julia versions older than 1.6.")
                    (string-append
                     "generate_wrapper_header(\"EarCut\", \""
                     (assoc-ref inputs "earcut") "\")\n"))))
-              ;; There's a Julia file for each platform, override them all
-              (find-files "src/wrappers/" "\\.jl$"))
-             #t)))))
+              ;; There's a Julia file for each platform, override them all.
+              (find-files "src/wrappers/" "\\.jl$")))))))
     (inputs                             ;required by artifacts
      `(("earcut" ,earcut-for-julia-earcut-jll)))
     (propagated-inputs
@@ -950,8 +938,7 @@ that still support Julia versions older than 1.6.")
         (snippet
          '(begin
             (substitute* "CMakeLists.txt"
-              ((".*add_subdirectory.*") ""))
-            #t))))
+              ((".*add_subdirectory.*") ""))))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
