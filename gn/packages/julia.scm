@@ -509,11 +509,11 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
              (substitute* "test/misc.jl"
                (("test logmvbeta\\(1") "test_nowarn logmvbeta(1")))))))
     (propagated-inputs
-     `(("julia-logexpfunctions" ,julia-logexpfunctions)
-       ("julia-rmath" ,julia-rmath)
-       ("julia-specialfunctions" ,julia-specialfunctions)))
+     (list julia-logexpfunctions
+           julia-rmath
+           julia-specialfunctions))
     (native-inputs
-     `(("julia-forwarddiff" ,julia-forwarddiff)))
+     (list julia-forwarddiff))
     (home-page "https://github.com/JuliaStats/StatsFuns.jl")
     (synopsis "Mathematical functions related to statistics")
     (description "This package provides a collection of mathematical constants
@@ -664,13 +664,20 @@ R's d-p-q-r functions for probability distributions.  It is a wrapper around
              (substitute* "test/examples.jl"
                ;; Prevent a cycle with Optim.jl.
                (("^    SKIPFILE.*") "")
-               (("^    #SKIPFILE") "    SKIPFILE")))))))
+               (("^    #SKIPFILE") "    SKIPFILE"))))
+         (add-after 'link-depot 'skip-doublefloats-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               (("using DoubleFloats.*") "")
+               ((".*arbitrary_precision\\.jl.*") "")))))))
     (propagated-inputs
      (list julia-nlsolversbase
            julia-nanmath
            julia-parameters))
     (native-inputs
-     (list julia-doublefloats
+     ;; DoubleFloats.jl transitively depends on TimeZones.jl, which is currently
+     ;; unpackageable due to its oversized Artifacts.toml.
+     (list ;julia-doublefloats
            julia-optimtestproblems))
     (home-page "https://github.com/JuliaNLSolvers/LineSearches.jl")
     (synopsis "Line search methods for optimization and root-finding")
@@ -710,6 +717,7 @@ floats and complex types.")
     (license license:expat)))
 
 ;; ready to upstream
+;; This package depends on TimeZones.jl.
 (define-public julia-polynomials
   (package
     (name "julia-polynomials")
@@ -758,15 +766,16 @@ polynomials.")
     (arguments
      `(#:tests? #f))    ; TODO: Fix! broken with timezone stuff
     (propagated-inputs
-     `(("julia-recipesbase" ,julia-recipesbase)
-       ("julia-timezones" ,julia-timezones)))
+     (list julia-infinity
+           julia-recipesbase
+           julia-timezones))
     (native-inputs
-     `(("julia-documenter" ,julia-documenter)
-       ;("julia-imagemagick" ,julia-imagemagick)
-       ;("julia-infinity" ,julia-infinity)
-       ;("julia-plots" ,julia-plots)
-       ;("julia-visualregressiontests" ,julia-visualregressiontests)
-       ))
+     (list julia-documenter
+           julia-imagemagick
+           julia-infinity
+           ;julia-plots
+           ;julia-visualregressiontests
+           ))
     (home-page "https://github.com/invenia/Intervals.jl")
     (synopsis "Non-iterable ranges")
     (description "This package defines:
@@ -774,13 +783,15 @@ polynomials.")
                      AbstractInterval, along with its subtypes Interval and AnchoredInterval, and also Bound.")
     (license license:expat)))
 
-;; TODO: Keep this in sync with tzdata in base.scm
-;; Package can use more work
-;; Need to figure out how to generate Artifacts.toml from tzdata package
+;; TODO: There is talk upstream about separating out the timezone data into a
+;; separate package which can allow this to actually be packaged in a sane way.
+;; As of 1.7.1 there are 257 items in Artifact.toml
+;; https://github.com/JuliaTime/TimeZones.jl/issues/359
+;; Versions after 1.5.x introduce a dependency on julia-inlinestrings, which needs help with its test suite.
 (define-public julia-timezones
   (package
     (name "julia-timezones")
-    (version "1.7.1")
+    (version "1.5.9")
     (source
       (origin
         (method git-fetch)
@@ -789,49 +800,18 @@ polynomials.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0sqckna9sivwxrhr7h7rmzmjxz3496q9yhd816y5z3b7vpv3gbqi"))))
+         (base32 "1r6vnhfykw4zmpq1nahv9zflsd4gnpdj84admnhd0pnbrfwv8prw"))))
     (build-system julia-build-system)
     (arguments
      (list
-       #:tests? #f    ; Tests attempt to download timezone information
-       ;#:phases
-       ;#~(modify-phases %standard-phases
-       ;  (add-after 'link-depot 'patch-tzdata
-       ;    (lambda* (#:key inputs #:allow-other-keys)
-       ;      ;(substitute* "src/tzdata/TZData.jl"
-       ;      ;  (("(COMPILED_DIR = ).*" _ key)
-       ;      ;   (string-append key "\"" (assoc-ref inputs "tzdata") "/share/zoneinfo\"")))
-       ;      (substitute* "test/runtests.jl"
-       ;        (("2016j") "2021a")
-       ;        ((".*download.jl.*") "")
-       ;        )
-       ;      (make-file-writable "Artifacts.toml")
-       ;      (with-output-to-file "Artifacts.toml"
-       ;        (lambda _
-       ;          (format #t "[tzdata2021a]~@
-       ;                  git-tree-sha1 = \"6d94ada27957590cbd0d7678f5ae711232a4d714\"~@
-       ;                  lazy = true~@
-       ;                  ~@
-       ;                  [[tzdata2021a.download]]~@
-       ;                  sha256 = \"39e7d2ba08c68cbaefc8de3227aab0dec2521be8042cf56855f7dc3a9fb14e08\"~@
-       ;                  url = \"file://~a\"~%"
-       ;                  (assoc-ref inputs "tzdata-src"))))
-       ;      #t))
-       ;  )
-         ))
+       ;; Tests attempt to download timezone information
+       ;; In its current form this is basically a source-only package.
+       #:tests? #f))
     (propagated-inputs
      (list
-       julia-inlinestrings
+       ;julia-inlinestrings
        julia-mocking
        julia-recipesbase))
-    (native-inputs
-     `(
-       ;("julia-compat" ,julia-compat)
-       ;("julia-timezones" ,julia-timezones)
-       ;("curl" ,(@ (gnu packages curl) curl-minimal))
-       ;("tzdata" ,(@ (gnu packages base) tzdata))
-       ;("tzdata-src" ,(package-source (@ (gnu packages base) tzdata)))
-       ))
     (home-page "https://github.com/JuliaTime/TimeZones.jl")
     (synopsis "IANA time zone database access for Julia")
     (description "IANA time zone database access for the Julia programming
@@ -842,7 +822,7 @@ include a new time zone aware @code{TimeType: ZonedDateTime}.")
 (define-public julia-inlinestrings
   (package
     (name "julia-inlinestrings")
-    (version "1.1.1")
+    (version "1.1.2")
     (source
       (origin
         (method git-fetch)
@@ -851,7 +831,7 @@ include a new time zone aware @code{TimeType: ZonedDateTime}.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0vr0hdig2vmgpnkxwhiw4wcl8pv69xyk0wpfig08sd6m8dg5wq4c"))))
+         (base32 "1fwbnjrsig0fbi9vjn8apbn186xvzhk7vnw3g661q3g8f2j0snp9"))))
     (build-system julia-build-system)
     (arguments
      (list
