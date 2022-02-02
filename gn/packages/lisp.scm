@@ -304,3 +304,35 @@ generators.")
 (define-public ecl-scribble
   (sbcl-package->ecl-package sbcl-scribble))
 
+(define-public sbcl-css-lite
+  (let ((commit "6ee4e6212ed56943d665df163d2a834b122e6273")
+        (revision "0"))
+    (package
+      (name "sbcl-css-lite")
+      (version "0.01")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://github.com/paddymul/css-lite")
+                (commit commit)))
+          (sha256
+           (base32 "1lyvw7hcy09k5qs6icky23s13psqxncyc73hdyiimb66p0jx6k0d"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("css-lite.asd")))
+      (home-page "https://github.com/paddymul/css-lite")
+      (synopsis "CSS grammar for Lisp")
+      (description 
+"css-lite is a library for generating CSS from an s-exp based syntax.  When
+compiled with Parenscript loaded in the Lisp image, it also provides the
+same CSS generation facilities in Parenscript-generated JavaScript code.")
+      (license license:bsd-3))))
+
+(define-public cl-css-lite
+  (sbcl-package->cl-source-package sbcl-css-lite))
+
+(define-public ecl-css-lite
+  (sbcl-package->ecl-package sbcl-css-lite))
+
