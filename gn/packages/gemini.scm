@@ -1,4 +1,5 @@
 (define-module (gn packages gemini)
+  #:use-module (gnu packages guile)
   #:use-module (guix build-system gnu)
   #:use-module (guix packages)
   #:use-module (guix git-download)
@@ -23,6 +24,7 @@
        #:phases
        (modify-phases %standard-phases
          (delete 'configure))))
+    (inputs (list guile-3.0))
     (home-page "https://tissue.systemreboot.net")
     (synopsis "Text based issue tracker")
     (description "tissue is a text based issue tracker.")
