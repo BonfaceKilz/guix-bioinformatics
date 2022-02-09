@@ -216,6 +216,7 @@
          ("python-cssselect" ,python-cssselect)
          ("python-flask-debugtoolbar" ,python-flask-debugtoolbar)
          ("python-htmlgen" ,python-htmlgen)
+         ("python-ijson" ,python-ijson)
          ("python-jinja2" ,python-jinja2)
          ("python-sqlalchemy" ,python-sqlalchemy)
          ("python-setuptools" ,python-setuptools)
