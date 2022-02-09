@@ -156,6 +156,7 @@
                            ("r-rjson" ,r-rjson)
                            ("r-stringi" ,r-stringi)
                            ("r-wgcna" ,r-wgcna)
+                           ("r-ctl" ,r-ctl)
                            ("rust-qtlreaper" ,rust-qtlreaper)))
       (build-system python-build-system)
       (arguments
