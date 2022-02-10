@@ -151,6 +151,8 @@
                            ("python-requests" ,python-requests)
                            ("python-scipy" ,python-scipy)
                            ("python-sparqlwrapper" ,python-sparqlwrapper)
+			   ("python-hypothesis" ,python-hypothesis)
+			   ("python-pytest" ,python-pytest)
                            ("r-optparse" ,r-optparse)
                            ("r-qtl" ,r-qtl)
                            ("r-rjson" ,r-rjson)
