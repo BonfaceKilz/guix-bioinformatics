@@ -129,6 +129,12 @@
          (sha256
           (base32
            "0z35m78clzg9mcxll86r4i7qhvlc7pmca1b3mh8fq3g78mnrjhb9"))))
+      (native-inputs
+       (list python-hypothesis
+             python-mypy
+             python-mypy-extensions
+             python-pylint
+             python-pytest))
       (propagated-inputs `(("coreutils" ,coreutils)
                            ("gemma-wrapper" ,gemma-wrapper)
                            ("python" ,python-wrapper)
@@ -139,20 +145,15 @@
                            ("python-flask-cors" ,python-flask-cors)
                            ;; ("python-flask-socketio" ,python-flask-socketio)
                            ("python-ipfshttpclient" ,python-ipfshttpclient)
-                           ("python-mypy" ,python-mypy)
-                           ("python-mypy-extensions" ,python-mypy-extensions)
                            ("python-mysqlclient" ,python-mysqlclient)
                            ("python-numpy" ,python-numpy)
                            ("python-pandas" ,python-pandas)
                            ("python-pingouin" ,python-pingouin-with-working-python-seaborn)
                            ("python-plotly" ,python-plotly)
-                           ("python-pylint" ,python-pylint)
                            ("python-redis" ,python-redis)
                            ("python-requests" ,python-requests)
                            ("python-scipy" ,python-scipy)
                            ("python-sparqlwrapper" ,python-sparqlwrapper)
-			   ("python-hypothesis" ,python-hypothesis)
-			   ("python-pytest" ,python-pytest)
                            ("r-optparse" ,r-optparse)
                            ("r-qtl" ,r-qtl)
                            ("r-rjson" ,r-rjson)
