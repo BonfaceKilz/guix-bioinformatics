@@ -166,10 +166,10 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "fe345c9f2e99be748511f6889420d6560a553a37"))
+  (let ((commit "17652b17455bd58bf82d130b60b3e80c57b7f80c"))
     (package
       (name "genenetwork2")
-      (version (string-append "3.11-guix-" (string-take commit 7) ))
+      (version (git-version "3.11" "2" commit))
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
@@ -178,7 +178,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "1y6psmxpm3qn78dx6xfc11rdpf22vf807qb7grnp82gl19q6408w"))))
+                  "14xiwjhk9nmmsd9kx2vi7pwbvhcvkgfks1av0qdkwjckbqidrk2k"))))
       (native-inputs
        `(("graphviz" ,graphviz)
          ;; And the graphs
@@ -287,8 +287,6 @@
          #:phases
          (modify-phases %standard-phases
             (delete 'reset-gzip-timestamps)
-            (replace 'install
-                (lambda _ #t))
             (add-after 'unpack 'fix-paths-scripts
               (lambda _
                 (substitute* "bin/genenetwork2"
