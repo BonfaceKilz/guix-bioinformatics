@@ -115,10 +115,10 @@
        ,@(alist-delete "python-seaborn" (package-propagated-inputs python-pingouin))))))
 
 (define-public genenetwork3
-  (let ((commit "784447b17d85a618005ac9acfc57f5b7ef8f5169"))
+  (let ((commit "83a7aa7533f8f4ecac049dc0e93aff6429e6e5ae"))
     (package
       (name "genenetwork3")
-      (version (git-version "0.1.0" "1" commit))
+      (version (git-version "0.1.0" "2" commit))
       (source
        (origin
          (method git-fetch)
@@ -128,7 +128,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "0z35m78clzg9mcxll86r4i7qhvlc7pmca1b3mh8fq3g78mnrjhb9"))))
+           "0vn68azdzkp0svblc2q1s2sqj4nfiani1fak6ankcskbxyvlali4"))))
       (native-inputs
        (list python-hypothesis
              python-mypy
@@ -162,9 +162,6 @@
                            ("r-ctl" ,r-ctl)
                            ("rust-qtlreaper" ,rust-qtlreaper)))
       (build-system python-build-system)
-      (arguments
-       `(#:tests? #f        ; tests are failing
-       ))
       (home-page "https://github.com/genenetwork/genenetwork3")
       (synopsis "GeneNetwork3 API for data science and machine learning.")
       (description "GeneNetwork3 API for data science and machine learning.")
