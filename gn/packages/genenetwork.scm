@@ -135,30 +135,30 @@
              python-mypy-extensions
              python-pylint
              python-pytest))
-      (propagated-inputs `(("gemma-wrapper" ,gemma-wrapper)
-                           ("python" ,python-wrapper)
-                           ("csvdiff" ,csvdiff)
-                           ("python-bcrypt" ,python-bcrypt)
-                           ("python-flask" ,python-flask)
-                           ("python-flask-cors" ,python-flask-cors)
-                           ;; ("python-flask-socketio" ,python-flask-socketio)
-                           ("python-ipfshttpclient" ,python-ipfshttpclient)
-                           ("python-mysqlclient" ,python-mysqlclient)
-                           ("python-numpy" ,python-numpy)
-                           ("python-pandas" ,python-pandas)
-                           ("python-pingouin" ,python-pingouin-with-working-python-seaborn)
-                           ("python-plotly" ,python-plotly)
-                           ("python-redis" ,python-redis)
-                           ("python-requests" ,python-requests)
-                           ("python-scipy" ,python-scipy)
-                           ("python-sparqlwrapper" ,python-sparqlwrapper)
-                           ("r-optparse" ,r-optparse)
-                           ("r-qtl" ,r-qtl)
-                           ("r-rjson" ,r-rjson)
-                           ("r-stringi" ,r-stringi)
-                           ("r-wgcna" ,r-wgcna)
-                           ("r-ctl" ,r-ctl)
-                           ("rust-qtlreaper" ,rust-qtlreaper)))
+      (propagated-inputs
+       (list gemma-wrapper
+             python-wrapper
+             csvdiff
+             python-bcrypt
+             python-flask
+             python-flask-cors
+             python-ipfshttpclient
+             python-mysqlclient
+             python-numpy
+             python-pandas
+             python-pingouin-with-working-python-seaborn
+             python-plotly
+             python-redis
+             python-requests
+             python-scipy
+             python-sparqlwrapper
+             r-optparse
+             r-qtl
+             r-rjson
+             r-stringi
+             r-wgcna
+             r-ctl
+             rust-qtlreaper))
       (build-system python-build-system)
       (home-page "https://github.com/genenetwork/genenetwork3")
       (synopsis "GeneNetwork3 API for data science and machine learning.")
