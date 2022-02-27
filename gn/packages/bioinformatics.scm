@@ -3039,3 +3039,60 @@ input sequences, pick syncmers from hpc-compressed sequences, connect syncmers
 with an edge if they are adjacent in a read, unitigify and homopolymer
 decompress.  Suggested input is PacBio HiFi/CCS reads.")
     (license license:expat)))
+
+;; TODO: Unbundle bloom, meryl.
+(define-public willowmap
+  (package
+    (name "willowmap")
+    (version "2.03")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/marbl/Winnowmap")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "152650bljmdm9f1nmi4xbpxs9583faijba9i8gkp3qz76pzcvbfh"))
+              (modules '((guix build utils)))
+              (snippet
+               '(begin
+                  (substitute* "ext/meryl/src/utility/src/utility/system.C"
+                    ;; This was removed in glibc-2.32.
+                    ((".*sys/sysctl\\.h.*") ""))))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+       #:tests? #f                      ; No tests.
+       #:make-flags
+       #~(list "OSVERSION=5.15")
+       #:phases
+       #~(modify-phases %standard-phases
+           (delete 'configure)          ; No configure script.
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (for-each (lambda (file)
+                             (install-file file (string-append out "/bin")))
+                           (find-files "bin"))))))))
+    (inputs
+     (list zlib))
+    (native-inputs
+     (list perl
+           which))
+    (home-page "https://github.com/marbl/Winnowmap")
+    (synopsis "Long read / genome alignment software")
+    (description
+     "Winnowmap is a long-read mapping algorithm optimized for mapping ONT and
+PacBio reads to repetitive reference sequences.  Winnowmap implements a novel
+weighted minimizer sampling algorithm (>=v1.0).  This optimization was motivated
+by the need to avoid masking of frequently occurring k-mers during the seeding
+stage in an efficient manner, and achieve better mapping accuracy in complex
+repeats (e.g., long tandem repeats) of the human genome.  Using weighted
+minimizers, Winnowmap down-weights frequently occurring k-mers, thus reducing
+their chance of getting selected as minimizers.")
+    (supported-systems '("x86_64-linux"))
+    ;; minimap2 based code is expat, as is bloom.
+    ;; Meryl is mix bsd-3, expat and public-domain.
+    ;; Rest of the code is public domain.
+    (license license:expat)))
