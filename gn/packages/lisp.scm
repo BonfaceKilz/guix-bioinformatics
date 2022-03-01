@@ -277,7 +277,7 @@ generators.")
         (origin
           (method git-fetch)
           (uri (git-reference
-                (url "https://git.genenetwork.org/jgart/cl-qc")
+                (url "https://git.genenetwork.org/jgart/qc")
                 (commit commit)))
           (sha256
            (base32 "0dlaxdzrpagn18jxy3kzzf1bwn55prdjpzw256hnjbvmnx5w5fd7"))
@@ -290,11 +290,11 @@ generators.")
       (inputs
         (list sbcl-alexandria
               sbcl-split-sequence))
-      (home-page "https://gitlab.common-lisp.net/frideau/qc")
-      (synopsis "Quality control of delimited data")
+      (home-page "https://git.genenetwork.org/jgart/qc/")
+      (synopsis "Quality control of delimited files")
       (description
-"@code{cl-qc} is a Common Lisp library for linting about the following
-in delimited text files:
+"@code{cl-qc} is a Common Lisp library for linting the following in
+delimited text files:
 @itemize
 @item Whitespace
 @item Floating-point number well-formedness
