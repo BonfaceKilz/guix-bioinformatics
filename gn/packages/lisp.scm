@@ -267,3 +267,44 @@ generators.")
 (define-public ecl-scribble
   (sbcl-package->ecl-package sbcl-scribble))
 
+(define-public sbcl-qc
+  (let ((commit "3d5d3bd49f7852fae6be7094ce47c7bb5241f17c")
+        (revision "0"))
+    (package
+      (name "sbcl-qc")
+      (version (git-version "20220301" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://git.genenetwork.org/jgart/cl-qc")
+                (commit commit)))
+          (sha256
+           (base32 "1041p1541fdimw9i9kxsp6sybn74niyrshy7075is98l01pmwxlx"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       `(#:asd-files '("qc.asd")))
+      (native-inputs
+        (list sbcl-1am))
+      (inputs
+        (list sbcl-alexandria
+              sbcl-split-sequence))
+      (home-page "https://gitlab.common-lisp.net/frideau/qc")
+      (synopsis "Quality control of delimited data")
+      (description
+"@code{cl-qc} is a Common Lisp library for linting about the following
+in delimited text files:
+@itemize
+@item Whitespace
+@item Floating-point number well-formedness
+@item GeneChip Platform ID checks for Affymetrix, Illumina, and others
+@end itemize\n")
+      (license license:llgpl))))
+
+(define-public cl-qc
+  (sbcl-package->cl-source-package sbcl-qc))
+
+(define-public ecl-qc
+  (sbcl-package->ecl-package sbcl-qc))
+
