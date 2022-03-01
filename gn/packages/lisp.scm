@@ -268,8 +268,8 @@ generators.")
   (sbcl-package->ecl-package sbcl-scribble))
 
 (define-public sbcl-qc
-  (let ((commit "3d5d3bd49f7852fae6be7094ce47c7bb5241f17c")
-        (revision "0"))
+  (let ((commit "eaa5dafd7751989fbae07ceb09d345548692b8b8")
+        (revision "1"))
     (package
       (name "sbcl-qc")
       (version (git-version "20220301" revision commit))
@@ -280,7 +280,7 @@ generators.")
                 (url "https://git.genenetwork.org/jgart/cl-qc")
                 (commit commit)))
           (sha256
-           (base32 "1041p1541fdimw9i9kxsp6sybn74niyrshy7075is98l01pmwxlx"))
+           (base32 "06w8xzhcqkiqc7nknjlspkk93rv6hsqwb4agkbkilhsf4xlmw5c1"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
       (arguments
