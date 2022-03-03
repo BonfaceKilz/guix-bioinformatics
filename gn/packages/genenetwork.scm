@@ -134,7 +134,8 @@
              python-mypy
              python-mypy-extensions
              python-pylint
-             python-pytest))
+             python-pytest
+             python-pytest-mock))
       (propagated-inputs
        (list gemma-wrapper
              python-wrapper
