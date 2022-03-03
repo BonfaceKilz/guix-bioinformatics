@@ -1819,3 +1819,21 @@ useful information for debugging.")
 The goal of the project is to parse everything in the Pip requirement
 file format spec.")
     (license license:bsd-3)))
+
+(define-public python-pytest-pudb
+  (package
+    (name "python-pytest-pudb")
+    (version "0.7.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "pytest-pudb" version))
+       (sha256
+        (base32 "0qrc8gzfxmcz7jjn0kj87y6kn5law1la2a0c6hyid0lwscb77a0f"))))
+    (build-system python-build-system)
+    (propagated-inputs (list pudb python-pytest))
+    (native-inputs (list python-flake8 python-pexpect python-tox))
+    (home-page "https://github.com/wronglink/pytest-pudb")
+    (synopsis "Pytest PuDB debugger integration")
+    (description "Pytest PuDB debugger integration")
+    (license license:expat)))
