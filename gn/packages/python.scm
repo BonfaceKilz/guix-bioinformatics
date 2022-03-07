@@ -1821,19 +1821,37 @@ file format spec.")
     (license license:bsd-3)))
 
 (define-public python-pytest-pudb
-  (package
-    (name "python-pytest-pudb")
-    (version "0.7.0")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (pypi-uri "pytest-pudb" version))
-       (sha256
-        (base32 "0qrc8gzfxmcz7jjn0kj87y6kn5law1la2a0c6hyid0lwscb77a0f"))))
-    (build-system python-build-system)
-    (propagated-inputs (list pudb python-pytest))
-    (native-inputs (list python-flake8 python-pexpect python-tox))
-    (home-page "https://github.com/wronglink/pytest-pudb")
-    (synopsis "Pytest PuDB debugger integration")
-    (description "Pytest PuDB debugger integration")
-    (license license:expat)))
+  ;; PyPi does not include tests
+  (let ((commit "a6b3d2f4d35e558d72bccff472ecde9c9d9c69e5")
+        (revision "0"))
+    (package
+      (name "python-pytest-pudb")
+      (version "0.7.0")
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+                (url "https://github.com/wronglink/pytest-pudb")
+                (commit commit)))
+         (file-name (string-append name "-" commit))
+         (sha256
+          (base32 "1c0pypxx3y8w7s5bz9iy3w3aablnhn81rnhmb0is8hf2qpm6k3w0"))))
+      (build-system python-build-system)
+      (propagated-inputs (list pudb))
+      (native-inputs
+        (list python-pytest))
+      (arguments
+        `(#:phases
+          (modify-phases %standard-phases
+            (replace 'check
+              (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+                (when tests?
+                  (add-installed-pythonpath inputs outputs)
+                  (invoke "pytest" "-v")))))))
+      (home-page "https://github.com/wronglink/pytest-pudb")
+      (synopsis "Pytest PuDB debugger integration")
+      (description
+  "@code{python-pytest-pudb} provides PuDB debugger integration based on
+  pytest PDB integration.")
+      (license license:expat))))
+
