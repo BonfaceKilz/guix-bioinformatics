@@ -9,6 +9,7 @@
   #:export (virtuoso-configuration
             virtuoso-configuration?
             virtuoso-configuration-package
+            virtuoso-configuration-state-directory
             virtuoso-configuration-server-ip
             virtuoso-configuration-server-port
             virtuoso-configuration-http-server-ip
@@ -24,6 +25,8 @@
   virtuoso-configuration?
   (package virtuoso-configuration-package
            (default virtuoso-ose))
+  (state-directory virtuoso-configuration-state-directory
+                   (default "/var/lib/virtuoso"))
   (server-ip virtuoso-configuration-server-ip
              (default "localhost"))
   (server-port virtuoso-configuration-server-port
@@ -70,7 +73,7 @@
                               (format port "ServerPort = ~a:~a~%"
                                       #$(virtuoso-configuration-http-server-ip config)
                                       #$(virtuoso-configuration-http-server-port config)))))))
-             #:directory "/var/lib/virtuoso"
+             #:directory #$(virtuoso-configuration-state-directory config)
              #:user "virtuoso"
              #:group "virtuoso"))
    (stop #~(make-kill-destructor))))
