@@ -5,7 +5,9 @@
   #:use-module (gnu services configuration)
   #:use-module (gnu services shepherd)
   #:use-module (guix packages)
+  #:use-module (guix records)
   #:export (virtuoso-configuration
+            virtuoso-configuration?
             virtuoso-configuration-package
             virtuoso-configuration-http-server-port
             virtuoso-service-type))
@@ -14,19 +16,13 @@
 ;;; Virtuoso
 ;;;
 
-(define-maybe non-negative-integer)
-
-(define (non-negative-integer? val)
-  (and (integer? val)
-       (not (negative? val))))
-
-(define-configuration virtuoso-configuration
-  (package
-    (package virtuoso-ose)
-    "The virtuoso package.")
-  (http-server-port
-   (maybe-non-negative-integer 'disabled)
-   "The port on which to listen for HTTP connections."))
+(define-record-type* <virtuoso-configuration>
+  virtuoso-configuration make-virtuoso-configuration
+  virtuoso-configuration?
+  (package virtuoso-configuration-package
+           (default virtuoso-ose))
+  (http-server-port virtuoso-configuration-http-server-port
+                    (default 8890)))
 
 (define %virtuoso-accounts
   (list (user-group (name "virtuoso")
@@ -53,8 +49,7 @@
                       "virtuoso.ini"
                       #~(call-with-output-file #$output
                           (lambda (port)
-                            (when (not (eq? #$(virtuoso-configuration-http-server-port config)
-                                            'disabled))
+                            (when #$(virtuoso-configuration-http-server-port config)
                               (format port "[HTTPServer]~%")
                               (format port "ServerPort = ~a~%"
                                       #$(virtuoso-configuration-http-server-port config)))))))
