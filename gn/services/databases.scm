@@ -9,6 +9,7 @@
   #:export (virtuoso-configuration
             virtuoso-configuration?
             virtuoso-configuration-package
+            virtuoso-configuration-http-server-ip
             virtuoso-configuration-http-server-port
             virtuoso-service-type))
 
@@ -21,6 +22,8 @@
   virtuoso-configuration?
   (package virtuoso-configuration-package
            (default virtuoso-ose))
+  (http-server-ip virtuoso-configuration-http-server-ip
+                  (default "localhost"))
   (http-server-port virtuoso-configuration-http-server-port
                     (default 8890)))
 
@@ -49,9 +52,11 @@
                       "virtuoso.ini"
                       #~(call-with-output-file #$output
                           (lambda (port)
-                            (when #$(virtuoso-configuration-http-server-port config)
+                            (when (and #$(virtuoso-configuration-http-server-ip config)
+                                       #$(virtuoso-configuration-http-server-port config))
                               (format port "[HTTPServer]~%")
-                              (format port "ServerPort = ~a~%"
+                              (format port "ServerPort = ~a:~a~%"
+                                      #$(virtuoso-configuration-http-server-ip config)
                                       #$(virtuoso-configuration-http-server-port config)))))))
              #:directory "/var/lib/virtuoso"
              #:user "virtuoso"
