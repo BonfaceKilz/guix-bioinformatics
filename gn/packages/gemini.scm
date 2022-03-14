@@ -3,6 +3,7 @@
   #:use-module (gnu packages gettext)
   #:use-module (gnu packages guile)
   #:use-module ((gnu packages skribilo) #:prefix guix:)
+  #:use-module (gnu packages version-control)
   #:use-module (guix build-system gnu)
   #:use-module (guix packages)
   #:use-module (guix git-download)
@@ -31,7 +32,7 @@
          ,@(package-native-inputs guix:skribilo))))))
 
 (define-public tissue
-  (let ((commit "e62965d54e3251c737202819fc031ba4bfc55596")
+  (let ((commit "17d101b2f97edc8574528d5f05dd952921b67027")
         (revision "0"))
     (package
       (name "tissue")
@@ -44,15 +45,19 @@
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "1vh8jfrawnymnkb04n6z7hddxgj7nfa354vra45fqckgfp5x8fb5"))))
+                  "0g2f4y6x8wam5367cfpd00nm0swnk3b33rgwcs3rl0cxn2hvj610"))))
       (build-system gnu-build-system)
       (arguments
        `(#:make-flags (list (string-append "prefix=" %output)
                             "GUILE_AUTO_COMPILE=0")
          #:phases
          (modify-phases %standard-phases
-           (delete 'configure))))
-      (inputs (list guile-3.0))
+           (replace 'configure
+             (lambda* (#:key inputs #:allow-other-keys)
+               (substitute* (list "bin/tissue" "tissue/issue.scm" "tissue/web.scm")
+                 (("\"git\"")
+                  (string-append "\"" (assoc-ref inputs "git-minimal") "/bin/git\""))))))))
+      (inputs (list git-minimal guile-3.0))
       (propagated-inputs
        (list skribilo-with-gemtext-reader))
       (home-page "https://tissue.systemreboot.net")
