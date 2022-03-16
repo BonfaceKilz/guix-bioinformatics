@@ -181,11 +181,9 @@
                  (base32
                   "14xiwjhk9nmmsd9kx2vi7pwbvhcvkgfks1av0qdkwjckbqidrk2k"))))
       (native-inputs
-       `(("graphviz" ,graphviz)
-         ;; And the graphs
-         ;("genenetwork-graph" ,genenetwork-graph)
-         ;("dag-svg-file" ,dag-svg-file)
-         ))
+       (list graphviz
+             python-pytest
+             python-pytest-mock))
       (propagated-inputs
        `(("genenetwork3" ,genenetwork3)
          ("parallel" ,parallel) ;; GNU parallel
