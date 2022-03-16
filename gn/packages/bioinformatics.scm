@@ -3096,3 +3096,93 @@ their chance of getting selected as minimizers.")
     ;; Meryl is mix bsd-3, expat and public-domain.
     ;; Rest of the code is public domain.
     (license license:expat)))
+
+;; TODO: Regenerate or remove docs folder.
+(define-public python-pixy
+  (package
+    (name "python-pixy")
+    (version "1.2.6.beta1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/ksamuk/pixy")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "16hl6hcf38fya18b1x75250z1shsysvpmc75vsp6wjqggajcfqc7"))))
+    (build-system python-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 ;; "Test" based on test command in conda recipe.
+                 (invoke "pixy" "--version")))))))
+    (propagated-inputs
+     (list python-multiprocess
+           python-numcodecs
+           python-numpy
+           python-pandas
+           python-scikit-allel
+           python-scipy))
+    (home-page "https://pixy.readthedocs.io/")
+    (synopsis
+     "Unbiased estimation of nucleotide diversity within and between populations")
+    (description "@command{pixy} is a command-line tool for painlessly
+estimating average nucleotide diversity within (π) and between (dxy) populations
+from a VCF.  In particular, pixy facilitates the use of VCFs containing
+invariant (monomorphic) sites, which are essential for the correct computation
+of π and dxy in the face of missing data (i.e. always).")
+    (license license:expat)))
+
+(define-public python-scikit-allel
+  (package
+    (name "python-scikit-allel")
+    (version "1.3.5")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "scikit-allel" version))
+        (sha256
+         (base32 "1vg88ng6gd175gzk39iz1drxig5l91dyx398w2kbw3w8036zv8gj"))))
+    (build-system python-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (invoke "python" "setup.py" "build_ext" "--inplace")
+                 (invoke "python" "-m" "pytest" "-v" "allel"
+                         ;; AttributeError: 'Dataset' object has no attribute 'asstr'
+                         ;; Perhaps need python-h5py@3?
+                         "-k" (string-append
+                                "not test_vcf_to_hdf5"
+                                " and not test_vcf_to_hdf5_exclude"
+                                " and not test_vcf_to_hdf5_rename"
+                                " and not test_vcf_to_hdf5_group"
+                                " and not test_vcf_to_hdf5_ann"))))))))
+    (propagated-inputs
+     (list python-dask
+           python-numpy))
+    (native-inputs
+     (list python-cython
+           ;; The following are all needed for the tests
+           htslib
+           python-h5py
+           python-hmmlearn
+           python-numexpr
+           python-pytest
+           python-scipy
+           python-setuptools-scm
+           python-zarr))
+    (home-page "https://github.com/cggh/scikit-allel")
+    (synopsis "Explore and analyze genetic variation data")
+    (description
+     "This package provides utilities for exploratory analysis of large scale
+genetic variation data.")
+    (license license:expat)))
