@@ -181,9 +181,7 @@
                  (base32
                   "14xiwjhk9nmmsd9kx2vi7pwbvhcvkgfks1av0qdkwjckbqidrk2k"))))
       (native-inputs
-       (list graphviz
-             python-pytest
-             python-pytest-mock))
+       (list graphviz))
       (propagated-inputs
        `(("genenetwork3" ,genenetwork3)
          ("parallel" ,parallel) ;; GNU parallel
@@ -215,6 +213,8 @@
          ("python-htmlgen" ,python-htmlgen)
          ("python-ijson" ,python-ijson)
          ("python-jinja2" ,python-jinja2)
+         ("python-pytest" ,python-pytest)
+         ("python-pytest-mock" ,python-pytest-mock)
          ("python-sqlalchemy" ,python-sqlalchemy)
          ("python-setuptools" ,python-setuptools)
          ("python-scipy" ,python-scipy)
