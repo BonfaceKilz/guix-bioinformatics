@@ -308,3 +308,39 @@ delimited text files:
 (define-public ecl-qc
   (sbcl-package->ecl-package sbcl-qc))
 
+;; https://issues.guix.gnu.org/54503
+(define-public sbcl-ningle
+  (let ((commit "2e85675bbb668d6ef341514fc9f22391a0f506b1")
+        (revision "2"))
+    (package
+      (name "sbcl-ningle")
+      (version (git-version "0.3.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/fukamachi/ningle")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "0s9nn8ml1j4839rycvdjcbsynkqnhxw1zmrgpjz48smscwdf1f8p"))))
+      (build-system asdf-build-system/sbcl)
+      (arguments
+       '(#:tests? #f))
+      (native-inputs
+       (list sbcl-prove))
+      (inputs
+       (list sbcl-cl-syntax sbcl-myway sbcl-lack sbcl-alexandria
+             sbcl-babel))
+      (home-page "https://8arrow.org/ningle/")
+      (synopsis "Super micro framework for Common Lisp")
+      (description
+       "Ningle is a lightweight web application framework for Common Lisp.")
+      (license license:llgpl))))
+
+(define-public cl-ningle
+  (sbcl-package->cl-source-package sbcl-ningle))
+
+(define-public ecl-ningle
+  (sbcl-package->ecl-package sbcl-ningle))
+
