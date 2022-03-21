@@ -10,95 +10,53 @@
 ;;;
 
 (define-module (gn packages riscv)
-  #:use-module (gnu packages autotools)
-  #:use-module ((gnu packages bioinformatics) #:prefix guix:)
+  #:use-module (guix utils)
+  #:use-module (guix packages)
+  #:use-module (guix git-download)
+  #:use-module (guix build-system cmake)
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (gnu packages)
+  #:use-module (gnu packages bioinformatics)
+  #:use-module (gnu packages cpp)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages jemalloc)
-  #:use-module ((gnu packages maths) #:prefix guix:)
-  #:use-module (guix build-system cmake)
-  #:use-module (guix build-system gnu)
-  #:use-module (guix git-download)
-  #:use-module ((guix licenses) #:prefix license:)
-  #:use-module (guix packages)
-  #:use-module (guix utils))
+  #:use-module (gnu packages maths))
 
-(define-public htslib
-  (package
-    (inherit guix:htslib)
-    (name "htslib")
-    (inputs
-     `(("bzip2" ,bzip2)
-       ("xz" ,xz)
-       ,@(package-inputs guix:htslib)))))
 
-(define-public gsl
-  (package
-    (inherit guix:gsl)
-    (name "gsl")
-    (arguments
-     (substitute-keyword-arguments (package-arguments guix:gsl)
-       ((#:configure-flags _) `(list))
-       ((#:phases phases '%standard-phases)
-        `(modify-phases ,phases
-           (add-after 'unpack 'force-bootstrap
-             (lambda _
-               (delete-file "configure")))))))
-    (native-inputs
-     `(("autoconf" ,autoconf)
-       ("automake" ,automake)
-       ("libtool" ,libtool)))))
-
-(define-public atomic-queue
-  (package
-    (name "atomic-queue")
-    (version "1.0")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/max0x7ba/atomic_queue")
-                    (commit (string-append "v" version))))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "0ssff73wlvrsk2nma99dmvm0ijyzfr54jk37kxgpb694r7ajc90l"))))
-    (build-system gnu-build-system)
-    (arguments
-     `(#:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure)
-         (delete 'build)
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (copy-recursively "include/atomic_queue"
-                               (string-append (assoc-ref outputs "out")
-                                              "/include/atomic_queue")))))))
-    (home-page "https://github.com/max0x7ba/atomic_queue")
-    (synopsis "C++ lockless queue")
-    (description "@code{atomic-queue} provides C++14
-multiple-producer-multiple-consumer lockless queues based on a circular buffer
-with std::atomic.  The maximum queue size must be set at compile time. And,
-there are no OS-blocking push/pop functions, thus making it suitable for
-ultra-low latency applications.")
-    (license license:expat)))
+;; Improvements to riscv support have been merged since the last release.
+(define-public atomic-queue-git
+  (let ((commit "7d75e9ed0359650224b29cdf6728c5fe0a19fffb")     ; 2022-03-11
+        (revision "1"))
+    (package
+      (inherit atomic-queue)
+      (name "atomic-queue")
+      (version (git-version "1.0" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/max0x7ba/atomic_queue")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "1dh8x0ikfwk0by5avwfv9gvr9ay6jy13yr66rvgw9wwyxmklz848")))))))
 
 (define-public wfmash
   (let ((version "0.7.0")
-        (commit "50a68f0d8c372e720d73e7fc9d90a0d0a4e54ef8")
-        (package-revision "25"))
+        (commit "81b8292479648058c6986da808afba0eadcce8d0")
+        (package-revision "26"))
     (package
       (name "wfmash")
-      (version (string-append version "+" (string-take commit 7) "-" package-revision))
+      (version (git-version version package-revision commit))
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
                       (url "https://github.com/ekg/wfmash.git")
-                      (commit commit)
-                      (recursive? #f)))
+                      (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "1xf742sxn7xvrcmn67zk9rv8zxl9nb9f72hbw8khdlz1qj3n00vp"))
+                  "0nfmbnmlk2ji5f651dkv0jl1h3d1lp2npldwhdiyylp96z3yz8zb"))
                 (modules '((guix build utils)))
                 (snippet '(begin
                             (delete-file-recursively "src/common/atomic_queue")
@@ -107,34 +65,118 @@ ultra-low latency applications.")
                                "<atomic_queue/atomic_queue.h>"))))))
       (build-system cmake-build-system)
       (arguments
-       `(#:configure-flags '("-DBUILD_SHARED_LIBS=OFF")
-         #:phases
-         (modify-phases
-             %standard-phases
+       `(#:phases
+         (modify-phases %standard-phases
            (add-after 'unpack 'remove-x86-specific-compile-flags
              (lambda _
-               (substitute* (list "CMakeLists.txt"
-                                  "src/common/wflign/CMakeLists.txt"
-                                  "src/common/wflign/deps/WFAv2/CMakeLists.txt"
-                                  "src/common/wflign/deps/wflambdav2/CMakeLists.txt")
-                 (("-mcx16") ""))
-               (substitute* (list "CMakeLists.txt"
-                                  "src/common/wflign/CMakeLists.txt"
-                                  "src/common/wflign/deps/WFAv2/CMakeLists.txt"
-                                  "src/common/wflign/deps/wflambdav2/CMakeLists.txt")
+               (substitute* (find-files "." "CMakeLists\\.txt")
+                 (("-mcx16") "")
                  (("-march=native") ""))
                (substitute* "src/common/dset64.hpp"
-                 (("#error \"wfmash can only be built on an x86_64 machine \\(64-bit Intel/AMD\\)\"")
-                  ""))))
+                 (("__x86_64__" all) (string-append all " && " all)))))
            ;; This stashes our build version in the executable
            (add-after 'unpack 'set-version
              (lambda _
                (mkdir "include")
                (with-output-to-file "include/wfmash_git_version.hpp"
                  (lambda ()
-                   (format #t "#define WFMASH_GIT_VERSION \"~a\"~%" version)))
-               #t))
-           (delete 'check))
+                   (format #t "#define WFMASH_GIT_VERSION \"~a\"~%" version)))))
+           (replace 'check
+             ;; Adapted from .github/workflows/test_on_push.yml
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (and
+                   ;; This test takes 60 minutes on riscv64-linux.
+                   ,@(if (not (target-riscv64?))
+                       `((begin
+                           ;; Test with a subset of the LPA dataset (PAF output)
+                           (setenv "ASAN_OPTIONS" "detect_leaks=1:symbolize=1")
+                           (setenv "LSAN_OPTIONS" "verbosity=0:log_threads=1")
+                           (with-output-to-file "LPA.subset.paf"
+                             (lambda _
+                               (invoke "bin/wfmash"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "-X" "-n" "10" "-T" "wflign_info.")))
+                           (invoke "head" "LPA.subset.paf")))
+                       '())
+                   ;; This test takes about 5 hours on riscv64-linux.
+                   ,@(if (not (target-riscv64?))
+                       `((begin
+                           ;; Test with a subset of the LPA dataset (SAM output)
+                           (setenv "ASAN_OPTIONS" "detect_leaks=1:symbolize=1")
+                           (setenv "LSAN_OPTIONS" "verbosity=0:log_threads=1")
+                           (with-output-to-file "LPA.subset.sam"
+                             (lambda _
+                               (invoke "bin/wfmash"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "-X" "-N" "-a" "-T" "wflign_info.")))
+                           (with-output-to-file "LPA.subset.sam-view"
+                             (lambda _
+                               (invoke "samtools" "view" "LPA.subset.sam" "-bS")))
+                           (with-output-to-file "LPA.subset.bam"
+                             (lambda _
+                               (invoke "samtools" "sort" "LPA.subset.sam-view")))
+                           (invoke "samtools" "index" "LPA.subset.bam")
+                           ;; samtools view LPA.subset.bam | head | cut -f 1-9
+                           ;(invoke "samtools" "view" "LPA.subset.bam")
+                           ;; There should be an easier way to do this with pipes.
+                           (with-output-to-file "LPA.subset.bam-incr1"
+                             (lambda _
+                               (invoke "samtools" "view" "LPA.subset.bam")))
+                           (with-output-to-file "LPA.subset.bam-incr2"
+                             (lambda _
+                               (invoke "head" "LPA.subset.bam-incr1")))
+                           (invoke "cut" "-f" "1-9" "LPA.subset.bam-incr2")))
+                       '())
+                   ;; This test takes 60 minutes on riscv64-linux.
+                   ,@(if (not (target-riscv64?))
+                       `((begin
+                           ;; Test with a subset of the LPA dataset,
+                           ;; setting a lower identity threshold (PAF output)
+                           (setenv "ASAN_OPTIONS" "detect_leaks=1:symbolize=1")
+                           (setenv "LSAN_OPTIONS" "verbosity=0:log_threads=1")
+                           (with-output-to-file "LPA.subset.p90.paf"
+                             (lambda _
+                               (invoke "bin/wfmash"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "../source/data/LPA.subset.fa.gz"
+                                       "-X" "-p" "90" "-n" "10" "-T" "wflign_info.")))
+                           (invoke "head" "LPA.subset.p90.paf")))
+                       '())
+                   (begin
+                     ;; Test aligning short reads (500 bps) to a reference (SAM output)
+                     (setenv "ASAN_OPTIONS" "detect_leaks=1:symbolize=1")
+                     (setenv "LSAN_OPTIONS" "verbosity=0:log_threads=1")
+                     (with-output-to-file "reads.500bps.sam"
+                       (lambda _
+                         (invoke "bin/wfmash"
+                                 "../source/data/reference.fa.gz"
+                                 "../source/data/reads.500bps.fa.gz"
+                                 "-s" "0.5k" "-N" "-a")))
+                     (with-output-to-file "reads.500bps.sam-view"
+                       (lambda _
+                         (invoke "samtools" "view" "reads.500bps.sam" "-bS")))
+                     (with-output-to-file "reads.500bps.bam"
+                       (lambda _
+                         (invoke "samtools" "sort" "reads.500bps.sam-view")))
+                     (invoke "samtools" "index" "reads.500bps.bam")
+                     (with-output-to-file "reads.500bps.bam-view"
+                       (lambda _
+                         (invoke "samtools" "view" "reads.500bps.bam")))
+                     (invoke "head" "reads.500bps.bam-view"))
+                   (begin
+                     ;; Test with few very short reads (255bps) (PAF output)
+                     (setenv "ASAN_OPTIONS" "detect_leaks=1:symbolize=1")
+                     (setenv "LSAN_OPTIONS" "verbosity=0:log_threads=1")
+                     (with-output-to-file "reads.255bps.paf"
+                       (lambda _
+                         (invoke "bin/wfmash"
+                                 "../source/data/reads.255bps.fa.gz"
+                                 "../source/data/reads.255bps.fa.gz"
+                                 "-X")))
+                     (invoke "head" "reads.255bps.paf")))))))
          #:make-flags (list (string-append "CC=" ,(cc-for-target))
                             (string-append "CXX=" ,(cxx-for-target)))))
       (inputs (list atomic-queue
@@ -142,6 +184,8 @@ ultra-low latency applications.")
                     htslib
                     jemalloc
                     zlib))
+      (native-inputs
+       (list samtools))
       (synopsis "base-accurate DNA sequence alignments using WFA and mashmap2")
       (description "wfmash is a fork of MashMap that implements
 base-level alignment using the wavefront alignment algorithm WFA. It
