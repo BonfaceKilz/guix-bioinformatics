@@ -5,12 +5,13 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
-  #:use-module (guix build-system python)
+  #:use-module (guix build-system gnu)
   #:use-module (guix build-system scons)
   #:use-module (gnu packages)
   #:use-module (gnu packages boost)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cpp)
+  #:use-module (gnu packages cross-base)
   #:use-module (gnu packages graphviz)
   #:use-module (gnu packages image)
   #:use-module (gnu packages m4)
@@ -18,6 +19,48 @@
   #:use-module (gnu packages protobuf)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-xyz))
+
+(define-public riscv-pk
+  (package
+    (name "riscv-pk")
+    (version "1.0.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/riscv-software-src/riscv-pk")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1cc0rz4q3a1zw8756b8yysw8lb5g4xbjajh5lvqbjix41hbdx6xz"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+       #:out-of-source? #t
+       ;#:configure-flags
+       ;#~(list "--host=riscv64-linux-gnu")
+       #:target "riscv64-linux-gnu"
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'force-install-directory
+             (lambda _
+               (substitute* "Makefile.in"
+                 (("\\$\\(install_subdir\\)") "")))))))
+    (native-inputs
+     (if (not (string-prefix? "riscv64" (%current-system)))
+       (list (cross-gcc "riscv64-linux-gnu")
+             (cross-binutils "riscv64-linux-gnu"))
+       '()))
+    (home-page "https://github.com/riscv-software-src/riscv-pk")
+    (synopsis "RISC-V Proxy Kernel")
+    (description "The RISC-V Proxy Kernel, @code{pk}, is a lightweight
+application execution environment that can host statically-linked RISC-V ELF
+binaries.  It is designed to support tethered RISC-V implementations with
+limited I/O capability and and thus handles I/O-related system calls by proxying
+them to a host computer.  This package also contains the Berkeley Boot Loader,
+@code{bbl}, which is a supervisor execution environment for tethered RISC-V
+systems.  It is designed to host the RISC-V Linux port.")
+    (license license:bsd-3)))
 
 (define-public gem5
   (package
