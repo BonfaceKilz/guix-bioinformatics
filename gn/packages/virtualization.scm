@@ -81,7 +81,13 @@ systems.  It is designed to host the RISC-V Linux port.")
               ;; For reproducibility.
               (substitute* "src/base/date.cc"
                 (("__DATE__") "\"1970-01-01\"")
-                (("__TIME__") "\"00:00:00\""))))))
+                (("__TIME__") "\"00:00:00\""))
+              (substitute* "ext/sst/Makefile"
+                (("-I../../ext/pybind11/include/")
+                 "${shell pybind11-config --includes}"))
+              (substitute* "SConstruct"
+                ((".*pybind11.*") ""))
+              (delete-file-recursively "ext/pybind11")))))
     (build-system scons-build-system)
     (arguments
      `(#:scons-flags
@@ -108,6 +114,7 @@ systems.  It is designed to host the RISC-V Linux port.")
                 (string-append
                   all (assoc-ref inputs "kernel-headers") "/include')])\n"
                   all (assoc-ref inputs "libpng") "/include')])\n"
+                  all (assoc-ref inputs "pybind11") "/include')])\n"
                   all (assoc-ref inputs "zlib") "/include')])\n"
                   all)))
              (substitute* "ext/libelf/SConscript"
@@ -146,6 +153,7 @@ systems.  It is designed to host the RISC-V Linux port.")
      (list gperftools
            libpng
            protobuf
+           pybind11
            python
            python-pydot
            python-six
