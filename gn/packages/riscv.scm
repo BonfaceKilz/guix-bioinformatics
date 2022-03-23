@@ -16,12 +16,23 @@
   #:use-module (guix build-system cmake)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages cpp)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages jemalloc)
   #:use-module (gnu packages maths))
 
+
+;; Static hello, for testing
+(define-public hello-static
+  (package
+    (inherit hello)
+    (name "hello-static")
+    (arguments
+     (substitute-keyword-arguments (package-arguments hello)
+       ((#:make-flags _ ''())
+        `(list "CFLAGS=-static"))))))
 
 ;; Improvements to riscv support have been merged since the last release.
 (define-public atomic-queue-git
