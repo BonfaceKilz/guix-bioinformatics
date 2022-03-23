@@ -10,7 +10,7 @@
   #:use-module ((guix licenses) #:prefix license:))
 
 (define-public skribilo-with-gemtext-reader
-  (let ((commit "fb51be990a4bb8fb76373b519edfcf11390dcca1")
+  (let ((commit "183eb122e17a9ab6c95409d1cb1803727cf85717")
         (revision "0"))
     (package
       (inherit guix:skribilo)
@@ -24,7 +24,7 @@
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "1icfa0m3qw7sp90h7qzjay4q7lapgncmp3haqkckmyhch3qd46nb"))))
+                  "0fz106df75fc1d6hy55nim2j6zhq94msg47bd96sp0hm25n8maca"))))
       (native-inputs
        `(("autoconf" ,autoconf)
          ("automake" ,automake)
