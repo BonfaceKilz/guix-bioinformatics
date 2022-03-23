@@ -10,7 +10,7 @@
   #:use-module ((guix licenses) #:prefix license:))
 
 (define-public skribilo-with-gemtext-reader
-  (let ((commit "36a4f2945c353b432866196466da612f0a627399")
+  (let ((commit "fb51be990a4bb8fb76373b519edfcf11390dcca1")
         (revision "0"))
     (package
       (inherit guix:skribilo)
@@ -20,11 +20,11 @@
                 (method git-fetch)
                 (uri (git-reference
                       (url "https://git.systemreboot.net/skribilo")
-                      (commit "gemtext-reader")))
+                      (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "04d2xqrxfwkkljs3flixlxgcn68a9lgkzm66lr0n9hg43bhcqw8b"))))
+                  "1icfa0m3qw7sp90h7qzjay4q7lapgncmp3haqkckmyhch3qd46nb"))))
       (native-inputs
        `(("autoconf" ,autoconf)
          ("automake" ,automake)
