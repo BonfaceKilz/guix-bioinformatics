@@ -148,7 +148,21 @@ systems.  It is designed to host the RISC-V Linux port.")
                      (copy-file
                        (string-append "build/" (string-upcase arch) "/gem5py_m5")
                        (string-append bin "gem5py_m5-" arch))))
-                 (list "arm" "mips" "null" "power" "riscv" "sparc" "x86"))))))))
+                 (list "arm" "mips" "null" "power" "riscv" "sparc" "x86")))))
+         (add-after 'install 'install-configs
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out  (assoc-ref outputs "out"))
+                    (dest (string-append out "/share/gem5/configs")))
+               (copy-recursively "configs" dest))))
+         (add-after 'install 'wrap-binaries
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (for-each
+                 (lambda (file)
+                   (wrap-program file
+                     `("GUIX_PYTHONPATH" ":" prefix
+                       (,(getenv "GUIX_PYTHONPATH")))))
+                 (find-files (string-append out "/bin")))))))))
     (inputs
      (list gperftools
            libpng
