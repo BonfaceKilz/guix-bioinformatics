@@ -40,6 +40,12 @@
        ;#:configure-flags
        ;#~(list "--host=riscv64-linux-gnu")
        #:target "riscv64-linux-gnu"
+       ;; Add flags to keep symbols fromhost and tohost. These symbols are
+       ;; required for the correct functioning of pk.
+       #:strip-flags '(list "--strip-unneeded"
+                            "--keep-symbol=fromhost"
+                            "--keep-symbol=tohost"
+                            "--enable-deterministic-archives")
        #:phases
        #~(modify-phases %standard-phases
            (add-after 'unpack 'force-install-directory
