@@ -27,7 +27,9 @@
 
 ;; Static hello, for testing
 (define hello-static
-  (static-package hello))
+  (package
+    (inherit (static-package hello))
+    (name "hello-static")))
 
 ;; Improvements to riscv support have been merged since the last release.
 (define-public atomic-queue-git
