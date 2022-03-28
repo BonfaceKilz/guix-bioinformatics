@@ -13,6 +13,7 @@
   #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (guix git-download)
+  #:use-module (guix build-system gnu)
   #:use-module (guix build-system cmake)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages)
@@ -25,14 +26,8 @@
 
 
 ;; Static hello, for testing
-(define-public hello-static
-  (package
-    (inherit hello)
-    (name "hello-static")
-    (arguments
-     (substitute-keyword-arguments (package-arguments hello)
-       ((#:make-flags _ ''())
-        `(list "CFLAGS=-static"))))))
+(define hello-static
+  (static-package hello))
 
 ;; Improvements to riscv support have been merged since the last release.
 (define-public atomic-queue-git
