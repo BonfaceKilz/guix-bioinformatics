@@ -462,7 +462,7 @@ reads.")
 (define-public gfaffix
   (package
     (name "gfaffix")
-    (version "0.1.2.2")
+    (version "0.1.3")
     (source
       (origin
         (method git-fetch)
@@ -471,7 +471,7 @@ reads.")
                (commit version)))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1sh244yyhkaxbd635qjyig0wyxc57h8r1pwvs1vgdvlniw6h2cxy"))
+         (base32 "1biss5qv6ag1dfkn1nspwd528hpzgn8i4jydvbv2z7yv7sc685rh"))
         (modules '((guix build utils)))
         (snippet
          '(begin
@@ -479,8 +479,9 @@ reads.")
               (("^handlegraph.*") "handlegraph = \"0.7\"\n"))))))
     (build-system cargo-build-system)
     (arguments
-     `(#:cargo-inputs
-       (("rust-clap" ,rust-clap-3)
+     `(#:install-source? #f
+       #:cargo-inputs
+       (("rust-clap" ,rust-clap-3.1)
         ("rust-rustc-hash" ,rust-rustc-hash-1)
         ("rust-regex" ,rust-regex-1)
         ("rust-handlegraph" ,rust-handlegraph-0.7)
@@ -495,8 +496,7 @@ reads.")
              (let ((handlebar-version ,(package-version rust-handlegraph-0.7)))
                (substitute* "Cargo.toml"
                  (("\"0.7\"")
-                  (string-append "{ version = \"" handlebar-version "\" }")))
-               #t))))))
+                  (string-append "{ version = \"" handlebar-version "\" }")))))))))
     (home-page "https://github.com/marschall-lab/GFAffix")
     (synopsis "Identify walk-preserving shared affixes in variation graphs")
     (description
