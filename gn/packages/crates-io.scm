@@ -228,8 +228,9 @@ or any combination.")
        (("rust-memchr" ,rust-memchr-2)
         ("rust-print-bytes" ,rust-print-bytes-0.5)
         ("rust-uniquote" ,rust-uniquote-3))
-       #:cargo-development-inputs
-       (("rust-getrandom" ,rust-getrandom-0.2))))
+       ;#:cargo-development-inputs
+       ;(("rust-getrandom" ,rust-getrandom-0.2))
+       ))
     (home-page "https://github.com/dylni/os_str_bytes")
     (synopsis
      "Utilities for converting between byte sequences and platform-native strings")
@@ -326,11 +327,12 @@ or any combination.")
     (arguments
      `(#:cargo-inputs
        (("rust-ndarray" ,rust-ndarray-0.14))
-       #:cargo-development-inputs
-       (("rust-num-traits" ,rust-num-traits-0.2)
-        ("rust-rand" ,rust-rand-0.8)
-        ("rust-rand-chacha" ,rust-rand-chacha-0.3)
-        ("rust-version-sync" ,rust-version-sync-0.9))))
+       ;#:cargo-development-inputs
+       ;(("rust-num-traits" ,rust-num-traits-0.2)
+       ; ("rust-rand" ,rust-rand-0.8)
+       ; ("rust-rand-chacha" ,rust-rand-chacha-0.3)
+       ; ("rust-version-sync" ,rust-version-sync-0.9))
+       ))
     (home-page "https://github.com/mgeisler/smawk")
     (synopsis "Functions for finding row-minima in a totally monotone matrix.")
     (description
@@ -374,8 +376,9 @@ matrix.")
      `(#:cargo-inputs
        (("rust-rand" ,rust-rand-0.8)
         ("rust-rand-chacha" ,rust-rand-chacha-0.3))
-       #:cargo-development-inputs
-       (("rust-version-sync" ,rust-version-sync-0.9))))
+       ;#:cargo-development-inputs
+       ;(("rust-version-sync" ,rust-version-sync-0.9))
+       ))
     (home-page "https://github.com/mgeisler/lipsum/")
     (synopsis
       "Lipsum is a lorem ipsum text generation library. Use this if you need
@@ -458,11 +461,12 @@ instantiate to generate your own pieces of pseudo-random text.")
         ("rust-rawpointer" ,rust-rawpointer-0.2)
         ("rust-rayon" ,rust-rayon-1)
         ("rust-serde" ,rust-serde-1))
-       #:cargo-development-inputs
-       (("rust-approx" ,rust-approx-0.4)
-        ("rust-defmac" ,rust-defmac-0.2)
-        ("rust-itertools" ,rust-itertools-0.9)
-        ("rust-quickcheck" ,rust-quickcheck-0.9))))
+       ;#:cargo-development-inputs
+       ;(("rust-approx" ,rust-approx-0.4)
+       ; ("rust-defmac" ,rust-defmac-0.2)
+       ; ("rust-itertools" ,rust-itertools-0.9)
+       ; ("rust-quickcheck" ,rust-quickcheck-0.9))
+       ))
     (home-page "https://github.com/rust-ndarray/ndarray")
     (synopsis
       "An n-dimensional array for general elements and for numerics. Lightweight array views and slicing; views support chunking and splitting.")
@@ -501,4 +505,101 @@ views and slicing; views support chunking and splitting.")
       "Crate for ensuring that version numbers in README files and other files are kept
 in sync with the crate version.")
     (license license:expat)))
+
+(define-public rust-os-pipe-1
+  (package
+    (name "rust-os-pipe")
+    (version "1.0.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "os-pipe" version))
+        (file-name (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "0mczqmqrkzmln4xg5ki1gwgykf4dsii0h4p7fxf667889ysz54ic"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-libc" ,rust-libc-0.2)
+        ("rust-winapi" ,rust-winapi-0.3))))
+    (home-page "https://github.com/oconnor663/os_pipe.rs")
+    (synopsis "a cross-platform library for opening OS pipes")
+    (description "a cross-platform library for opening OS pipes")
+    (license license:expat)))
+
+(define-public rust-toml-edit-0.12
+  (package
+    (name "rust-toml-edit")
+    (version "0.12.6")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "toml-edit" version))
+        (file-name (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "0wx4wd849bmkqj0gdi041gmpfpvlyhy2ha4zpin69yw9d9npl8cl"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-combine" ,rust-combine-4)
+        ("rust-indexmap" ,rust-indexmap-1)
+        ("rust-itertools" ,rust-itertools-0.10)
+        ("rust-kstring" ,rust-kstring-1)
+        ("rust-serde" ,rust-serde-1))
+       ;#:cargo-development-inputs
+       ;(("rust-criterion" ,rust-criterion-0.3)
+       ; ("rust-fs-snapshot" ,rust-fs-snapshot-0.1)
+       ; ("rust-pretty-assertions" ,rust-pretty-assertions-1)
+       ; ("rust-serde-json" ,rust-serde-json-1)
+       ; ("rust-toml" ,rust-toml-0.5)
+       ; ("rust-toml-test-harness" ,rust-toml-test-harness-0.3))
+       ))
+    (home-page "https://github.com/ordian/toml_edit")
+    (synopsis "Yet another format-preserving TOML parser.")
+    (description "Yet another format-preserving TOML parser.")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-kstring-1
+  (package
+    (name "rust-kstring")
+    (version "1.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "kstring" version))
+        (file-name (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "1r4n9fa5scikqvl736nxghcfa6s3b07xz61w43hyzs2qb3wmd3nk"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-document-features" ,rust-document-features-0.2)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-static-assertions" ,rust-static-assertions-1))
+       #:cargo-development-inputs
+       (("rust-criterion" ,rust-criterion-0.3)
+        ("rust-proptest" ,rust-proptest-1))))
+    (home-page "https://github.com/cobalt-org/kstring")
+    (synopsis "Key String: optimized for map keys")
+    (description "Key String: optimized for map keys")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-document-features-0.2
+  (package
+    (name "rust-document-features")
+    (version "0.2.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "document-features" version))
+        (file-name (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "121wr2bd8a4s5i5yrxjz8c5amw2l69xmqqma86x6y4xmcgyhj75h"))))
+    (build-system cargo-build-system)
+    (home-page "https://slint-ui.com")
+    (synopsis
+      "Extract documentation for the feature flags from comments in Cargo.toml")
+    (description
+      "Extract documentation for the feature flags from comments in Cargo.toml")
+    (license (list license:expat license:asl2.0))))
 
