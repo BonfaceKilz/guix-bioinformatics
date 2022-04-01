@@ -10,18 +10,9 @@
 ;;;
 
 (define-module (gn packages riscv)
-  #:use-module (gnu packages base)
   #:use-module (gnu packages cpp)
   #:use-module (guix git-download)
-  #:use-module (guix packages)
-  #:use-module (guix build-system gnu))
-
-
-;; Static hello, for testing
-(define hello-static
-  (package
-    (inherit (static-package hello))
-    (name "hello-static")))
+  #:use-module (guix packages))
 
 ;; Improvements to riscv support have been merged since the last release.
 (define-public atomic-queue-git
