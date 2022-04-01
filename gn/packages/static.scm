@@ -42,6 +42,7 @@
 (define-public wfmash-static
   (package
     (inherit wfmash)
+    (name "wfmash-static")
     (arguments
      (substitute-keyword-arguments (package-arguments wfmash)
        ((#:configure-flags flags ''())
