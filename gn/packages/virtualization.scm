@@ -48,7 +48,6 @@
     (arguments
      `(#:scons-flags
        (list "--verbose")
-       #:tests? #f      ; TODO: How to run test suite?
        #:build-targets '("build/ARM/gem5.opt"
                          "build/MIPS/gem5.opt"
                          "build/NULL/gem5.opt"
@@ -82,10 +81,14 @@
                   all)))
              (substitute* "ext/libelf/native-elf-format"
                (("cc") ,(cc-for-target)))))
+         ;; This uses the cached results from the previous 'build phase.
+         ;; Move to after 'install and delete build dir first?
          (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
+           (lambda* (#:key tests? #:allow-other-keys #:rest args)
              (when tests?
-               (invoke "python3" "tests/run.py"))))
+               (apply (assoc-ref %standard-phases 'build)
+                      #:build-targets '("build/NULL/unittests.opt")
+                      args))))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
@@ -145,7 +148,7 @@ processor microarchitecture.")
     (name "gem5-riscv")
     (arguments
      (substitute-keyword-arguments (package-arguments gem5)
-       ((#:build-targets _)
+       ((#:build-targets _ '())
         `(list "build/RISCV/gem5.opt"))
        ((#:phases phases)
         `(modify-phases ,phases
