@@ -1855,3 +1855,26 @@ file format spec.")
   pytest PDB integration.")
       (license license:expat))))
 
+(define-public python-supervisor
+  (package
+    (name "python-supervisor")
+    (version "4.2.4")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "supervisor" version))
+        (sha256
+          (base32 "18lpddhyl8ziy6lc0klassxpd8kdg8c0nhkrvz1k3ipfw4n5ip20"))))
+    (build-system python-build-system)
+    (native-inputs
+      (list python-pytest python-pytest-cov))
+    (arguments (list #:tests? #f)) ; fixme
+    (home-page "http://supervisord.org/")
+    (synopsis "A system for controlling process state under UNIX")
+    (description
+      "This package provides a system for controlling process state under UNIX")
+    (license
+      ;; https://github.com/Supervisor/supervisor/issues/1364
+      (license:fsf-free (string-append "https://web.archive.org/web/20190211105114/"
+                                       "http://www.repoze.org/LICENSE.txt")))))
+
