@@ -79,3 +79,49 @@ delimited text files:
   (sbcl-package->ecl-package sbcl-qc))
 
 
+;;  The file
+;;  #P"/tmp/guix-build-sbcl-qc-uploads-20220301-0.76f870e.drv-0/source/strains.csv"
+;;  does not exist:
+;;    No such file or directory
+#;(define-public sbcl-qc-uploads
+  (let ((commit "76f870efad964bf680bf633e272094082008e69c")
+        (revision "0"))
+    (package
+      (name "sbcl-qc-uploads")
+      (version (git-version "20220301" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://git.genenetwork.org/jgart/qc-uploads")
+                (commit commit)))
+          (sha256
+           (base32 "1nzcdqjwh1xpr92d01fvlmdysxizyklaid10zrxbi12jmdydapil"))
+          (file-name (git-file-name name commit))))
+      (build-system asdf-build-system/sbcl)
+      ;; needs install-file for strains.tsv. This require more testing.
+      ;; todo: see for an example: https://github.com/interactive-ssr/issr-server/blob/master/guix.scm#L46
+      (arguments
+       `(#:tests? #f ; There are no tests yet.
+         #:asd-files '("qc-uploads.asd")))
+      (inputs
+        (list sbcl-alexandria
+              sbcl-ningle
+              sbcl-clack
+              sbcl-cl-css
+              sbcl-cl-who
+              sbcl-cl-fad
+              sbcl-qc ; packaged in guix-bioinformatics
+              sbcl-woo))
+      (home-page "https://git.genenetwork.org/jgart/qc-uploads/")
+      (synopsis "Web UI for qc")
+      (description 
+"@code{qc-uploads} provides a web UI for @code{qc}.")
+      (license license:expat))))
+
+#;(define-public cl-qc-uploads
+  (sbcl-package->cl-source-package sbcl-qc-uploads))
+
+#;(define-public ecl-qc-uploads
+  (sbcl-package->ecl-package sbcl-qc-uploads))
+
