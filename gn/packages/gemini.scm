@@ -59,7 +59,7 @@
          (modify-phases %standard-phases
            (replace 'configure
              (lambda* (#:key inputs #:allow-other-keys)
-               (substitute* (list "bin/tissue" "tissue/issue.scm" "tissue/web.scm")
+               (substitute* (list "bin/tissue" "tissue/git.scm" "tissue/issue.scm")
                  (("\"git\"")
                   (string-append "\"" (assoc-ref inputs "git-minimal") "/bin/git\"")))))
            (add-after 'install 'wrap
