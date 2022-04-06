@@ -33,15 +33,3 @@
 will be rewritten in Common Lisp.  If we stay with Python I recommend
 switching this library out for @code{python-furl} or similar."))))
 
-(define-public python-dotenv-for-binderlite
-  ;; https://issues.guix.gnu.org/54712
-    (package (inherit python-dotenv)
-      (name "python-dotenv-for-binderlite")
-      (version "0.20.0")
-      (source
-        (origin
-          (method url-fetch)
-          (uri (pypi-uri "python-dotenv" version))
-          (sha256
-            (base32 "13s9imfd0k4d7b1qy5wfqzw5vyj6rhmcrccsdz1l4g39b55b1qxp"))))))
-
