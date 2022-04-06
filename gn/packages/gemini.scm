@@ -32,7 +32,7 @@
          ,@(package-native-inputs guix:skribilo))))))
 
 (define-public tissue
-  (let ((commit "b1543397a66cced4e3ea92ead469a91f4b55b15f")
+  (let ((commit "25104d4422e43b18b7fc4bf17a7ca8440394eda8")
         (revision "0"))
     (package
       (name "tissue")
@@ -45,7 +45,7 @@
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "196v0pchpv453z592d82hck4zv8wc6frl7f3sxrph1kgw9mipr1m"))))
+                  "0qhc6a427mj3yh8x3yxrih9ljv7rz9r8mwrnyrnah1xnrw61msmx"))))
       (build-system gnu-build-system)
       (arguments
        `(#:make-flags (list (string-append "prefix=" %output)
