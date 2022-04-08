@@ -36,8 +36,8 @@ will be rewritten in Common Lisp.  If we stay with Python I recommend
 switching this library out for @code{python-furl} or similar."))))
 
 (define-public nb-upload
-  (let ((commit "7bf2ea910e88e3b5651daff943493ba95fc78e08")
-        (revision "0"))
+  (let ((commit "3e8fe6091ca63551901962ee0eed9c224a2f319d")
+        (revision "1"))
     (package
       (name "nb-upload")
       (version (git-version "20220407" revision commit))
@@ -50,7 +50,7 @@ switching this library out for @code{python-furl} or similar."))))
          (file-name (git-file-name name commit))
          (sha256
            (base32
-            "0q7vvzjirrbls3wm6hhzfi2msdai65h9rdjaq6i215a3p135a9m2"))))
+            "0qsrg3w3kbmj5nv21dsqb05m0q2dphzfwxr0km4rn3764d83gqik"))))
          (build-system python-build-system)
          (arguments
            (list #:tests? #f)) ; There are no tests.
