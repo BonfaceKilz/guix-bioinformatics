@@ -72,3 +72,12 @@
            ;; Second-order dependencies from htslib
            (list bzip2 "static")
            (list xz "static")))))
+
+(define-public smithwaterman-static
+  (package
+    (inherit smithwaterman)
+    (name "smithwaterman-static")
+    (arguments
+     (substitute-keyword-arguments (package-arguments smithwaterman)
+       ((#:make-flags flags ''())
+        #~(cons "CFLAGS=-static" #$flags))))))
