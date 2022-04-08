@@ -37,8 +37,8 @@
       (license license:lgpl2.1+))))
 
 (define-public sbcl-qc
-  (let ((commit "ed4254445b7dc247fa27d9189fd03841ad74f568")
-        (revision "3"))
+  (let ((commit "a0d8c807fa3f817f977a64f02f5f8936044050ad")
+        (revision "4"))
     (package
       (name "sbcl-qc")
       (version (git-version "20220331" revision commit))
@@ -70,7 +70,7 @@ delimited text files:
 @item Floating-point number well-formedness
 @item GeneChip Platform ID checks for Affymetrix, Illumina, and others
 @end itemize\n")
-      (license license:llgpl))))
+      (license license:unlicense))))
 
 (define-public cl-qc
   (sbcl-package->cl-source-package sbcl-qc))
