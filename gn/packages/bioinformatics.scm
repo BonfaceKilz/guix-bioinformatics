@@ -1579,15 +1579,14 @@ available to other researchers.")
 (define-public vg
   (package
     (name "vg")
-    (version "1.33.0")
+    (version "1.39.0")
     (source
       (origin
         (method url-fetch)
         (uri (string-append "https://github.com/vgteam/vg/releases/download/v"
                             version "/vg-v" version ".tar.gz"))
         (sha256
-         (base32
-          "1pd4gdqb3ar0r1igzhf730kh9x0wj5l4shmjxz0j2mj78wy8y2sg"))
+         (base32 "0cj575qr2jkingrm6r4ki7f89s7glrf18d4pvaa69smxh2vbajv3"))
         (modules '((guix build utils)))
         (snippet
          '(begin
@@ -1600,12 +1599,10 @@ available to other researchers.")
             (delete-file-recursively "deps/bash-tap")
             ;(delete-file-recursively "deps/dozeu")
             (delete-file-recursively "deps/elfutils")
-            ;(delete-file-recursively "deps/fastahack")  ; Fasta.o
+            (delete-file-recursively "deps/fastahack")
             ;(delete-file-recursively "deps/fermi-lite")
             ;(delete-file-recursively "deps/gbwt")
-            (delete-file-recursively "deps/gbwt/deps")
             ;(delete-file-recursively "deps/gbwtgraph")
-            (delete-file-recursively "deps/gbwtgraph/deps")
             ;(delete-file-recursively "deps/gcsa2")
             ;(delete-file-recursively "deps/gfakluge")
             ;(delete-file-recursively "deps/gssw")
@@ -1617,13 +1614,16 @@ available to other researchers.")
             ;(delete-file-recursively "deps/libbdsg/bdsg/deps")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/BBHash")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/DYNAMIC")
+            ;(delete-file-recursively "deps/libbdsg/bdsg/deps/DYNAMIC/deps/hopscotch-map")
             ;(delete-file-recursively "deps/libbdsg/bdsg/deps/hopscotch-map")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/libhandlegraph")
+            ;(delete-file-recursively "deps/libbdsg/bdsg/deps/mio")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/pybind11")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/sdsl-lite")
             (delete-file-recursively "deps/libbdsg/bdsg/deps/sparsepp")
             ;(delete-file-recursively "deps/libdeflate")
             ;(delete-file-recursively "deps/libhandlegraph")
+            ;(delete-file-recursively "deps/libVCFH")
             ;(delete-file-recursively "deps/libvgio")
             ;(delete-file-recursively "deps/libvgio/deps")  ; libhandlegraph
             ;(delete-file-recursively "deps/lru_cache")
@@ -1641,6 +1641,7 @@ available to other researchers.")
             ;(delete-file-recursively "deps/progress_bar")
             (delete-file-recursively "deps/raptor")
             ;(delete-file-recursively "deps/sdsl-lite")
+            ;(delete-file-recursively "deps/sha1")
             (delete-file-recursively "deps/snappy")
             ;(delete-file-recursively "deps/sonLib")
             (delete-file-recursively "deps/sparsehash")
@@ -1655,8 +1656,7 @@ available to other researchers.")
             (delete-file-recursively "deps/xg/deps")
             ;; libvgio doesn't search the correct include directory.
             (copy-recursively "deps/libhandlegraph/src/include/handlegraph"
-                              "deps/libvgio/include/handlegraph")
-            #t))))
+                              "deps/libvgio/include/handlegraph")))))
     (build-system gnu-build-system)
     (arguments
      '(#:phases
@@ -1695,6 +1695,8 @@ available to other researchers.")
                 (string-append " " (assoc-ref inputs "fastahack") "/bin/fastahack"))
                ((" \\$\\(FASTAHACK_DIR\\)/bin/fastahack")
                 (string-append " " (assoc-ref inputs "fastahack") "/bin/fastahack"))
+               (("\\+= \\$\\(OBJ_DIR\\)/Fasta\\.o")
+                (string-append "+= " (assoc-ref inputs "fastahack") "/lib/libfastahack.so"))
 
                ((" \\$\\(LIB_DIR\\)/libsnappy.a")
                 (string-append " " (assoc-ref inputs "snappy") "/lib/libsnappy.so"))
@@ -1716,7 +1718,7 @@ available to other researchers.")
                 (string-append " " (assoc-ref inputs "libdivsufsort") "/lib/libdivsufsort64.so"))
 
                ((" \\$\\(LIB_DIR\\)/libjemalloc.a")
-                (string-append " " (assoc-ref inputs "jemalloc") "/lib/libjemalloc.so"))
+                (string-append " " (assoc-ref inputs "jemalloc") "/lib/libjemalloc.a"))
 
                ((" \\$\\(INC_DIR\\)/sparsehash")
                 (string-append " " (assoc-ref inputs "sparsehash") "/include/sparsehash"))
@@ -1729,13 +1731,11 @@ available to other researchers.")
                 (string-append " " (assoc-ref inputs "raptor2") "/bin/rapper")))
              ;; vcf2tsv shows up in a couple of other places
              (substitute* "test/t/02_vg_construct.t"
-               (("../deps/vcflib/bin/vcf2tsv") (which "vcf2tsv")))
-             #t))
+               (("../deps/vcflib/bin/vcf2tsv") (which "vcf2tsv")))))
          (add-after 'unpack 'fix-fastahack-dependency
            (lambda _
              (substitute* "src/aligner.hpp"
-               (("Fasta.h") "fastahack/Fasta.h"))
-             #t))
+               (("Fasta.h") "fastahack/Fasta.h"))))
          (add-after 'unpack 'fix-hopscotch-dependency
            (lambda _
              (substitute* "Makefile"
@@ -1749,8 +1749,7 @@ available to other researchers.")
              ;; We still need to copy it to the expected location.
              (copy-recursively
                "deps/libbdsg/bdsg/deps/hopscotch-map"
-               "deps/DYNAMIC/build/hopscotch_map-prefix/src/hopscotch_map")
-             #t))
+               "deps/DYNAMIC/build/hopscotch_map-prefix/src/hopscotch_map")))
          (add-after 'unpack 'adjust-tests
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((bash-tap (assoc-ref inputs "bash-tap")))
@@ -1768,8 +1767,7 @@ available to other researchers.")
                  ((".*node id.*") "is $(true) \"\" \"\"\n"))
                ;; Don't test the docs, we're not providing npm
                (substitute* "Makefile"
-                 ((".*test-docs.*") ""))
-               #t)))
+                 ((".*test-docs.*") "")))))
          (add-after 'build 'build-manpages
            (lambda _
              (invoke "make" "man")))
@@ -1781,11 +1779,13 @@ available to other researchers.")
                (for-each
                  (lambda (file)
                    (install-file file (string-append out "/share/man/man1")))
-                 (find-files "doc/man" "\\.1$"))
-               #t))))
+                 (find-files "doc/man" "\\.1$"))))))
        #:test-target "test"))
     (native-inputs
-     `(("asciidoctor" ,ruby-asciidoctor)
+     `(,@(if (member (%current-system)
+                     (package-transitive-supported-systems ruby-asciidoctor))
+           `(("asciidoctor" ,ruby-asciidoctor))
+           '())
        ("bash-tap" ,bash-tap)
        ("bc" ,bc)
        ("cmake" ,cmake-minimal)
@@ -1829,6 +1829,7 @@ gene models and transcripts) as walks through nodes connected by edges
 @end enumerate
 This model is similar to sequence graphs that have been used in assembly and
 multiple sequence alignment.")
+    (properties `((release-monitoring-url . "https://github.com/vgteam/vg/releases")))
     (license
       (list
         license:expat   ; main program
