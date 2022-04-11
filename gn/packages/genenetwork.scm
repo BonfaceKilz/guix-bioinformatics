@@ -231,7 +231,7 @@
          ("python-rdflib" ,python-rdflib)
          ("python-twint" ,python-twint)
          ;; TODO: Get rid of Python R bindings
-         ("python-rpy2" ,python-rpy2-next)
+         ("python-rpy2" ,python-rpy2)
          ("python-beautifulsoup4" ,python-beautifulsoup4)
          ;; Disable for now. Build fails on Penguin2
          ;; ("python-flask-socketio" ,python-flask-socketio)

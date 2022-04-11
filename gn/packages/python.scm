@@ -1612,18 +1612,6 @@ sorted order.")
     (description "Python IPFS HTTP CLIENT library")
     (license license:expat)))
 
-(define-public python-rpy2-next
-  (package
-    (inherit python-rpy2)
-    (name "python-rpy2-next")
-    (version "3.4.5")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (pypi-uri "rpy2" version))
-       (sha256
-        (base32
-         "1cysswxr5glrdblyl2zsmywcj7xhxn3wmyihxinrz9gm8gmaacax"))))))
 
 (define-public python-jupyter-server-proxy
   (package
