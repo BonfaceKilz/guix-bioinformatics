@@ -115,7 +115,7 @@
        ,@(alist-delete "python-seaborn" (package-propagated-inputs python-pingouin))))))
 
 (define-public genenetwork3
-  (let ((commit "16367dab9248d3aa2660e0b5cafdce25e8f7067c"))
+  (let ((commit "48cc775e5cbcb9cf8e97b966c86527c5344fa6ea"))
     (package
       (name "genenetwork3")
       (version (git-version "0.1.0" "2" commit))
@@ -128,7 +128,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "0gm93kac4j36djv07d2nv609r29vlby3ak2287ipfnqs46jjz8s5"))))
+           "19w71ikjb8nzhd9rji4w9mabilpwd2yz638n3lflz4vl40j81769"))))
       (native-inputs
        (list python-hypothesis
              python-mypy
