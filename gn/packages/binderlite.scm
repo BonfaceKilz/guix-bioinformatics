@@ -36,11 +36,11 @@ will be rewritten in Common Lisp.  If we stay with Python I recommend
 switching this library out for @code{python-furl} or similar."))))
 
 (define-public nb-upload
-  (let ((commit "3e8fe6091ca63551901962ee0eed9c224a2f319d")
-        (revision "1"))
+  (let ((commit "b2853028a2ef2b1670074aa08c9e25d799ba4cb4")
+        (revision "2"))
     (package
       (name "nb-upload")
-      (version (git-version "20220407" revision commit))
+      (version (git-version "20220414" revision commit))
       (source
        (origin
          (method git-fetch)
@@ -50,11 +50,14 @@ switching this library out for @code{python-furl} or similar."))))
          (file-name (git-file-name name commit))
          (sha256
            (base32
-            "0qsrg3w3kbmj5nv21dsqb05m0q2dphzfwxr0km4rn3764d83gqik"))))
+            "1wdghsq4wj1bgcvxx604q7piknbwapj7facc1xfn1fqvw0cra7wg"))))
          (build-system python-build-system)
          (arguments
            (list #:tests? #f)) ; There are no tests.
-         (inputs (list python-requests))
+         (inputs
+           (list python-requests
+                 python-yaspin
+                 python-rich))
          (synopsis "Upload notebooks via CLI")
          (description
 "@code{nb-upload} allows a user to upload notebooks to a @code{nb}
