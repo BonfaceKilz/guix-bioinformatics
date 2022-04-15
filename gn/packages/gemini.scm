@@ -61,7 +61,7 @@
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (substitute* "bin/tissue"
                  (("^exec guile")
-                  (string-append "exec " (assoc-ref inputs "git-minimal") "/bin/guile")))))
+                  (string-append "exec " (assoc-ref inputs "guile") "/bin/guile")))))
            (replace 'configure
              (lambda* (#:key inputs #:allow-other-keys)
                (substitute* (list "bin/tissue" "tissue/git.scm" "tissue/issue.scm")
