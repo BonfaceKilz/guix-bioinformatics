@@ -3203,3 +3203,12 @@ exhibits simple computational patterns that the modern compilers can
 automatically vectorize for different architectures without adapting the code.")
       (properties '((tunable? . #t)))
       (license license:expat))))
+
+(define-public wfa2-lib-static
+  (package
+    (inherit (static-package wfa2-lib))
+    (name "wfa2-lib-static")
+    (arguments
+     (substitute-keyword-arguments (package-arguments wfa2-lib)
+       ((#:make-flags flags ''())
+        #~(cons "CC_FLAGS+=-static" #$flags))))))
