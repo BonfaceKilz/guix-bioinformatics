@@ -3185,7 +3185,12 @@ of π and dxy in the face of missing data (i.e. always).")
                    (find-files "bin"))
                  (for-each
                    (cut install-file <> (string-append #$output "/lib"))
-                   (find-files "lib")))))))
+                   (find-files "lib"))
+                 (for-each
+                   (lambda (file)
+                     (mkdir-p (string-append #$output "/include/wfa2-lib/" (dirname file)))
+                     (copy-file file (string-append #$output "/include/wfa2-lib/" file)))
+                   (find-files "." "\\.(h|hpp)$")))))))
       (home-page "https://github.com/smarco/WFA2-lib")
       (synopsis "Wavefront alignment algorithm library")
       (description "The @acronym{wavefront alignment, WFA} algorithm is an exact
