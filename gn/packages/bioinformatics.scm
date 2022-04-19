@@ -3138,3 +3138,63 @@ from a VCF.  In particular, pixy facilitates the use of VCFs containing
 invariant (monomorphic) sites, which are essential for the correct computation
 of π and dxy in the face of missing data (i.e. always).")
     (license license:expat)))
+
+(define-public wfa2-lib
+  (let ((commit "af6be887614e8bb4e2b6e8c4e500705a978bd513")     ; 14 April 2022
+        (revision "1"))
+    (package
+      (name "wfa2-lib")
+      (version (git-version "2.1" revision commit))     ; As seen in ./VERSION
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/smarco/WFA2-lib")
+                       (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "09gsmks4dzmfscklb60m6gcsvsd9r6jywf10633dpcsfsdcvmzaw"))
+                (snippet
+                 #~(begin
+                     (use-modules ((guix build utils)))
+                     (substitute* "Makefile"
+                       (("^CC=") "CC:=")
+                       (("^CPP=") "CPP:=")
+                       (("-march=native") ""))))))
+      (build-system gnu-build-system)
+      (arguments
+       (list
+         #:tests? #f            ; No tests.
+         #:parallel-build? #f   ; Race condition in Makefile.
+         #:modules '((guix build gnu-build-system)
+                     (guix build utils)
+                     (srfi srfi-26))
+         #:make-flags
+         #~(list (string-append "CC=" #$(cc-for-target))
+                 (string-append "CPP=" #$(cxx-for-target)))
+         #:phases
+         #~(modify-phases %standard-phases
+             (delete 'configure)        ; No configure script.
+             ;; -flto breaks align_benchmark.
+             (replace 'build
+               (lambda* (#:key (make-flags '()) #:allow-other-keys)
+                 (apply invoke "make" "all" make-flags)))
+             (replace 'install
+               (lambda _
+                 (for-each
+                   (cut install-file <> (string-append #$output "/bin"))
+                   (find-files "bin"))
+                 (for-each
+                   (cut install-file <> (string-append #$output "/lib"))
+                   (find-files "lib")))))))
+      (home-page "https://github.com/smarco/WFA2-lib")
+      (synopsis "Wavefront alignment algorithm library")
+      (description "The @acronym{wavefront alignment, WFA} algorithm is an exact
+gap-affine algorithm that takes advantage of homologous regions between the
+sequences to accelerate the alignment process.  Unlike to traditional dynamic
+programming algorithms that run in quadratic time, the WFA runs in time
+@code{O(ns+s^2)}, proportional to the sequence length @code{n} and the alignment
+score @code{s}, using @code{O(s^2)} memory.  Moreover, the WFA algorithm
+exhibits simple computational patterns that the modern compilers can
+automatically vectorize for different architectures without adapting the code.")
+      (properties '((tunable? . #t)))
+      (license license:expat))))
