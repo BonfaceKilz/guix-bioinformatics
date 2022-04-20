@@ -32,28 +32,6 @@
   #:use-module (guix build-system python)
   #:use-module (srfi srfi-1))
 
-(define-public python-pyvcf
-  (package
-   (name "python-pyvcf")
-   (version "0.6.8")
-   (source
-    (origin
-     (method url-fetch)
-     (uri (pypi-uri "pyvcf" version))
-     (sha256
-      (base32
-       "1ngryr12d3izmhmwplc46xhyj9i7yhrpm90xnsd2578p7m8p5n79"))))
-   (build-system python-build-system)
-   (arguments
-     `(#:tests? #f))
-   (home-page
-    "https://github.com/jamescasbon/PyVCF")
-   (synopsis
-    "Variant Call Format (VCF) parser for Python")
-   (description
-    "Variant Call Format (VCF) parser for Python")
-   (license #f)))
-
 (define-public python-rpy2-2.9
   (package
     (inherit python-rpy2)
@@ -1409,31 +1387,6 @@ sorted order.")
     "Easy to use fixtures to write regression tests.")
    (license license:expat)))
 
-(define-public python-pytest-datadir
-  (package
-   (name "python-pytest-datadir")
-   (version "1.3.1")
-   (source
-    (origin
-     (method url-fetch)
-     (uri (pypi-uri "pytest-datadir" version))
-     (sha256
-      (base32
-       "066bg6wlzgq2pqnjp73dfrcmk8951xw3aqcxa3p1axgqimrixbyk"))))
-   (build-system python-build-system)
-   (propagated-inputs
-    `(("python-pathlib2" ,python-pathlib2)
-      ("python-pytest" ,python-pytest)))
-   (inputs
-    `(("python-setuptools-scm" ,python-setuptools-scm)))
-   (home-page
-    "http://github.com/gabrielcnr/pytest-datadir")
-   (synopsis
-    "pytest plugin for test data directories and files")
-   (description
-    "pytest plugin for test data directories and files")
-   (license license:expat)))
-
 (define-public python-pre-commit
   (package
    (name "python-pre-commit")
@@ -1807,41 +1760,6 @@ useful information for debugging.")
 The goal of the project is to parse everything in the Pip requirement
 file format spec.")
     (license license:bsd-3)))
-
-(define-public python-pytest-pudb
-  ;; PyPi does not include tests
-  (let ((commit "a6b3d2f4d35e558d72bccff472ecde9c9d9c69e5")
-        (revision "0"))
-    (package
-      (name "python-pytest-pudb")
-      (version "0.7.0")
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-                (url "https://github.com/wronglink/pytest-pudb")
-                (commit commit)))
-         (file-name (string-append name "-" commit))
-         (sha256
-          (base32 "1c0pypxx3y8w7s5bz9iy3w3aablnhn81rnhmb0is8hf2qpm6k3w0"))))
-      (build-system python-build-system)
-      (propagated-inputs (list pudb))
-      (native-inputs
-        (list python-pytest))
-      (arguments
-        `(#:phases
-          (modify-phases %standard-phases
-            (replace 'check
-              (lambda* (#:key inputs outputs tests? #:allow-other-keys)
-                (when tests?
-                  (add-installed-pythonpath inputs outputs)
-                  (invoke "pytest" "-v")))))))
-      (home-page "https://github.com/wronglink/pytest-pudb")
-      (synopsis "Pytest PuDB debugger integration")
-      (description
-  "@code{python-pytest-pudb} provides PuDB debugger integration based on
-  pytest PDB integration.")
-      (license license:expat))))
 
 (define-public python-supervisor
   (package

@@ -267,25 +267,6 @@ balancing and can configure itself automatically and dynamically.")
      "Simple, generic API for escaping strings.")
     (license license:expat)))
 
-;; This package is deprecated upstream.
-;; Author suggests using python-toml
-(define-public python-pytoml
-  (package
-    (name "python-pytoml")
-    (version "0.1.21")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "pytoml" version))
-        (sha256
-         (base32
-          "1rv1byiw82k7mj6aprcrqi2vdabs801y97xhfnrz7kxds34ggv4f"))))
-    (build-system python-build-system)
-    (home-page "https://github.com/avakar/pytoml")
-    (synopsis "A parser for TOML-0.4.0")
-    (description "A parser for TOML-0.4.0")
-    (license license:expat)))
-
 (define-public python-jupyter-repo2docker
   (package
     (name "python-jupyter-repo2docker")
