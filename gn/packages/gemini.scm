@@ -9,9 +9,9 @@
   #:use-module (guix git-download)
   #:use-module ((guix licenses) #:prefix license:))
 
-(define-public skribilo-with-gemtext-reader
-  (let ((commit "8d4f4c8514c91025ec32b36f05225ede75a872bc")
-        (revision "0"))
+(define-public skribilo-latest
+  (let ((commit "621eb1945aec8f26f5aee4bdf896f2434e145182")
+        (revision "1"))
     (package
       (inherit guix:skribilo)
       (name "skribilo")
@@ -24,7 +24,7 @@
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "0l55w118lian372f52lg596gjvc0yvxf8s67x5wx6bapmrblhc3j"))))
+                  "16rdcvszl9x183y32hjdwns0lkrvkmwd2fsshymspb12k4cxj6i4"))))
       (native-inputs
        `(("autoconf" ,autoconf)
          ("automake" ,automake)
@@ -80,7 +80,7 @@
                       ,(getenv "GUILE_LOAD_COMPILED_PATH"))))))))))
       (inputs (list git-minimal guile-3.0))
       (propagated-inputs
-       (list skribilo-with-gemtext-reader))
+       (list skribilo-latest))
       (home-page "https://tissue.systemreboot.net")
       (synopsis "Text based issue tracker")
       (description "tissue is a text based issue tracker.")
