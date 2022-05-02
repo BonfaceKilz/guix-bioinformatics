@@ -69,9 +69,11 @@
                        (string-append "-j" (number->string (parallel-job-count))))))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
-               (install-file "work-ver/Variane_testharness"
-                             (string-append (assoc-ref outputs "out")
-                                            "/bin")))))))
+               (let ((bin (string-append (assoc-ref outputs "out")
+                                         "/bin")))
+                 (mkdir-p bin)
+                 (copy-file "work-ver/Variane_testharness"
+                            (string-append bin "/ariane"))))))))
      (inputs
       (list spike verilator-4.110))
      (home-page "https://docs.openhwgroup.org/projects/cva6-user-manual/")
