@@ -58,6 +58,9 @@
      (arguments
       (list
        #:tests? #f
+       #:make-flags #~(list "verilate"
+                            ;; Dummy RISCV to suppress Makefile error.
+                            "RISCV=foo")
        #:phases
        #~(modify-phases %standard-phases
            ;; Patch cva6 to print to stdout correctly. See
@@ -68,12 +71,6 @@
                  (("rvfi_i\\[i\\].insn == 32'h00000073")
                   "0"))))
            (delete 'configure)
-           (replace 'build
-             (lambda _
-               (invoke "make" "verilate"
-                       (string-append "-j" (number->string (parallel-job-count)))
-                       ;; Set dummy RISCV to suppress Makefile error.
-                       "RISCV=foo")))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((bin (string-append (assoc-ref outputs "out")
