@@ -39,7 +39,7 @@
                   "1dh8x0ikfwk0by5avwfv9gvr9ay6jy13yr66rvgw9wwyxmklz848")))))))
 
 (define-public cva6
-  (let ((commit "5f802b0520d91ee4a8c988fd83c66b0b48e75447")
+  (let ((commit "b40bb3264bc0ca0b5b9e9a3eb351cbaaa9b50b62")
         (revision "1"))
     (package
      (name "cva6")
@@ -47,26 +47,33 @@
      (source (origin
               (method git-fetch)
               (uri (git-reference
-                    ;; TODO: Use https://github.com/openhwgroup/cva6
-                    ;; instead of the cornell-brg fork.
-                    (url "https://github.com/cornell-brg/cva6")
+                    (url "https://github.com/openhwgroup/cva6")
                     (commit commit)
                     (recursive? #t)))
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "06rwzgvkf6cb6lgwbk6gb41afqv30h4m1sb2piyb1j499znvvgq6"))))
+                "16zyfqfycii25sirh3bm80dws2fn10a02ny8kzijr0p0a1azklmv"))))
      (build-system gnu-build-system)
      (arguments
       (list
        #:tests? #f
        #:phases
        #~(modify-phases %standard-phases
+           ;; Patch cva6 to print to stdout correctly. See
+           ;; https://github.com/openhwgroup/cva6/issues/748
+           (add-after 'unpack 'fix-stdout
+             (lambda _
+               (substitute* "corev_apu/tb/rvfi_tracer.sv"
+                 (("rvfi_i\\[i\\].insn == 32'h00000073")
+                  "0"))))
            (delete 'configure)
            (replace 'build
              (lambda _
                (invoke "make" "verilate"
-                       (string-append "-j" (number->string (parallel-job-count))))))
+                       (string-append "-j" (number->string (parallel-job-count)))
+                       ;; Set dummy RISCV to suppress Makefile error.
+                       "RISCV=foo")))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((bin (string-append (assoc-ref outputs "out")
