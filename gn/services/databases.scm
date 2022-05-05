@@ -12,6 +12,7 @@
             virtuoso-configuration-state-directory
             virtuoso-configuration-server-ip
             virtuoso-configuration-server-port
+            virtuoso-configuration-number-of-buffers
             virtuoso-configuration-http-server-ip
             virtuoso-configuration-http-server-port
             virtuoso-service-type))
@@ -31,6 +32,8 @@
              (default "localhost"))
   (server-port virtuoso-configuration-server-port
                (default 1111))
+  (number-of-buffers virtuoso-configuration-number-of-buffers
+                     (default #f))
   (http-server-ip virtuoso-configuration-http-server-ip
                   (default "localhost"))
   (http-server-port virtuoso-configuration-http-server-port
@@ -67,6 +70,9 @@
                               (format port "ServerPort = ~a:~a~%"
                                       #$(virtuoso-configuration-server-ip config)
                                       #$(virtuoso-configuration-server-port config)))
+                            (when #$(virtuoso-configuration-number-of-buffers config)
+                                  (format port "NumberOfBuffers = ~a~%"
+                                          #$(virtuoso-configuration-number-of-buffers config)))
                             (when (and #$(virtuoso-configuration-http-server-ip config)
                                        #$(virtuoso-configuration-http-server-port config))
                               (format port "[HTTPServer]~%")
