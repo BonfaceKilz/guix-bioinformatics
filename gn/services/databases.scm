@@ -13,6 +13,7 @@
             virtuoso-configuration-server-ip
             virtuoso-configuration-server-port
             virtuoso-configuration-number-of-buffers
+            virtuoso-configuration-maximum-dirty-buffers
             virtuoso-configuration-http-server-ip
             virtuoso-configuration-http-server-port
             virtuoso-service-type))
@@ -34,6 +35,8 @@
                (default 1111))
   (number-of-buffers virtuoso-configuration-number-of-buffers
                      (default #f))
+  (maximum-dirty-buffers virtuoso-configuration-maximum-dirty-buffers
+                         (default #f))
   (http-server-ip virtuoso-configuration-http-server-ip
                   (default "localhost"))
   (http-server-port virtuoso-configuration-http-server-port
@@ -73,6 +76,9 @@
                             (when #$(virtuoso-configuration-number-of-buffers config)
                                   (format port "NumberOfBuffers = ~a~%"
                                           #$(virtuoso-configuration-number-of-buffers config)))
+                            (when #$(virtuoso-configuration-maximum-dirty-buffers config)
+                                  (format port "MaxDirtyBuffers = ~a~%"
+                                          #$(virtuoso-configuration-maximum-dirty-buffers config)))
                             (when (and #$(virtuoso-configuration-http-server-ip config)
                                        #$(virtuoso-configuration-http-server-port config))
                               (format port "[HTTPServer]~%")
