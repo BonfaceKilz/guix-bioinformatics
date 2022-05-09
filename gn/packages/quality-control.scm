@@ -8,7 +8,13 @@
   #:use-module (guix build-system asdf)
   #:use-module (gnu packages lisp-check)
   #:use-module (gnu packages lisp-xyz)
-  #:use-module (gnu packages))
+  #:use-module (gnu packages)
+  #:use-module (gnu packages check)
+  #:use-module (gnu packages databases)
+  #:use-module (gnu packages python-xyz)
+  #:use-module (gnu packages python-web)
+  #:use-module (guix build-system python)
+  #:use-module (gnu packages python-check))
 
 (define-public libcsv
   (let ((commit "b1d5212831842ee5869d99bc208a21837e4037d5")
@@ -125,3 +131,44 @@ delimited text files:
 #;(define-public ecl-qc-uploads
   (sbcl-package->ecl-package sbcl-qc-uploads))
 
+(define-public genenetwork-qc
+  (let ((commit "7c3335f7c81a5f30dc1b6f55c5cc858c35f17981")
+	(revision "1"))
+    (package
+     (name "genenetwork-qc")
+     (version (git-version "0.0.1" revision commit))
+     (source
+      (origin
+       (method git-fetch)
+       (uri
+	(git-reference
+	 (url "https://git.genenetwork.org/fredmanglis/gnqc_py.git")
+	 (commit commit)))
+       (sha256
+	(base32 "146g9vilpnkcvgn9d6wl672jykaqyl979s1bfjmn0jqshb6sw9fx"))))
+     (build-system python-build-system)
+     (arguments
+      `(#:phases
+	(modify-phases %standard-phases
+		       (replace 'check
+				(lambda* (#:key tests? #:allow-other-keys)
+				  (when tests?
+				    (invoke "pytest")))))))
+     (native-inputs
+      (list
+       python-mypy
+       python-pylint
+       python-pytest
+       python-hypothesis))
+     (propagated-inputs
+      (list
+       python-rq
+       python-magic
+       python-flask
+       python-jsonpickle))
+     (synopsis "GeneNetwork Quality Control Application")
+     (description
+      "GeneNetwork qc is a quality control application for the data files that
+ eventually are used to add to the data in the GeneNetwork project.")
+     (home-page "https://git.genenetwork.org/fredmanglis/gnqc_py")
+     (license license:agpl3+))))
