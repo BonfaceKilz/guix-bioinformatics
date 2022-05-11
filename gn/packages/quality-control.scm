@@ -132,43 +132,41 @@ delimited text files:
   (sbcl-package->ecl-package sbcl-qc-uploads))
 
 (define-public genenetwork-qc
-  (let ((commit "7c3335f7c81a5f30dc1b6f55c5cc858c35f17981")
-	(revision "1"))
+  (let ((commit "4808ae57ac83ef00e679c94fe6844c72f18735b9")
+	(revision "2"))
     (package
-     (name "genenetwork-qc")
-     (version (git-version "0.0.1" revision commit))
-     (source
-      (origin
-       (method git-fetch)
-       (uri
-	(git-reference
-	 (url "https://git.genenetwork.org/fredmanglis/gnqc_py.git")
-	 (commit commit)))
-       (sha256
-	(base32 "146g9vilpnkcvgn9d6wl672jykaqyl979s1bfjmn0jqshb6sw9fx"))))
-     (build-system python-build-system)
-     (arguments
-      `(#:phases
-	(modify-phases %standard-phases
-		       (replace 'check
-				(lambda* (#:key tests? #:allow-other-keys)
-				  (when tests?
-				    (invoke "pytest")))))))
-     (native-inputs
-      (list
-       python-mypy
-       python-pylint
-       python-pytest
-       python-hypothesis))
-     (propagated-inputs
-      (list
-       python-rq
-       python-magic
-       python-flask
-       python-jsonpickle))
-     (synopsis "GeneNetwork Quality Control Application")
-     (description
-      "GeneNetwork qc is a quality control application for the data files that
+      (name "genenetwork-qc")
+      (version (git-version "0.0.1" revision commit))
+      (source
+       (origin
+	 (method git-fetch)
+	 (uri
+	  (git-reference
+	   (url "https://git.genenetwork.org/fredmanglis/gnqc_py.git")
+	   (commit commit)))
+	 (sha256
+	  (base32 "14lbdbkqa5aiwldafirgqsfcydbqqbhz30vrf80afxj9sqxcscd9"))))
+      (build-system python-build-system)
+      (arguments
+       `(#:phases
+	 (modify-phases %standard-phases
+	   (replace 'check
+	     (lambda* (#:key tests? #:allow-other-keys)
+	       (when tests?
+		 (invoke "pytest")))))))
+      (inputs
+       (list
+	python-mypy
+	python-pylint
+	python-pytest
+	python-hypothesis))
+      (propagated-inputs
+       (list
+	python-rq
+	python-magic))
+      (synopsis "GeneNetwork Quality Control Application")
+      (description
+       "GeneNetwork qc is a quality control application for the data files that
  eventually are used to add to the data in the GeneNetwork project.")
-     (home-page "https://git.genenetwork.org/fredmanglis/gnqc_py")
-     (license license:agpl3+))))
+      (home-page "https://git.genenetwork.org/fredmanglis/gnqc_py")
+      (license license:agpl3+))))
