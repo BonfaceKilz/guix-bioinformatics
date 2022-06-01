@@ -2757,6 +2757,9 @@ downstream analysis.")
       (home-page "https://matsen.fhcrc.org/pplacer/")
       (license license:gpl3))))
 
+(define-public python2-biopython
+  (package-with-python2 python-biopython))
+
 ;; This package is installed alongside 'pplacer'.  It is a separate package so
 ;; that it can use the python-build-system for the scripts that are
 ;; distributed alongside the main OCaml binaries.
