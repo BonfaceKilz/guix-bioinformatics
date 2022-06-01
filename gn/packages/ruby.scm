@@ -4465,33 +4465,6 @@ both the the request and response in between unicorn and slow clients.")
     (home-page "https://github.com/mzsanford/R2rb")
     (license #f)))
 
-(define-public ruby-cbor
-  (package
-    (name "ruby-cbor")
-    (version "0.5.9.6")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (rubygems-uri "cbor" version))
-        (sha256
-         (base32
-          "0511idr8xps9625nh3kxr68sdy6l3xy2kcz7r57g47fxb1v18jj3"))))
-    (build-system ruby-build-system)
-    (arguments
-     `(#:test-target "spec"))
-    (native-inputs
-     `(
-       ("ruby-rake-compiler" ,ruby-rake-compiler)
-       ("ruby-rspec" ,ruby-rspec)
-       ("ruby-yard" ,ruby-yard)
-       ))
-    (synopsis
-      "CBOR is a library for the CBOR binary object representation format, based on Sadayuki Furuhashi's MessagePack library.")
-    (description
-      "CBOR is a library for the CBOR binary object representation format, based on Sadayuki Furuhashi's MessagePack library.")
-    (home-page "http://cbor.io/")
-    (license #f)))
-
 (define-public ruby-openssl
   (package
     (name "ruby-openssl")
