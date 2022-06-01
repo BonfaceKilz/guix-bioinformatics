@@ -1659,9 +1659,18 @@ available to other researchers.")
                               "deps/libvgio/include/handlegraph")))))
     (build-system gnu-build-system)
     (arguments
-     '(#:phases
+     `(#:phases
        (modify-phases %standard-phases
          (delete 'configure)    ; no configure script
+         ,@(if (target-riscv64?)
+             ;; riscv64 doesn't take '-march=native. This needs to be removed
+             ;; for all architectures if/when vg is upstreamed.
+             `((add-after 'unpack 'dont-build-native
+                 (lambda _
+                   (substitute* (append (find-files "." "CMakeLists\\.txt")
+                                        (find-files "." "Makefile"))
+                     (("-march=native") "")))))
+             '())
          (add-after 'unpack 'patch-source
            (lambda* (#:key inputs #:allow-other-keys)
              (substitute* "Makefile"
@@ -1769,8 +1778,9 @@ available to other researchers.")
                (substitute* "Makefile"
                  ((".*test-docs.*") "")))))
          (add-after 'build 'build-manpages
-           (lambda _
-             (invoke "make" "man")))
+           (lambda* (#:key inputs #:allow-other-keys)
+             (when (assoc-ref inputs "asciidoctor")
+               (invoke "make" "man"))))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
