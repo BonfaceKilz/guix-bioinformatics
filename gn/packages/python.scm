@@ -18,7 +18,7 @@
   #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-science)
   #:use-module (gnu packages python-web)
-  #:use-module (gnu packages python-xyz)
+  #:use-module ((gnu packages python-xyz) #:hide (python2-six))
   #:use-module (gnu packages rdf)
   #:use-module (gnu packages readline)
   #:use-module (gnu packages serialization)
@@ -65,9 +65,7 @@
        #:tests? #f))
     (propagated-inputs
      `(("python2-six" ,python2-six)
-       ;; TODO: re-package this!
-       ;("python2-singledispatch" ,python2-singledispatch)
-     ))
+       ("python2-singledispatch" ,python2-singledispatch)))
     (inputs
      `(("readline" ,readline)
        ("icu4c" ,icu4c)
