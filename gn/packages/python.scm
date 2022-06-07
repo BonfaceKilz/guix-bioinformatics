@@ -25,6 +25,7 @@
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages tcl)
   #:use-module (gnu packages time)
+  #:use-module (past packages python27)
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)

@@ -77,7 +77,8 @@
   #:use-module (gnu packages time)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages vim)
-  #:use-module (gnu packages web))
+  #:use-module (gnu packages web)
+  #:use-module (past packages python27))
 
 (define-public contra
   (package

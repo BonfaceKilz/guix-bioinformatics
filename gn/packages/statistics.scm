@@ -13,7 +13,8 @@
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-science)
   #:use-module (gnu packages python-xyz)
-  #:use-module (gnu packages statistics))
+  #:use-module (gnu packages statistics)
+  #:use-module (past packages python27))
 
 (define-public r-hmisc-3
   (package
