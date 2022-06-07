@@ -2425,7 +2425,7 @@ cases include:
               (for-each
                 (lambda (file)
                   (wrap-script file
-                    `("PYTHONPATH" ":" prefix (,(getenv "PYTHONPATH")))
+                    `("GUIX_PYTHONPATH" ":" prefix (,(getenv "GUIX_PYTHONPATH")))
                     `("PATH" ":" prefix (,(string-append bcftools "/bin")
                                          ,(string-append samtools "/bin")))))
                 (find-files (string-append out "/bin") "\\.py$"))
@@ -2439,10 +2439,8 @@ cases include:
       ("python" ,python-2)
       ("python2-bx-python" ,python2-bx-python)
       ("python2-numpy" ,python2-numpy)
-
-      ;; TODO: re-package these!
-      ;("python2-pandas" ,python2-pandas)
-      ;("python2-pysam" ,python2-pysam)
+      ("python2-pandas" ,python2-pandas)
+      ("python2-pysam" ,(python2-package python-pysam))
       ("python2-scipy" ,python2-scipy)
       ("rtg-tools" ,rtg-tools)
       ("samtools" ,samtools)
