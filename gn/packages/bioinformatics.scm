@@ -63,7 +63,7 @@
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-science)
   #:use-module (gnu packages python-web)
-  #:use-module (gnu packages python-xyz)
+  #:use-module ((gnu packages python-xyz) #:hide (python2-six))
   #:use-module (gnu packages rdf)
   #:use-module (gnu packages readline)
   #:use-module (gnu packages rsync)
@@ -2761,7 +2761,7 @@ downstream analysis.")
       (license license:gpl3))))
 
 (define-public python2-biopython
-  (package-with-python2 python-biopython))
+  (python2-package python-biopython))
 
 ;; This package is installed alongside 'pplacer'.  It is a separate package so
 ;; that it can use the python-build-system for the scripts that are
