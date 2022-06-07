@@ -2421,8 +2421,10 @@ cases include:
       ("python" ,python-2)
       ("python2-bx-python" ,python2-bx-python)
       ("python2-numpy" ,python2-numpy)
-      ("python2-pandas" ,python2-pandas)
-      ("python2-pysam" ,python2-pysam)
+
+      ;; TODO: re-package these!
+      ;("python2-pandas" ,python2-pandas)
+      ;("python2-pysam" ,python2-pysam)
       ("python2-scipy" ,python2-scipy)
       ("rtg-tools" ,rtg-tools)
       ("samtools" ,samtools)

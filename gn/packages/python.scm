@@ -65,7 +65,8 @@
        #:tests? #f))
     (propagated-inputs
      `(("python2-six" ,python2-six)
-       ("python2-singledispatch" ,python2-singledispatch)
+       ;; TODO: re-package this!
+       ;("python2-singledispatch" ,python2-singledispatch)
      ))
     (inputs
      `(("readline" ,readline)
