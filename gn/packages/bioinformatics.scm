@@ -2776,24 +2776,23 @@ downstream analysis.")
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'enter-scripts-dir
-           (lambda _ (chdir "scripts") #t))
+           (lambda _ (chdir "scripts")))
          (replace 'check
-           (lambda _ (invoke "python" "-m" "unittest" "discover" "-v") #t))
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+               (invoke "python" "-m" "unittest" "discover" "-v"))))
          (add-after 'install 'wrap-executables
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
-                    (bin (string-append out "/bin")))
-               (let ((path (string-append
+                    (bin (string-append out "/bin"))
+                    (path (string-append
                             (assoc-ref inputs "hmmer") "/bin:"
                             (assoc-ref inputs "infernal") "/bin")))
-                 (display path)
-                 (wrap-program (string-append bin "/refpkg_align.py")
-                   `("PATH" ":" prefix (,path))))
-               (let ((path (string-append
-                            (assoc-ref inputs "hmmer") "/bin")))
-                 (wrap-program (string-append bin "/hrefpkg_query.py")
-                   `("PATH" ":" prefix (,path)))))
-             #t)))))
+               (display path)
+               (wrap-program (string-append bin "/refpkg_align.py")
+                 `("PATH" ":" prefix (,path)))
+               (wrap-program (string-append bin "/hrefpkg_query.py")
+                 `("PATH" ":" prefix (,path)))))))))
     (inputs
      `(("infernal" ,infernal)
        ("hmmer" ,hmmer)))
