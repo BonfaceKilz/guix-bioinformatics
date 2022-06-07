@@ -2239,8 +2239,26 @@ cases include:
 @end enumerate\n")
     (license license:expat)))
 
+;; 0.8.9 is the last version which supports python2.
 (define-public python2-bx-python
-  (package-with-python2 python-bx-python))
+  (let ((base (python2-package python-bx-python)))
+    (package
+      (inherit base)
+      (name "python2-bx-python")
+      (version "0.8.9")
+      (source (origin
+                ;; No cythonized files in the git repository.
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/bxlab/bx-python")
+                      (commit (string-append "v" version))))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0bsqnw8rv08586wksvx2a8dawvhyzvz5pzsh9y3217b6wxq98dnq"))))
+      (propagated-inputs
+       (modify-inputs (package-propagated-inputs base)
+         (append python2-six))))))
 
 (define-public hap.py
   (package
