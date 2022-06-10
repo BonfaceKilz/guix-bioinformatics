@@ -16,17 +16,18 @@ To easily use the packages from this repo, simply add it to your
 [[https://guix.gnu.org/manual/en/html_node/Channels.html][here]]:
 
 #+BEGIN_SRC scheme
-    (cons*
-      (channel
-        (name 'gn-bioinformatics)
-        (url "https://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics.git")
-        (branch "master"))
-      %default-channels)
+  (list (channel
+         (name 'gn-bioinformatics)
+         (url "https://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics.git")
+         (branch "master")))
 #+END_SRC
 
-and run `guix pull` like normal to update your software. This is the
+and run /guix pull/ like normal to update your software. This is the
 recommended way to use the software from this repository and the code
-snippets in this README assume you have done so.
+snippets in this README assume you have done so. In order to maintain
+stability, the guix-bioinformatics channel depends on a specific
+commit of upstream Guix. So, it is recommended to isolate use of the
+guix-bioinformatics channel in a separate /guix pull/ profile.
 
 If you want to make changes to the packages in this repo then simply set
 the GUIX_PACKAGE_PATH to point to the root of this directory
