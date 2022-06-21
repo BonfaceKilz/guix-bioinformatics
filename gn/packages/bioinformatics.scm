@@ -2544,8 +2544,7 @@ of similar contiguity and accuracy to other de Bruijn assemblers (e.g. Velvet)."
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
              (when tests?
-               (with-directory-excursion
-                 (string-append "../" ,name "-" ,version "-checkout/tests")
+               (with-directory-excursion "../source/tests"
                  (invoke "./run.sh" "../../build/src/metaeuk"))))))))
     (inputs
      `(("bzip2" ,bzip2)
