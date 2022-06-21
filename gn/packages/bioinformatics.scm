@@ -31,6 +31,7 @@
   #:use-module (gnu packages bioconductor)
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages boost)
+  #:use-module (gnu packages bootstrap)
   #:use-module (gnu packages check)
   #:use-module (gnu packages cmake)
   #:use-module (gnu packages compression)
@@ -3296,6 +3297,135 @@ their chance of getting selected as minimizers.")
     ;; Meryl is mix bsd-3, expat and public-domain.
     ;; Rest of the code is public domain.
     (license license:expat)))
+
+(define-public quast
+  (package
+    (name "quast")
+    (version "5.2.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (list (pypi-uri "quast" version)
+                   (string-append "https://github.com/ablab/quast"
+                                  "/releases/download/quast_" version
+                                  "/quast-" version ".tar.gz")))
+        (sha256
+         (base32 "1nz0lz7zgrhcirmm3xcn756f91a6bpww9npap3a4l9gsgh413nfc"))
+        (patches (search-patches "quast.patch"))
+        (snippet
+         #~(begin
+             (use-modules (guix build utils))
+             (with-directory-excursion "quast_libs"
+               (substitute* "run_busco.py"
+                 (("from quast_libs\\.busco import busco") "import busco"))
+               (delete-file-recursively "site_packages/joblib2")
+               (delete-file-recursively "site_packages/joblib3")
+               (delete-file-recursively "site_packages/simplejson")
+               (delete-file-recursively "minimap2")     ; Accepts minimap2 >= 2.19
+               ;; These packages are needed at runtime
+               (delete-file-recursively "bedtools")
+               (delete-file-recursively "bwa")
+               ;; These files are from python itself
+               (delete-file "site_packages/bz2.py")
+               (delete-file "site_packages/_bz2.py")
+               (delete-file "site_packages/_compression.py")
+               ;; Delete some pre-compiled binaries
+               (delete-file-recursively "barrnap/binaries/darwin")
+               (delete-file "barrnap/binaries/linux/nhmmer")
+               (delete-file "busco/hmmsearch")
+               (delete-file "sambamba/sambamba_linux")
+               (delete-file "sambamba/sambamba_osx")
+               ;; TODO:
+               ;(delete-file "barrnap/bin/barrnap")
+
+               ;; Genemark is a non-free, but available to academic
+               ;; institutions. Remove some of the bundled binaries.
+               (delete-file-recursively "genemark/linux_32")
+               (delete-file-recursively "genemark/macosx")
+               (delete-file-recursively "genemark-es/linux_32")
+               (delete-file-recursively "genemark-es/macosx"))))))
+    (build-system python-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'patchelf-genemark
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((patchelf (search-input-file inputs "/bin/patchelf"))
+                     (ld-so    (search-input-file inputs #$(glibc-dynamic-linker)))
+                     (rpath    (dirname
+                                 (search-input-file inputs "/lib/libstdc++.so.6"))))
+                 (for-each (lambda (binary)
+                             (invoke patchelf "--set-interpreter" ld-so binary)
+                             (invoke patchelf "--set-rpath" rpath binary))
+                           (list "quast_libs/genemark/linux_64/gmhmmp"
+                                 "quast_libs/genemark/linux_64/probuild"
+                                 "quast_libs/genemark-es/linux_64/gmhmme3"
+                                 "quast_libs/genemark-es/linux_64/probuild")))))
+           (add-before 'build 'replace-bundled-binaries
+             (lambda* (#:key inputs #:allow-other-keys)
+               (substitute* "quast_libs/ca_utils/misc.py"
+                 (("join\\(qconfig.LIBS_LOCATION, 'minimap2'\\)")
+                  (string-append "'" (search-input-file inputs "/bin/minimap2") "'")))
+               (substitute* "./quast_libs/ra_utils/misc.py"
+                 (("join\\(sambamba_dirpath, fname \\+ platform_suffix\\)")
+                  (string-append "'" (search-input-file inputs "/bin/sambamba") "'"))
+                 (("join\\(qconfig.LIBS_LOCATION, 'bedtools', 'bin'\\)")
+                  (string-append
+                    "'" (dirname (search-input-file inputs "/bin/bedtools")) "'")))))
+           (add-after 'wrap 'wrap-more
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (for-each
+                 (lambda (file)
+                   (wrap-program file
+                     `("PATH" ":" prefix
+                       ,(map (lambda (file-name)
+                               (string-append (assoc-ref inputs file-name) "/bin"))
+                             (list "bedtools"
+                                   "blast+"
+                                   "busco"
+                                   "bwa"
+                                   "hmmer"
+                                   "minimap2"
+                                   "sambamba")))))
+                 (find-files (string-append #$output "/bin") "\\.py$"))))
+           (replace 'check
+             (lambda* (#:key tests? inputs outputs #:allow-other-keys)
+               (when tests?
+                 (add-installed-pythonpath inputs outputs)
+                 (invoke "python" "setup.py" "test"))))
+           (delete 'strip))))       ; Can't strip genemark binaries.
+    (native-inputs
+     (list (list (canonical-package gcc) "lib") patchelf))
+    (inputs
+     (list python-joblib
+           python-matplotlib
+           python-simplejson
+           ;; And the non-python packages:
+           ;augustus
+           bash-minimal
+           bedtools
+           blast+
+           busco
+           bwa
+           hmmer
+           minimap2
+           perl
+           sambamba))
+    (home-page "http://quast.sourceforge.net/")
+    (synopsis "Genome assembly evaluation tool")
+    (description "QUAST stands for QUality ASsessment Tool.  It evaluates
+genome/metagenome assemblies by computing various metrics.  The current QUAST
+toolkit includes the general QUAST tool for genome assemblies, MetaQUAST, the
+extension for metagenomic datasets, QUAST-LG, the extension for large genomes
+(e.g., mammalians), and Icarus, the interactive visualizer for these tools.")
+    (supported-systems '("x86_64-linux"))   ; Due to bundled genemark
+    (license
+      (list license:gpl2    ; Main program
+            ;; Genemark (bundled) is free for non-commercial use by academic,
+            ;; government, and non-profit/not-for-profit institutions.
+            (license:non-copyleft
+              "http://topaz.gatech.edu/GeneMark/license_download.cgi")))))
 
 ;; TODO: Regenerate or remove docs folder.
 (define-public python-pixy

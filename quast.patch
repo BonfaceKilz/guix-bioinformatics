@@ -1,0 +1,88 @@
+This patch is mostly adapted from the Debian patches
+https://salsa.debian.org/med-team/quast/-/tree/master/debian/patches
+
+diff --git a/setup.py b/setup.py
+index a982a430..24ab2f5f 100755
+--- a/setup.py
++++ b/setup.py
+@@ -35,10 +35,10 @@ except:
+                  exit_with_code=1)
+ 
+ from quast_libs.glimmer import compile_glimmer
+-from quast_libs.run_busco import download_augustus, download_all_db
+-from quast_libs.search_references_meta import download_blast_binaries, download_blastdb
++from quast_libs.run_busco import download_all_db
++from quast_libs.search_references_meta import download_blastdb
+ from quast_libs.ca_utils.misc import compile_aligner
+-from quast_libs.ra_utils.misc import compile_reads_analyzer_tools, compile_bwa, compile_bedtools, download_gridss
++from quast_libs.ra_utils.misc import compile_reads_analyzer_tools, download_gridss
+ 
+ name = 'quast'
+ quast_package = qconfig.PACKAGE_NAME
+@@ -60,8 +60,6 @@ if cmd_in(['clean', 'sdist']):
+     logger.info('Cleaning up binary files...')
+     compile_aligner(logger, only_clean=True)
+     compile_glimmer(logger, only_clean=True)
+-    compile_bwa(logger, only_clean=True)
+-    compile_bedtools(logger, only_clean=True)
+     for fpath in [fn for fn in glob(join(quast_package, '*.pyc'))]: os.remove(fpath)
+     for fpath in [fn for fn in glob(join(quast_package, 'html_saver', '*.pyc'))]: os.remove(fpath)
+     for fpath in [fn for fn in glob(join(quast_package, 'site_packages', '*', '*.pyc'))]: os.remove(fpath)
+@@ -74,10 +72,7 @@ if cmd_in(['clean', 'sdist']):
+         if isdir(name + '.egg-info'):
+             shutil.rmtree(name + '.egg-info')
+         download_gridss(logger, only_clean=True)
+-        download_blast_binaries(logger, only_clean=True)
+-        download_blastdb(logger, only_clean=True)
+         if qconfig.platform_name != 'macosx':
+-            download_augustus(logger, only_clean=True)
+             download_all_db(logger, only_clean=True)
+         logger.info('Done.')
+         sys.exit()
+@@ -168,9 +163,6 @@ if cmd_in(['install', 'develop', 'build', 'build_ext']):
+         logger.info('* Downloading GRIDSS *')
+         if not download_gridss(logger):
+             modules_failed_to_install.append('GRIDSS (affects -1/--reads1 and -2/--reads2 options)')
+-        logger.info('* Downloading BLAST *')
+-        if not download_blast_binaries(logger):
+-            modules_failed_to_install.append('BLAST (affects metaquast.py in without references mode and --find-conserved-genes option)')
+         logger.info('* Downloading SILVA 16S rRNA gene database *')
+         if not download_blastdb(logger):
+             modules_failed_to_install.append('SILVA 16S rRNA gene database (affects metaquast.py in without references mode)')
+@@ -186,20 +178,8 @@ if cmd_in(['install', 'develop', 'build', 'build_ext']):
+     logger.info('')
+ 
+ 
+-if qconfig.platform_name == 'macosx':
+-    sambamba_files = [join('sambamba', 'sambamba_osx')]
+-else:
+-    sambamba_files = [join('sambamba', 'sambamba_linux')]
+-
+-minimap_files = find_package_files('minimap2')
+-bwa_files = [
+-    join('bwa', fp) for fp in os.listdir(join(quast_package, 'bwa'))
+-    if isfile(join(quast_package, 'bwa', fp)) and fp.startswith('bwa')]
+-bedtools_files = [join('bedtools', 'bin', '*')]
+ full_install_tools = (
+-    find_package_files('gridss') +
+-    find_package_files('blast') +
+-    [join(quast_package, 'busco', 'hmmsearch')]
++    find_package_files('gridss')
+ )
+ 
+ setup(
+@@ -229,14 +209,10 @@ The tool accepts multiple assemblies, thus is suitable for comparison.''',
+             'manual.html',
+             ] +
+             find_package_files('html_saver') +
+-            minimap_files +
+             find_package_files('genemark/' + qconfig.platform_name) +
+             find_package_files('genemark-es/' + qconfig.platform_name) +
+             find_package_files('genemark-es/lib') +
+             find_package_files('glimmer') +
+-            bwa_files +
+-            bedtools_files +
+-            sambamba_files +
+            (full_install_tools if install_full else [])
+     },
+     include_package_data=True,
