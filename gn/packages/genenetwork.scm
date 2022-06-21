@@ -99,7 +99,7 @@
       (license #f))))
 
 (define-public genenetwork3
-  (let ((commit "c2a6570a3dc2a9ae092b6a8273e7c6c0904dc1e1"))
+  (let ((commit "b4e81dd5cba130f0a2f47771bb2fd4d289ef745d"))
     (package
       (name "genenetwork3")
       (version (git-version "0.1.0" "2" commit))
@@ -112,7 +112,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1ql9hzk2a3y6zid9cb58132xqcwpfc31nlcjl9phaz55mw0kd4mc"))))
+           "0a3slgb1bi8whwijx02mww6iiw14bihqva3jsy4vi47hlgq83jh7"))))
       (native-inputs
        (list python-hypothesis
              python-mypy
@@ -127,7 +127,8 @@
              python-bcrypt
              python-flask
              python-flask-cors
-             python-ipfshttpclient
+             ;; Not working in Python > 3.8
+             ;; python-ipfshttpclient
              python-lmdb
              python-mysqlclient
              python-numpy
