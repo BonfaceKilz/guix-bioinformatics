@@ -6,7 +6,8 @@
   #:use-module (guix git-download)
   #:use-module (guix build-system cargo)
   #:use-module (gnu packages crates-graphics)
-  #:use-module (gnu packages crates-io))
+  #:use-module (gnu packages crates-io)
+  #:use-module (gnu packages maths))
 
 (define-public rust-handlegraph-0.7
   (package
@@ -321,3 +322,26 @@ or any combination.")
     (synopsis "Yet another format-preserving TOML parser.")
     (description "Yet another format-preserving TOML parser.")
     (license (list license:expat license:asl2.0))))
+
+(define-public rust-gsl-sys
+  (package
+    (name "rust-gsl-sys")
+    (version "3.0.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (crate-uri "GSL-sys" version))
+       (file-name (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32 "17dx066l1pbjwp9syjkzqb6fiajyb4wc814zqdfrj807rh6nfxs5"))))
+    (build-system cargo-build-system)
+    (native-inputs
+     (list gsl))
+    (arguments
+     `(#:cargo-inputs
+       (("rust-libc" ,rust-libc-0.2)
+	("rust-pkg-config"  ,rust-pkg-config-0.3))))
+    (home-page "https://github.com/GuillaumeGomez/rust-GSL")
+    (synopsis "A rust binding for the GSL (the GNU scientific library)")
+    (description "This is the FFI counter-part of the Rust GSL crate. It is better to use the GSL crate directly rather than this one (unless something is missing the Rust binding!).")
+    (license license:expat)))
