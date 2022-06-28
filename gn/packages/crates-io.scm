@@ -369,3 +369,36 @@ or any combination.")
     (synopsis "A rust binding for the GSL (the GNU scientific library)")
     (description "This package is wrapper for gsl")
     (license license:gpl3+)))
+
+(define-public gn-rust-correlation
+  (let ((commit "19f2b9afa1698cab1158359ecd1cd65ffef99c5f")
+        (revision "0"))
+    (package
+      (name "gn-rust-correlation")
+      (version "0.1.4")
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/Alexanderlacuna/correlation_rust.git")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32
+            "0924p8ar362q3akng32ryzpg1sxiz814mm7yq7gzd29fm5hhq19s"))))
+      (build-system cargo-build-system)
+      (native-inputs
+       (list gsl))
+      (arguments
+       `(#:tests? #false ;;disable-tests for now 
+	 #:cargo-inputs 
+         (("rust-serde" ,rust-serde-1)
+	  ("rust-serde-json" ,rust-serde-json-1)
+	  ("GSL" ,rust-gsl)
+	  ("rust-assert-approx-eq"  ,rust-assert-approx-eq-1))
+	 #:cargo-development-inputs
+	 (("rust-criterion" ,rust-criterion-0.3))))
+      (home-page "https://github.com/Alexanderlacuna/correlation_rust")
+      (synopsis "Re-implementation of genenetwork/correlation in Rust")
+      (description "Re-implementation of genenetwork/correlation in Rust")
+      (license #f))))
