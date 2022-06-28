@@ -345,3 +345,27 @@ or any combination.")
     (synopsis "A rust binding for the GSL (the GNU scientific library)")
     (description "This is the FFI counter-part of the Rust GSL crate. It is better to use the GSL crate directly rather than this one (unless something is missing the Rust binding!).")
     (license license:expat)))
+
+(define-public rust-gsl
+  (package
+    (name "rust-gsl")
+    (version "6.0.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (crate-uri "GSL" version))
+       (file-name (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32 "1kpiivagrsk9ags7d4k2521jwix0lqgnd3i8ayj3dfniszvcmgn9"))))
+    (build-system cargo-build-system)
+    (native-inputs
+     (list gsl))
+    (arguments
+     `(#:tests? #false
+       #:cargo-inputs
+       (("GSL-sys" ,rust-gsl-sys)
+	("paste"  ,rust-paste-1))))
+    (home-page "https://github.com/GuillaumeGomez/rust-GSL")
+    (synopsis "A rust binding for the GSL (the GNU scientific library)")
+    (description "This package is wrapper for gsl")
+    (license license:gpl3+)))
