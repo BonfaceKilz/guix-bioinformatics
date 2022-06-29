@@ -45,6 +45,7 @@
   ; #:use-module (gnu packages wget)
   #:use-module (gnu packages xml)
   #:use-module (gn packages bioinformatics)
+  #:use-module (gn packages crates-io)
   #:use-module (gn packages gemma)
   #:use-module (gn packages javascript)
   #:use-module (gn packages python)
@@ -124,6 +125,7 @@
        (list gemma-wrapper
              python-wrapper
              csvdiff
+             gn-rust-correlation
              python-bcrypt
              python-flask
              python-flask-cors
