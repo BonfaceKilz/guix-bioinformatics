@@ -2,6 +2,7 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix build-system go)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages node)
@@ -10,14 +11,14 @@
 (define-public gitea
   (package
     (name "gitea")
-    (version "1.14.6")
+    (version "1.15.11")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/go-gitea/gitea/releases"
                                   "/download/v" version
                                   "/gitea-src-" version ".tar.gz"))
               (sha256
-               (base32 "0nkv5a49iryx806fba76l8y7pbx0vir7npf6hf53wc4zaqk0x2i0"))))
+               (base32 "0ihw68qy36xdwp6kiardxlbp1x0s10gjdkg51b6p93c0r9pm9501"))))
     (build-system go-build-system)
     (arguments
      `(#:install-source? #f
@@ -35,42 +36,44 @@
                (("#!/gnu/store/.*/bin/sh") "#!/bin/sh"))))
          (add-before 'build 'prepare-build
            (lambda _
-             (setenv "TAGS" "bindata sqlite sqlite_unlock_notify")
-             #t))
+             (setenv "TAGS" "bindata sqlite sqlite_unlock_notify")))
          (replace 'build
            (lambda _
              (with-directory-excursion "src"
-               (invoke "make" "build"))))
+               (invoke "make" "build")
+               (invoke "make" "generate-manpage"))))
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
              (when tests?
                (with-directory-excursion "src"
-                 (invoke "make" "test")
+                 (invoke "make" "test-backend")
                  ;; Gitea requires git with lfs support to run tests.
                  ;(invoke "make" "test-sqlite")
                  (invoke "make" "test-sqlite-migration")))))
          (replace 'install
-           (lambda _
-             (with-directory-excursion "src"
-               (invoke "make" "install"))))
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-directory-excursion "src"
+                 (invoke "make" "install")
+                 (install-file "man/man1/gitea.1.gz"
+                               (string-append out "/share/man/man1"))))))
          (add-after 'install 'wrap-program
            (lambda* (#:key outputs inputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
-                    (bin (string-append out "/bin/gitea"))
-                    (git (assoc-ref inputs "git")))
+                    (bin (string-append out "/bin/gitea")))
                (wrap-program bin
-                 `("PATH" ":" prefix (,(string-append git "/bin")))))
-             #t)))))
-    (native-inputs
-     `(("node" ,node)))
+                 `("PATH" ":" prefix
+                   (,(dirname (search-input-file inputs "/bin/git")))))))))))
+    ;(native-inputs
+    ; (list node-lts))
     (inputs
-     `(("bash" ,bash-minimal)
-       ("git" ,git)))
+     (list bash-minimal
+           git))
     (home-page "https://gitea.io/")
     (synopsis "Self-hosted git service")
-    ;; TODO: Rewrite description
-    (description "Gitea is a painless self-hosted Git service.  It is similar
-to GitHub, Bitbucket, and GitLab.")
+    (description "Gitea is an open-source forge software package for hosting
+software development version control using Git as well as other collaborative
+features like bug tracking, wikis and code review.")
     (properties
       '((release-monitoring-url . "https://github.com/go-gitea/gitea/releases")))
     (license license:expat)))
