@@ -33,8 +33,8 @@
          ,@(package-native-inputs guix:skribilo))))))
 
 (define-public tissue
-  (let ((commit "b15edb1e6910a8a2b4994d8225f2ec5097e648ab")
-        (revision "2"))
+  (let ((commit "6d6285d071132960835f848a1703faaea2356937")
+        (revision "3"))
     (package
       (name "tissue")
       (version (git-version "0.1.0" revision commit))
@@ -46,7 +46,7 @@
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "0pd8d1mrfgcgc90q302mjp1qcv6c1njrknax8di5944k8a3zhdvk"))))
+                  "1dlcy7m4gz1vmklyny4mxky9822q5hjc4qdmn42yf2qvh8xy62g5"))))
       (build-system gnu-build-system)
       (arguments
        (list #:make-flags #~(list (string-append "prefix=" #$output))
@@ -73,7 +73,7 @@
                            `("GUILE_LOAD_COMPILED_PATH" prefix
                              (,(string-append out "/lib/guile/" effective-version "/site-ccache")
                               ,(getenv "GUILE_LOAD_COMPILED_PATH")))))))))))
-      (inputs (list guile-3.0 guile-git guile-xapian))
+      (inputs (list guile-3.0 guile-filesystem guile-git guile-xapian))
       (propagated-inputs
        (list skribilo-latest))
       (home-page "https://tissue.systemreboot.net")
