@@ -188,6 +188,7 @@
          ("gemma-wrapper" ,gemma-wrapper)
          ("plink-ng-gn" ,plink-ng-gn)
          ("rust-qtlreaper" ,rust-qtlreaper)
+	  ("gn-rust-correlation" ,gn-rust-correlation)
          ("glibc-utf8-locales" ,glibc-utf8-locales)
          ("nginx" ,nginx)
          ("python" ,python-wrapper)
