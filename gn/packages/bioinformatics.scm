@@ -2970,7 +2970,7 @@ including @acronym{TIPP, taxonomic identical using phylogenetic placement} and
 (define-public busco
   (package
     (name "busco")
-    (version "5.2.2")
+    (version "5.4.1")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -2978,7 +2978,7 @@ including @acronym{TIPP, taxonomic identical using phylogenetic placement} and
                      (commit version)))
               (file-name (git-file-name name version))
               (sha256
-               (base32 "0l5bxg5311svfszqysd5dkakq7zsdgrv9a1iiwjsvjdz66f7db1p"))))
+               (base32 "0fnijr7q9jj8hq3q5v0jd73zcznqrg72idr3lmchx7x2c66mb9dz"))))
     (build-system python-build-system)
     (arguments
      '(#:phases
@@ -2999,8 +2999,7 @@ including @acronym{TIPP, taxonomic identical using phylogenetic placement} and
                      ,(string-append (assoc-ref inputs "metaeuk") "/bin")
                      ,(string-append (assoc-ref inputs "prodigal") "/bin")
                      ,(string-append (assoc-ref inputs "r") "/bin")
-                     ,(string-append (assoc-ref inputs "sepp") "/bin"))))
-               #t))))))
+                     ,(string-append (assoc-ref inputs "sepp") "/bin"))))))))))
     (inputs
      `(("augustus" ,augustus)
        ("blast" ,blast+)
