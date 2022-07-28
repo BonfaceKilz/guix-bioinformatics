@@ -3,7 +3,8 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix build-system r)
-  #:use-module (gnu packages))
+  #:use-module (gnu packages)
+  #:use-module (gnu packages statistics))
 
 (define-public r-tictoc
   (package
@@ -27,3 +28,26 @@ with custom callbacks.  In addition, this package provides class 'Stack',
 implemented as a vector, and class 'List', implemented as a list, both of whic
 support operations 'push', 'pop', 'first', 'last' and 'clear'.")
     (license license:asl2.0)))
+
+(define-public r-bracer
+  (package
+    (name "r-bracer")
+    (version "1.2.1")
+    (source (origin
+              (method url-fetch)
+              (uri (cran-uri "bracer" version))
+              (sha256
+               (base32 "0q47p43957nlaqsz0hhbica2hlar95c2i8avgq024yhccik5nx6f"))))
+    (properties `((upstream-name . "bracer")))
+    (build-system r-build-system)
+    (propagated-inputs (list r-stringr))
+    (home-page "https://trevorldavis.com/R/bracer/")
+    (synopsis "Brace Expansions")
+    (description
+     "Performs brace expansions on strings.  Made popular by Unix shells, brace
+expansion allows users to concisely generate certain character vectors by taking
+a single string and (recursively) expanding the comma-separated lists and
+double-period-separated integer and character sequences enclosed within braces
+in that string.  The double-period-separated numeric integer expansion also
+supports padding the resulting numbers with zeros.")
+    (license license:expat)))
