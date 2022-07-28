@@ -21,6 +21,7 @@
   #:use-module (gnu packages)
   #:use-module (gn packages crates-io)
   #:use-module (gn packages java)
+  #:use-module (gn packages ocaml)
   #:use-module (gn packages python)
   #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
@@ -2661,6 +2662,7 @@ protein alignments and syntenic genomic alignments.")
 
 (define-public pplacer
   (let ((commit "807f6f3"))
+   (build-with-ocaml4.07
     (package
       (name "pplacer")
       ;; The commit should be updated with each version change.
@@ -2774,7 +2776,7 @@ reference alignment.  Pplacer is designed to be fast, to give useful
 information about uncertainty, and to offer advanced visualization and
 downstream analysis.")
       (home-page "https://matsen.fhcrc.org/pplacer/")
-      (license license:gpl3))))
+      (license license:gpl3)))))
 
 (define-public python2-biopython
   (python2-package python-biopython))
