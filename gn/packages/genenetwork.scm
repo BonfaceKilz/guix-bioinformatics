@@ -156,7 +156,7 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "c6d6b1b59531d44b514f97184160d4bb096b01b5"))
+  (let ((commit "85ad7837364a3436bf2a5b94417e078d66abf9a8"))
     (package
       (name "genenetwork2")
       (version (git-version "3.11" "2" commit))
@@ -168,7 +168,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "11dd6csjf53jsi1d26b4g0vw8l3s8n2aihbdxyn3a79i52iyy183"))))
+                  "02rm5lb4bld2bdjd2mmqh6mpahfayphwc6b4kawqhwh1xqsdznfq"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
