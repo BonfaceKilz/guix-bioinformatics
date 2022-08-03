@@ -1694,14 +1694,14 @@ experience.")
 (define-public javascript-jquery-ui
   (package
     (name "javascript-jquery-ui")
-    (version "1.9.2")
+    (version "1.13.2")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://jqueryui.com/resources/download/jquery-ui-" version ".zip"))
        (sha256
         (base32
-         "0r0ypq7f5rvyjc8fjywc5zrwas6n6by02zl7lx78njgnb0cp04h1"))))
+         "0xsppsyjqvq8d00dklpj595czwh9fqlkyr1ab6hmk08pdnbn4dzp"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -1713,7 +1713,7 @@ experience.")
                 (source (assoc-ref %build-inputs "source")))
            (invoke (string-append (assoc-ref %build-inputs "unzip") "/bin/unzip")
                    source)
-           (copy-recursively (string-append "jquery-ui-" ,version "/ui") targetdir)
+           (copy-recursively (string-append "jquery-ui-" ,version) targetdir)
            #t))))
     (native-inputs
      `(("source" ,source)
