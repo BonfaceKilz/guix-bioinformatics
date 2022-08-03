@@ -1813,39 +1813,6 @@ Popper will automatically put the tooltip in the right place near the button.")
     "zxcvbn is a password strength estimator inspired by password crackers. Through pattern matching and conservative estimation, it recognizes and weighs 30k common passwords, common names and surnames according to US census data, popular English words from Wikipedia and US television and movies, and other common patterns like dates, repeats (aaa), sequences (abcd), keyboard patterns (qwertyuiop), and l33t speak.")
    (license license:expat)))
 
-(define-public javascript-jquery-ui
-  (package
-   (name "javascript-jquery-ui")
-   (version "1.9.1")
-   (source
-    (origin
-     (method url-fetch)
-     (uri (string-append
-           "https://ajax.googleapis.com/ajax/libs/jqueryui/"
-           version
-           "/jquery-ui.min.js"))
-     (file-name (string-append name ".js"))
-     (sha256
-      (base32 "1pza57zy8qp76g0j90zrjvr2pj7b127syp44cazs2rabn1scvv2i"))))
-   (build-system trivial-build-system)
-   (arguments
-    `(#:modules ((guix build utils))
-      #:builder
-      (begin
-        (use-modules (guix build utils))
-        (let* ((source (assoc-ref %build-inputs "source"))
-               (out (assoc-ref %outputs "out"))
-               (targetdir (string-append out "/share/genenetwork2/javascript/jquery-ui")))
-          (mkdir-p targetdir)
-          (copy-file source (string-append targetdir "/jquery-ui.min.js"))
-          ))))
-   (native-inputs `(("source" ,source)))
-   (home-page "https://jqueryui.com/")
-   (synopsis "jQuery UI is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library.")
-   (description
-    "jQuery UI is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library. Whether you're building highly interactive web applications or you just need to add a date picker to a form control, jQuery UI is the perfect choice.")
-   (license license:expat)))
-
 (define-public javascript-jquery-cookie
   (package
    (name "javascript-jquery-cookie")
