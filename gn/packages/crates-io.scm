@@ -371,7 +371,7 @@ or any combination.")
     (license license:gpl3+)))
 
 (define-public gn-rust-correlation
-  (let ((commit "3492daa8ee40ca7dc1e90f232f458fdc5748b72d")
+  (let ((commit "09c579f08f56840a36bf3acb6357c4b50b41754d")
         (revision "0"))
     (package
       (name "gn-rust-correlation")
@@ -385,13 +385,12 @@ or any combination.")
           (file-name (git-file-name name version))
           (sha256
            (base32
-            "1g9s4l58lbzfdapzc22ax1mc7gqax4x8w9mr9cxbw49ag0z798q3"))))
+            "05lpylna2nyh19is46w6s9c1q0imz0arw24407mpdh2qkwfsdrv9"))))
       (build-system cargo-build-system)
       (native-inputs
        (list gsl))
       (arguments
-       `(#:tests? #false ;;disable-tests for now 
-	 #:cargo-inputs 
+       `(#:cargo-inputs 
          (("rust-serde" ,rust-serde-1)
 	  ("rust-serde-json" ,rust-serde-json-1)
 	  ("GSL" ,rust-gsl)
