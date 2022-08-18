@@ -63,6 +63,7 @@
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages protobuf)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-science)
   #:use-module (gnu packages python-web)
   #:use-module ((gnu packages python-xyz) #:hide (python2-six))
