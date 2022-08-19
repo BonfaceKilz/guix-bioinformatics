@@ -49,13 +49,110 @@ The following tests FAILED:
 Errors while running CTest
 !#
 
+(define ldc-bootstrap-0.17
+  (package
+    (name "ldc")
+    (version "0.17.6")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/ldc-developers/ldc")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1q6hm4fkrcwys83x0p4kfg9xrc1b9g2qicqif2zy5z4nsfsb5vgs"))))
+    (build-system cmake-build-system)
+    (supported-systems '("x86_64-linux" "i686-linux" "armhf-linux"))
+    (properties
+     ;; Some of the tests take a very long time on ARMv7.  See
+     ;; <https://lists.gnu.org/archive/html/guix-devel/2018-02/msg00312.html>.
+     `((max-silent-time . ,(* 3600 3))))
+    (arguments
+     `(#:tests? #f               ;requires obsolete python-lit test dependency
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'unpack-submodule-sources
+           (lambda* (#:key inputs #:allow-other-keys)
+             (let ((unpack (lambda (input target)
+                             (let ((source (assoc-ref inputs input)))
+                               ;; Git checkouts are directories as long as
+                               ;; there are no patches; tarballs otherwise.
+                               (if (file-is-directory? source)
+                                   (copy-recursively source target)
+                                   (with-directory-excursion target
+                                     (invoke "tar" "xvf" source
+                                             "--strip-components=1")))))))
+               (unpack "phobos-src" "runtime/phobos")
+               (unpack "druntime-src" "runtime/druntime")
+               (unpack "dmd-testsuite-src" "tests/d2/dmd-testsuite"))))
+         (add-after 'unpack-submodule-sources 'patch-paths
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "runtime/phobos/std/process.d"
+               (("/bin/sh") (which "sh"))
+               (("echo") (which "echo")))
+             (substitute* "runtime/phobos/std/datetime.d"
+               (("/usr/share/zoneinfo/")
+                (string-append (assoc-ref inputs "tzdata") "/share/zoneinfo"))
+               (("tzName == \"[+]VERSION\"")
+                "(tzName == \"+VERSION\" || \
+std.algorithm.endsWith(tzName, \"/leapseconds\"))")))))))
+    (inputs
+     `(("libconfig" ,libconfig)
+       ("libedit" ,libedit)
+       ("tzdata" ,tzdata)
+       ("zlib" ,zlib)))
+    (native-inputs
+     `(("llvm" ,llvm-6)
+       ("python-wrapper" ,python-wrapper)
+       ("unzip" ,unzip)
+       ("phobos-src"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                 (url "https://github.com/ldc-developers/phobos")
+                 (commit (string-append "ldc-v" version))))
+           (file-name (git-file-name "phobos" version))
+           (sha256
+            (base32 "15jzs38wanks2jfp2izzl7zqrp4c8ai54ppsgm8ws86p3sbbkmj8"))))
+       ("druntime-src"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                 (url "https://github.com/ldc-developers/druntime")
+                 (commit (string-append "ldc-v" version))))
+           (file-name (git-file-name "druntime" version))
+           (sha256
+            (base32 "00wr2kiggwnd8h7by51fhj1xc65hv1ysip5gbgdbkfar58p2d0bb"))))
+       ("dmd-testsuite-src"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                 (url "https://github.com/ldc-developers/dmd-testsuite")
+                 (commit (string-append "ldc-v" version))))
+           (file-name (git-file-name "dmd-testsuite" version))
+           (sha256
+            (base32 "1d1c0979wbippldrkjf7szyj4n87hxz8dwqg1r5b3aai37g9kcky"))))))
+    (home-page "http://wiki.dlang.org/LDC")
+    (synopsis "LLVM-based compiler for the D programming language")
+    (description
+     "LDC is an LLVM compiler for the D programming language.  It is based on
+the latest DMD compiler that was written in C and is used for
+bootstrapping more recent compilers written in D.")
+    ;; Most of the code is released under BSD-3, except for code originally
+    ;; written for GDC, which is released under GPLv2+, and the DMD frontend,
+    ;; which is released under the "Boost Software License version 1.0".
+    (license (list license:bsd-3
+                   license:gpl2+
+                   license:boost1.0))))
+
 (define-public ldc
   ;; Phobos, druntime and dmd-testsuite library dependencies do
   ;; not always have a newer release than the compiler, hence we
   ;; retain this variable.
   (let ((older-version "1.26.0")) ;; retain this because sometimes the libs are older
     (package
-      (inherit (@@ (gnu packages dlang) ldc-bootstrap-0.17))
+      (inherit ldc-bootstrap-0.17)
       (name "ldc")
       (version "1.26.0")
       (source
@@ -122,7 +219,7 @@ Errors while running CTest
       (native-inputs
        `(("llvm" ,llvm)
          ("clang" ,clang)
-         ("ldc" ,(@@ (gnu packages dlang) ldc-bootstrap-0.17))
+         ("ldc" ,ldc-bootstrap-0.17)
          ("python-lit" ,python-lit)
          ("python-wrapper" ,python-wrapper)
          ("unzip" ,unzip)
