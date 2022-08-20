@@ -87,7 +87,8 @@
                                       #$(virtuoso-configuration-http-server-port config)))))))
              #:directory #$(virtuoso-configuration-state-directory config)
              #:user "virtuoso"
-             #:group "virtuoso"))
+             #:group "virtuoso"
+             #:log-file "/var/log/virtuoso.log"))
    (stop #~(make-kill-destructor))))
 
 (define virtuoso-service-type
