@@ -42,6 +42,18 @@
   (http-server-port virtuoso-configuration-http-server-port
                     (default 8890)))
 
+(define (virtuoso-activation config)
+  (with-imported-modules '((guix build utils))
+    #~(begin
+        (use-modules (guix build utils))
+
+        (for-each (lambda (file)
+                    (chown file
+                           (passwd:uid (getpw "virtuoso"))
+                           (passwd:gid (getpw "virtuoso"))))
+                  (find-files #$(virtuoso-configuration-state-directory config)
+                              #:directories? #t)))))
+
 (define %virtuoso-accounts
   (list (user-group (name "virtuoso")
                     (system? #t))
@@ -96,7 +108,9 @@
    (name 'virtuoso)
    (description "Run Virtuoso.")
    (extensions
-    (list (service-extension account-service-type
+    (list (service-extension activation-service-type
+                             virtuoso-activation)
+          (service-extension account-service-type
                              (const %virtuoso-accounts))
           (service-extension shepherd-root-service-type
                              (compose list virtuoso-shepherd-service))))
