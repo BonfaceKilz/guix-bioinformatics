@@ -69,7 +69,6 @@
   (shepherd-service
    (documentation "Run Virtuoso.")
    (provision '(virtuoso))
-   (requirement '(networking))
    (start #~(make-forkexec-constructor
              (list #$(file-append (virtuoso-configuration-package config)
                                   "/bin/virtuoso-t")
