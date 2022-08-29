@@ -1,4 +1,4 @@
-(define-module (gn services genenetwork))
+(define-module (gn services genenetwork1))
 
 (use-modules (gnu)
              (past packages python)
@@ -29,5 +29,5 @@
                              (package httpd22-with-mod-python)
                              (config GN1-httpd-config))))))
 
-;; guix system container -L /path/to/guix-past/modules/ -L /path/to/guix-bioinformatics/ /path/to/guix-bioinformatics/gn/services/genenetwork.scm --network --expose=/gnshare/gn/web/genotypes
+;; guix system container -L /path/to/guix-past/modules/ -L /path/to/guix-bioinformatics/ /path/to/guix-bioinformatics/gn/services/genenetwork1.scm --network --expose=/gnshare/gn/web/genotypes
 ;; xdg-open http://localhost:8042
