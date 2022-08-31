@@ -132,7 +132,7 @@ delimited text files:
   (sbcl-package->ecl-package sbcl-qc-uploads))
 
 (define-public genenetwork-qc
-  (let ((commit "4808ae57ac83ef00e679c94fe6844c72f18735b9")
+  (let ((commit "ae1fbc0c56c8732fb85b555eccd4fddb5d8e5437")
 	(revision "2"))
     (package
       (name "genenetwork-qc")
@@ -142,10 +142,11 @@ delimited text files:
 	 (method git-fetch)
 	 (uri
 	  (git-reference
-	   (url "https://git.genenetwork.org/fredmanglis/gnqc_py.git")
+	   ;;(url "https://git.genenetwork.org/fredmanglis/gnqc_py.git")
+	   (url "https://gitlab.com/fredmanglis/gnqc_py.git")
 	   (commit commit)))
 	 (sha256
-	  (base32 "14lbdbkqa5aiwldafirgqsfcydbqqbhz30vrf80afxj9sqxcscd9"))))
+	  (base32 "1161d5860x1fvmpwcbqnv637gzcwhclw4p1qf435yg9lx4j4690y"))))
       (build-system python-build-system)
       (arguments
        `(#:phases
@@ -155,15 +156,16 @@ delimited text files:
 	       (when tests?
 		 (invoke "pytest")))))))
       (inputs
-       (list
-	python-mypy
-	python-pylint
-	python-pytest
-	python-hypothesis))
+       (list redis
+	     python-mypy
+	     python-pylint
+	     python-pytest
+	     python-hypothesis))
       (propagated-inputs
-       (list
-	python-rq
-	python-magic))
+       (list python-redis
+	     python-flask
+	     python-jsonpickle
+	     python-mysqlclient))
       (synopsis "GeneNetwork Quality Control Application")
       (description
        "GeneNetwork qc is a quality control application for the data files that
