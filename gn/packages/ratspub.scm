@@ -33,8 +33,7 @@
               (modules '((guix build utils)))
               (snippet
                '(begin (substitute* "server.py"
-                         (("4201") "4200"))
-                       #t))
+                         (("4201") "4200"))))
               (sha256
                (base32
                 "1y89rkqdxcnl2jjsy1wfp9p8qkgh6nzqs1r37wyhc8y7r3dva7kf"))))
@@ -51,8 +50,7 @@
          (add-after 'unpack 'patch-datadir
            (lambda _
              (substitute* "server.py"
-               (("^datadir.*") "datadir = \"/export/ratspub/\"\n"))
-             #t))
+               (("^datadir.*") "datadir = \"/export/ratspub/\"\n"))))
          (add-after 'unpack 'patch-sources
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out       (assoc-ref outputs "out"))
@@ -71,13 +69,11 @@
                  (("https.*jquery-3.2.1.slim.min.js.*\\\">") "/static/jquery.slim.min.js\">")
                  (("https.*1.12.9/umd/popper.min.js.*\\\">") "/static/popper.min.js\">"))
                (substitute* "ratspub.py"
-                 (("hostname") (string-append inetutils "/bin/hostname"))))
-             #t))
+                 (("hostname") (string-append inetutils "/bin/hostname"))))))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
-               (copy-recursively "." out))
-             #t))
+               (copy-recursively "." out))))
          (add-after 'install 'install-javascript
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out       (assoc-ref outputs "out"))
@@ -111,19 +107,17 @@
                         (string-append out "/static/FileSaver.js"))
                (symlink (string-append js-popper
                                        "/share/javascript/popper.min.js")
-                        (string-append out "/static/popper.min.js")))
-             #t))
+                        (string-append out "/static/popper.min.js")))))
          (add-after 'install 'wrap-executable
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out  (assoc-ref outputs "out"))
-                   (path (getenv "PYTHONPATH")))
+                   (path (getenv "GUIX_PYTHONPATH")))
                (wrap-program (string-append out "/server.py")
                 `("PATH" ":" prefix (,(dirname (which "edirect.pl"))
                                       ,(dirname (which "dirname"))
                                       ,(dirname (which "grep"))
                                       ,(dirname (which "sed"))))
-                `("PYTHONPATH" ":" prefix (,path))))
-             #t)))))
+                `("GUIX_PYTHONPATH" ":" prefix (,path)))))))))
     (inputs
      `(("edirect" ,edirect)
        ("inetutils" ,inetutils)
@@ -208,8 +202,7 @@ gene-keyword relationships are presented as an interactive graph and a table.")
                 "/static/jquery.slim.min.js\"></script>\n")
                ;(("https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js.*")
                ; "/static/popper.min.js\"></script>\n")
-               )
-             #t))
+               )))
          (replace 'install
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out"))
@@ -226,8 +219,7 @@ if __name__ == '__main__':
     app.run(debug=True, port=4222)~%"
                    python)))
                (chmod "main.py" #o555)
-               (copy-recursively "." out))
-             #t))
+               (copy-recursively "." out))))
          (add-after 'install 'install-javascript
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out       (assoc-ref outputs "out"))
@@ -247,15 +239,13 @@ if __name__ == '__main__':
                ;(symlink (string-append js-popper
                ;                        "/share/web/popper/popper.min.js")
                ;         (string-append out "/static/popper.min.js"))
-               )
-             #t))
+               )))
          (add-after 'install 'wrap-executable
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out  (assoc-ref outputs "out"))
-                   (path (getenv "PYTHONPATH")))
+                   (path (getenv "GUIX_PYTHONPATH")))
                (wrap-program (string-append out "/main.py")
-                `("PYTHONPATH" ":" prefix (,path))))
-             #t)))))
+                `("GUIX_PYTHONPATH" ":" prefix (,path)))))))))
     (inputs
      `(("python" ,python)
        ("python-flask-sqlalchemy" ,python-flask-sqlalchemy)))
@@ -292,16 +282,14 @@ if __name__ == '__main__':
          (add-after 'unpack 'use-different-port
            (lambda _
              (substitute* "server.py"
-               (("4200") "4204"))
-             #t))
+               (("4200") "4204"))))
          (add-after 'unpack 'make-files-writable
            (lambda _
              (for-each make-file-writable (find-files "."))))
          (add-after 'unpack 'patch-datadir
            (lambda _
              (substitute* "server.py"
-               (("^datadir.*") "datadir = \"/export/ratspub/\"\n"))
-             #t))
+               (("^datadir.*") "datadir = \"/export/ratspub/\"\n"))))
          (add-after 'unpack 'patch-sources
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out       (assoc-ref outputs "out"))
@@ -320,13 +308,11 @@ if __name__ == '__main__':
                  (("https.*jquery-3.2.1.slim.min.js.*\\\">") "/static/jquery.slim.min.js\">")
                  (("https.*1.12.9/umd/popper.min.js.*\\\">") "/static/popper.min.js\">"))
                (substitute* "ratspub.py"
-                 (("hostname") (string-append inetutils "/bin/hostname"))))
-             #t))
+                 (("hostname") (string-append inetutils "/bin/hostname"))))))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
-               (copy-recursively "." out))
-             #t))
+               (copy-recursively "." out))))
          (add-after 'install 'install-javascript
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out       (assoc-ref outputs "out"))
@@ -360,19 +346,17 @@ if __name__ == '__main__':
                         (string-append out "/static/FileSaver.js"))
                (symlink (string-append js-popper
                                        "/share/javascript/popper.min.js")
-                        (string-append out "/static/popper.min.js")))
-             #t))
+                        (string-append out "/static/popper.min.js")))))
          (add-after 'install 'wrap-executable
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out  (assoc-ref outputs "out"))
-                   (path (getenv "PYTHONPATH")))
+                   (path (getenv "GUIX_PYTHONPATH")))
                (wrap-program (string-append out "/server.py")
                 `("PATH" ":" prefix (,(dirname (which "edirect.pl"))
                                       ,(dirname (which "dirname"))
                                       ,(dirname (which "grep"))
                                       ,(dirname (which "sed"))))
-                `("PYTHONPATH" ":" prefix (,path))))
-             #t)))))
+                `("GUIX_PYTHONPATH" ":" prefix (,path)))))))))
     (inputs
      `(("edirect" ,edirect)
        ("inetutils" ,inetutils)
