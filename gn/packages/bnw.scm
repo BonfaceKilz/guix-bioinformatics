@@ -56,8 +56,7 @@
                        ;"fontawesome-webfont.woff"  ; sha256 mismatch
                        ;"jquery.min.js"             ; sha256 mismatch
                        ;"lodash.js"                 ; sha256 mismatch
-                       ))
-                   #t))))
+                       ))))))
       (build-system gnu-build-system)
       (arguments
        `(#:tests? #f ; no test suite
@@ -68,8 +67,7 @@
              (lambda _
                ;; sourcecodes/matrix.php     hardcodes $dir=/tmp/bnw
                (substitute* "sourcecodes/matrix.php"
-                 (("/tmp/bnw") "/var/lib/genenet/bnw/"))
-               #t))
+                 (("/tmp/bnw") "/var/lib/genenet/bnw/"))))
            (add-after 'patch-source-shebangs 'patch-more-shebangs
              (lambda* (#:key inputs #:allow-other-keys)
                (let ((graphviz (assoc-ref inputs "graphviz"))
@@ -91,8 +89,7 @@
                    (("/usr/bin/dot") (string-append graphviz "/bin/dot")))
                  (substitute* "var_lib_genenet_bnw/build.sh"
                    (("./localscore/libRmath.so")
-                    (string-append rmath "/lib/libRmath.so")))
-               #t)))
+                    (string-append rmath "/lib/libRmath.so"))))))
            (add-after 'patch-source-shebangs 'replace-javascript
              (lambda* (#:key inputs #:allow-other-keys)
                (let ((jquery        (assoc-ref inputs "jquery"))
@@ -140,13 +137,11 @@
                  ;               "sourcecodes/network_layout_inv.php"
                  ;               "sourcecodes/network_layout_inv_2.php")
                  ;  (("https://www.google.com/jsapi") "https://www.gstatic.com/charts/loader.js"))
-                 )
-               #t))
+                 )))
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
-                 (copy-recursively "." out))
-               #t))
+                 (copy-recursively "." out))))
            (add-after 'install 'install-javascript-libraries
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let* ((out (assoc-ref outputs "out"))
@@ -212,8 +207,7 @@
                             (string-append scripts "canvas-toBlob.js")))
                  (unless (file-exists? (string-append scripts "FileSaver.min.js"))
                    (symlink (string-append filesaver js-path2 "filesaver/FileSaver.min.js")
-                            (string-append scripts "FileSaver.min.js")))
-               #t)))
+                            (string-append scripts "FileSaver.min.js"))))))
            (add-after 'install 'make-files-executable
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
@@ -222,15 +216,14 @@
                      (chmod file #o555))
                    (append (find-files out "\\.(sh|py)$")
                            (find-files
-                             (string-append out "/sourcecodes/run_scripts/") "^run")))
-                 #t)))
+                             (string-append out "/sourcecodes/run_scripts/") "^run"))))))
            (add-after 'make-files-executable 'wrap-executables
              (lambda* (#:key outputs #:allow-other-keys)
                (for-each
                  (lambda (script)
                    (wrap-program script
                     `("PATH" prefix (,(dirname (which "cp"))))
-                    `("PYTHONPATH" prefix (,(getenv "PYTHONPATH")))))
+                    `("GUIX_PYTHONPATH" prefix (,(getenv "GUIX_PYTHONPATH")))))
                  (find-files (string-append (assoc-ref outputs "out")
                                             "/sourcecodes/run_scripts") "^run"))
                (for-each
@@ -241,8 +234,7 @@
                    (find-files (string-append (assoc-ref outputs "out")
                                               "/sourcecodes") "\\.sh$")
                    (find-files (string-append (assoc-ref outputs "out")
-                                              "/var_lib_genenet_bnw") "\\.sh$")))
-               #t))
+                                              "/var_lib_genenet_bnw") "\\.sh$")))))
            (replace 'build
              (lambda* (#:key inputs #:allow-other-keys)
                (with-directory-excursion "var_lib_genenet_bnw"
