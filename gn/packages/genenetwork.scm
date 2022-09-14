@@ -214,6 +214,7 @@
          ("python-numpy" ,python-numpy)
          ("python-pandas" ,python-pandas)
          ("python-pylint" ,python-pylint)
+         ("python-pymonad" ,python-pymonad)
          ("python-redis" ,python-redis)
          ("python-requests" ,python-requests)
          ("python-simplejson" ,python-simplejson)
