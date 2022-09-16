@@ -132,7 +132,7 @@ delimited text files:
   (sbcl-package->ecl-package sbcl-qc-uploads))
 
 (define-public genenetwork-qc
-  (let ((commit "38af157b22566cf2bc28d69ac1d18c878321e607")
+  (let ((commit "b735cae93ac8243bc9b07a10549a68330934d9bf")
 	(revision "2"))
     (package
       (name "genenetwork-qc")
@@ -146,7 +146,7 @@ delimited text files:
 	   (url "https://gitlab.com/fredmanglis/gnqc_py.git")
 	   (commit commit)))
 	 (sha256
-	  (base32 "1cjx7zgs6fwv8q4a5j8c9nv6sjpjvblqfxvgdwcahfkx2003znpc"))))
+	  (base32 "0my3zm7kc5ijsp7lmh5qf6z198x1gw1cr17230d20za65pssri3j"))))
       (build-system python-build-system)
       (arguments
        `(#:tests? #f ; Tests requiring redis server fail. Figure out how to start redis
@@ -157,13 +157,15 @@ delimited text files:
 	       (when tests?
 		 (invoke "pytest")))))))
       (inputs
-       (list redis
-	     python-mypy
+       (list python-mypy
 	     python-pylint
 	     python-pytest
 	     python-hypothesis))
       (propagated-inputs
-       (list python-redis
+       (list redis
+	     mariadb
+	     gunicorn
+	     python-redis
 	     python-flask
 	     python-jsonpickle
 	     python-mysqlclient))
