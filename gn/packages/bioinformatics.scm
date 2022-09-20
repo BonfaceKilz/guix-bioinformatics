@@ -3429,6 +3429,51 @@ extension for metagenomic datasets, QUAST-LG, the extension for large genomes
             (license:non-copyleft
               "http://topaz.gatech.edu/GeneMark/license_download.cgi")))))
 
+(define-public blobtools
+  (let ((commit "6ed1ccf06617a0997f99cc2b28ffc82766c9a763")
+        (revision "2"))         ;; 2022-10-02
+    (package
+      (name "blobtools")
+      (version (git-version "1.1.1" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/DRL/blobtools")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "03a8n0s8qq6il5650basz4mlfp25743ii239jd0xsiirk5mmr8h7"))
+          (patches (search-patches "blobtools-setup-py.patch"))
+          ))
+      (build-system python-build-system)
+      (arguments
+       (list #:tests? #f            ; No tests in repo.
+             #:phases
+             #~(modify-phases %standard-phases
+                 (add-after 'unpack 'fix-setup.py
+                   (lambda _
+                     (substitute* "setup.py"
+                       (("^reqs = .*")
+                        (string-append "with open ('requirements.txt') as f:\n"
+                                       "    reqs = f.read().splitlines()\n"))
+                       (("cmdclass.*")
+                        "entry_points={'console_scripts': [\"blobtools=lib.interface:main\"]},\n")))))))
+      (inputs
+       (list python-docopt
+             python-matplotlib
+             python-tqdm
+             python-pysam
+             python-pyyaml))
+      (home-page "https://blobtools.readme.io/")
+      (synopsis
+       "Modular command-line solution for partitioning of genome datasets")
+      (description "Blobtools is a modular command-line solution for
+visualisation, quality control and taxonomic partitioning of genome datasets.
+BlobTools takes the information from HITS files and sums up bitscores by
+taxonomic group at each taxonomic rank.")
+      (license license:gpl3))))
+
 ;; TODO: Regenerate or remove docs folder.
 (define-public python-pixy
   (package
