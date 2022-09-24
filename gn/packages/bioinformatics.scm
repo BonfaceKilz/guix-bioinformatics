@@ -3430,8 +3430,8 @@ extension for metagenomic datasets, QUAST-LG, the extension for large genomes
               "http://topaz.gatech.edu/GeneMark/license_download.cgi")))))
 
 (define-public blobtools
-  (let ((commit "6ed1ccf06617a0997f99cc2b28ffc82766c9a763")
-        (revision "2"))         ;; 2022-10-02
+  (let ((commit "1bed7870198831539b370f9254d5d30b94199a18")
+        (revision "3"))         ;; 2022-09-21
     (package
       (name "blobtools")
       (version (git-version "1.1.1" revision commit))
@@ -3443,22 +3443,10 @@ extension for metagenomic datasets, QUAST-LG, the extension for large genomes
                  (commit commit)))
           (file-name (git-file-name name version))
           (sha256
-           (base32 "03a8n0s8qq6il5650basz4mlfp25743ii239jd0xsiirk5mmr8h7"))
-          (patches (search-patches "blobtools-setup-py.patch"))
-          ))
+           (base32 "0nki2m1sxkx75rkwzw6dqvxzyswrv47q0rz4bx9w0bz4fawnx86z"))))
       (build-system python-build-system)
       (arguments
-       (list #:tests? #f            ; No tests in repo.
-             #:phases
-             #~(modify-phases %standard-phases
-                 (add-after 'unpack 'fix-setup.py
-                   (lambda _
-                     (substitute* "setup.py"
-                       (("^reqs = .*")
-                        (string-append "with open ('requirements.txt') as f:\n"
-                                       "    reqs = f.read().splitlines()\n"))
-                       (("cmdclass.*")
-                        "entry_points={'console_scripts': [\"blobtools=lib.interface:main\"]},\n")))))))
+       (list #:tests? #f))          ; No tests in repo.
       (inputs
        (list python-docopt
              python-matplotlib
