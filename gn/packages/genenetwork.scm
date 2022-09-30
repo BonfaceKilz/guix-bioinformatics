@@ -101,7 +101,7 @@
       (license #f))))
 
 (define-public genenetwork3
-  (let ((commit "1e1c9d8178141469af2ca88a971a13233e88f3a8"))
+  (let ((commit "0d365ddd4e579674faefe17ce2e0fc372e6aeeee"))
     (package
       (name "genenetwork3")
       (version (git-version "0.1.0" "2" commit))
@@ -114,7 +114,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1l901iji4nhjbvsas6r9gn8wd35d2nxsmkxaxrnh5aym03qvv75z"))))
+           "069s687pz2bfp7phwvsvxc4i3xa41afpiq0xccdcl14p60pljm57"))))
       (native-inputs
        (list python-hypothesis
              python-mypy
