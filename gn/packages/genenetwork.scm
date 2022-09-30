@@ -157,7 +157,7 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "be09d5a11fd567b59bf23cb3bab86cebf5fc0bd1"))
+  (let ((commit "6f1a66b32cca2ac6e3178fde35ff45edace6522d"))
     (package
       (name "genenetwork2")
       (version (git-version "3.11" "2" commit))
@@ -169,7 +169,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "14pqf067jl6qaqpwb4razjj8n44c2rl0cdfsx541w1k8lb7gsd2m"))))
+                  "0iws8pwpmnmjs6y368s3mly4vm5x3x2vl9qv33yv4nlsg9zznr5q"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
@@ -189,7 +189,7 @@
          ("gemma-wrapper" ,gemma-wrapper)
          ("plink-ng-gn" ,plink-ng-gn)
          ("rust-qtlreaper" ,rust-qtlreaper)
-	  ("gn-rust-correlation" ,gn-rust-correlation)
+	 ("gn-rust-correlation" ,gn-rust-correlation)
          ("glibc-utf8-locales" ,glibc-utf8-locales)
          ("nginx" ,nginx)
          ("python" ,python-wrapper)
