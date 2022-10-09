@@ -182,7 +182,7 @@ pre-defined variants."
 (define GN1-thirdparty-sources
   (origin
     (method url-fetch/tarbomb)
-    (uri "http://ipfs.genenetwork.org/ipfs/QmTPwYT2pehdxdG1TiHEzVzLgbeuhJ4utXShuz3twA84AB/thirdparty.tgz")
+    (uri "https://files.genenetwork.org/software/thirdparty.tgz")
     (file-name "GN1-thirdparty")
     (sha256
      (base32
@@ -461,18 +461,13 @@ algorithm can be found in Gablonsky's
 thesis}.")
     (license license:expat)))
 
-; env IPFS_PATH=/export/ipfs/ ipfs add direct.so
-; added QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA direct.so
-; penguin2:~/tmp$ env IPFS_PATH=/export/ipfs/ ipfs pin add QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA
-; pinned QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA recursively
-
 (define-public python24-direct-gn
   (package
     (name "python24-direct-gn")
     (version "GN")
     (source (origin
               (method url-fetch)
-              (uri "http://ipfs.genenetwork.org/ipfs/QmYUZiuAP6DJeubu69JqvRWSsn53qCZCS3FkRWgTowtWkA")
+              (uri "https://files.genenetwork.org/software/direct.so")
               (file-name "direct.so")
               (sha256
                (base32

@@ -251,12 +251,6 @@ Python 3 support.")
   (package-with-python2 python-avro))
 
 
-; env IPFS_PATH=/export/ipfs/ ipfs add -r htmlgen/
-; added QmUD9LMJTE8q5wYkUyAwLdz2QCGXWt457iFnyYQAGfsN3j htmlgen/htmlgen-2.2.2-gn.tar.gz
-; added QmZLWsPHLFTU3hWAfdTwj3RXFrS8Ma7KEixne1suWuYqeG htmlgen
-; penguin2:~/tmp$ env IPFS_PATH=/export/ipfs/ ipfs pin add -r QmZLWsPHLFTU3hWAfdTwj3RXFrS8Ma7KEixne1suWuYqeG
-; pinned QmZLWsPHLFTU3hWAfdTwj3RXFrS8Ma7KEixne1suWuYqeG recursively
-
 (define-public python2-htmlgen-gn ; guix obsolete
   (package
     (name "python2-htmlgen-gn")
@@ -265,7 +259,7 @@ Python 3 support.")
               (method url-fetch)
               ;; http://files.genenetwork.org/software/contrib/htmlgen-2.2.2-gn.tar.gz
               (uri (string-append
-                     "http://ipfs.genenetwork.org/ipfs/QmZLWsPHLFTU3hWAfdTwj3RXFrS8Ma7KEixne1suWuYqeG/htmlgen-" version "-gn.tar.gz"))
+                     "https://files.genenetwork.org/software/htmlgen-2.2.2-gn.tar.gz"))
               (sha256
                (base32
                 "1lwsk56rymhrma46cbyh3g64ksmq1vsih3qkrc2vh0lpba825y7r"))
@@ -360,13 +354,6 @@ Python 3 support.")
     (description #f)
     (license #f)))
 
-; penguin2:~/tmp$ env IPFS_PATH=/export/ipfs/ ipfs add -r Imaging/
-; added QmV8Rew1re8gBTLsaqMU4bd7euFUPEpjiD572mtoz6KhPn Imaging/Imaging-1.1.6-gn.tar.gz
-; added QmdkzQpVMLZVtywpYesynt9c7H8w7hHZRYKq8woN7stfpD Imaging
-; env IPFS_PATH=/export/ipfs/ ipfs pin add -r QmdkzQpVMLZVtywpYesynt9c7H8w7hHZRYKq8woN7stfpD
-; pinned QmdkzQpVMLZVtywpYesynt9c7H8w7hHZRYKq8woN7stfpD recursively
-
-
 (define-public python2-pil1-gn ; guix obsolete
   (package
     (name "python2-pil1") ; works with GN2
@@ -427,11 +414,6 @@ capabilities to the Python interpreter.")
                "file://README"
                "See 'README' in the distribution."))))
 
-;  agrigento:~/izip/git/opensource/genenetwork$ scp ./contrib/piddle-1.0.15-gn.tgz penguin2.genenetwork.org
-; penguin2:~$ env IPFS_PATH=/export/ipfs/ ipfs add piddle-1.0.15-gn.tgz
-; added QmSMptV2VALL2s7igqRqKJ8ALNvhqFRUYVG54kEF7ac6ve piddle-1.0.15-gn.tgz
-; penguin2:~$ env IPFS_PATH=/export/ipfs/ ipfs pin add -r QmSMptV2VALL2s7igqRqKJ8ALNvhqFRUYVG54kEF7ac6ve
-; pinned QmSMptV2VALL2s7igqRqKJ8ALNvhqFRUYVG54kEF7ac6ve recursively
 
 (define-public python2-piddle-gn ; guix obsolete
   (package
@@ -440,7 +422,7 @@ capabilities to the Python interpreter.")
     (source (origin
      (method url-fetch)
      (uri (string-append
-           "http://ipfs.genenetwork.org/ipfs/QmeKcMb8AdwZNUcAaTASVpZ39ipwJn8eBoqqDfoCzQYmNk/piddle-" version ".tgz"))
+           "https://files.genenetwork.org/software/piddle-1.0.15-gn.tgz"))
      (sha256
       (base32
        "05gjnn31v7p0kh58qixrpcizcxqf3b7zv4a5kk8nsmqwgxh0c6gq"))))
@@ -707,8 +689,7 @@ clusters (computers connected via network).")
 (define GN1-thirdparty-sources
   (origin
     (method url-fetch/tarbomb)
-    ;; ipfs get QmTPwYT2pehdxdG1TiHEzVzLgbeuhJ4utXShuz3twA84AB
-    (uri "file:///gnu/store/p33a2sh3x2nhiiphdw9nly80njg6p8fi-thirdparty.tgz")
+    (uri "https://files.genenetwork.org/software/thirdparty.tgz")
     (file-name "GN1-thirdparty")
     (sha256
      (base32
