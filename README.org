@@ -1,7 +1,7 @@
 * guix-bioinformatics
 
 Bioinformatics packages for GNU Guix that are used in
-http://genenetwork.org/ and some other places.  See [[https://gitlab.com/pjotrp/guix-notes/blob/master/HACKING.org][Guix notes]] for
+https://genenetwork.org/ and some other places.  See [[https://gitlab.com/pjotrp/guix-notes/blob/master/HACKING.org][Guix notes]] for
 installing and hacking GNU Guix. Other channels of bioinformatics
 interest can be found at
 
@@ -27,9 +27,9 @@ recommended way to use the software from this repository and the code
 snippets in this README assume you have done so. In order to maintain
 stability, the guix-bioinformatics channel depends on a specific
 commit of upstream Guix. So, it is recommended to isolate use of the
-guix-bioinformatics channel in a separate /guix pull/ profile.
+guix-bioinformatics channel in a separate /guix pull/ profile. That is described [[https://issues.genenetwork.org/topics/guix-profiles][here]].
 
-If you want to make changes to the packages in this repo then simply set
+If you want to make changes to the packages in this repo you can set
 the GUIX_PACKAGE_PATH to point to the root of this directory
 before running Guix. E.g.
 
