@@ -115,6 +115,8 @@
          (sha256
           (base32
            "1i7g2c3irp5rr2b8vb7xm9v1hjb5vssc92s2lq910qszd53pdzgn"))))
+      (inputs
+       (list python-click))
       (native-inputs
        (list python-hypothesis
              python-mypy
