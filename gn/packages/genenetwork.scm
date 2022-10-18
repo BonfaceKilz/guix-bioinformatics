@@ -140,6 +140,7 @@
              python-pandas
              python-pingouin
              python-plotly
+             python-pymonad
              python-redis
              python-requests
              python-scipy
