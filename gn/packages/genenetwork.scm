@@ -145,6 +145,7 @@
              python-requests
              python-scipy
              python-sparqlwrapper
+             python-xapian-bindings
              r-optparse
              r-qtl
              r-rjson
