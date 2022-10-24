@@ -127,7 +127,7 @@ and comma separated table files - useful for Excel sheets and SQL/RDF
 output")
    (home-page
     "http://github.com/pjotrp/bioruby-table")
-   (license expat)))
+   (license license:expat)))
 
 (define-public ruby-ntlm-http
   (package
@@ -213,7 +213,7 @@ submitted.  Mechanize also keeps track of the sites that you have visited as
 a history.")
   (home-page
    "http://docs.seattlerb.org/mechanize/")
-  (license expat)))
+  (license license:expat)))
 
 (define-public ruby-elasticsearch-transport
 (package
@@ -5303,7 +5303,7 @@ specify.")
     (description
       "This package provides a small gem that attempts to guess and then force encoding of HTML documents for Ruby 1.9")
     (home-page "https://github.com/cantino/guess_html_encoding")
-   (license expat)))
+   (license license:expat)))
 
 (define-public ruby-ruby-readability
   (package
