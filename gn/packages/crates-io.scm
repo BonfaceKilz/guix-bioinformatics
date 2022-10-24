@@ -9,9 +9,39 @@
   #:use-module (gnu packages crates-io)
   #:use-module (gnu packages maths))
 
+(define-public rust-boomphf-0.5
+  (package
+    (name "rust-boomphf")
+    (version "0.5.9")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "boomphf" version))
+        (file-name
+         (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "0braniw72g9yq5006sfgc1g8d4317bb524c694jw6nggizrvg3sf"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-crossbeam-utils" ,rust-crossbeam-utils-0.8)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-rayon" ,rust-rayon-1)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-wyhash" ,rust-wyhash-0.5))
+       #:cargo-development-inputs
+       (("rust-bencher" ,rust-bencher-0.1)
+        ("rust-quickcheck" ,rust-quickcheck-1))))
+    (home-page "https://github.com/10XGenomics/rust-boomphf")
+    (synopsis "Scalable and Efficient Minimal Perfect Hash Functions")
+    (description "This package provides a Rust implementation of
+@url{https://arxiv.org/abs/1702.03154, fast and scalable minimal perfect hashing
+for massive key sets}.  It generates an @acronym{MPHF, minimal perfect hash
+functions} for a collection of hashable objects.")
+    (license license:expat)))
+
 (define-public rust-handlegraph-0.7
   (package
-    (inherit rust-handlegraph-0.3)
     (name "rust-handlegraph")
     (version "0.7.0-alpha.9")
     (source
@@ -23,6 +53,7 @@
         (sha256
          (base32
           "1frlcdwhycjvizb0gfb0v36vxjdi0jxagl2l2v6dzdjxpaawv9rs"))))
+    (build-system cargo-build-system)
     (arguments
      `(#:cargo-inputs
        (("rust-anyhow" ,rust-anyhow-1)
@@ -36,7 +67,79 @@
         ("rust-succinct" ,rust-succinct-0.5))
        #:cargo-development-inputs
        (("rust-quickcheck" ,rust-quickcheck-0.9)
-        ("rust-rand" ,rust-rand-0.7))))))
+        ("rust-rand" ,rust-rand-0.7))))
+    (home-page "https://github.com/chfi/rs-handlegraph")
+    (synopsis "Library for use in variation graphs")
+    (description
+     "This package provides a Rust implementation of VG handle graph.")
+    (license license:expat)))
+
+(define-public rust-handlegraph-0.3
+  (package
+    (inherit rust-handlegraph-0.7)
+    (name "rust-handlegraph")
+    (version "0.3.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "handlegraph" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1sj100w4lpj7798pws85qrfrzsily5hhzh6j118rwf56sgic1yml"))))
+    (arguments
+     `(#:cargo-inputs
+       (("rust-bstr" ,rust-bstr-0.2)
+        ("rust-gfa" ,rust-gfa-0.6))))))
+
+(define-public rust-kstring-1
+  (package
+    (name "rust-kstring")
+    (version "1.1.0")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "kstring" version))
+        (file-name (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "1r4n9fa5scikqvl736nxghcfa6s3b07xz61w43hyzs2qb3wmd3nk"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(;#:skip-build? #t     ; Uses unstable features.
+       #:cargo-inputs
+       (("rust-document-features" ,rust-document-features-0.2)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-static-assertions" ,rust-static-assertions-1))
+       #:cargo-development-inputs
+       (("rust-criterion" ,rust-criterion-0.3)
+        ("rust-proptest" ,rust-proptest-1))))
+    (home-page "https://github.com/cobalt-org/kstring")
+    (synopsis "String optimized for map keys")
+    (description "Key String provides a Rust package optimized for map keys.")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-succinct-0.5
+  (package
+    (name "rust-succinct")
+    (version "0.5.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (crate-uri "succinct" version))
+        (file-name
+         (string-append name "-" version ".tar.gz"))
+        (sha256
+         (base32 "0654c9gq50x7djyf25zbzz3d2pc4x3z21wmjj3qbr6d9h4hbd63p"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-byteorder" ,rust-byteorder-1)
+        ("rust-num-traits" ,rust-num-traits-0.2))
+       #:cargo-development-inputs
+       (("rust-quickcheck" ,rust-quickcheck-0.9))))
+    (home-page "https://github.com/tov/succinct-rs")
+    (synopsis "Succinct data structures for Rust")
+    (description "This package provides succinct data structures for Rust.")
+    (license (list license:expat license:asl2.0))))
 
 (define-public rust-clap-for-jrep
   (package
@@ -236,7 +339,7 @@ or any combination.")
         ("rust-unicode-width" ,rust-unicode-width-0.1))
        #:cargo-development-inputs
        (("rust-criterion" ,rust-criterion-0.3)
-        ("rust-lipsum" ,rust-lipsum-0.8)
+        ;("rust-lipsum" ,rust-lipsum-0.8)
         ("rust-termion" ,rust-termion-1)
         ;("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9)
         ("rust-version-sync" ,rust-version-sync-0.9))))
@@ -260,9 +363,7 @@ or any combination.")
          (base32 "1rwa5nzq8c5zg7lqmpkf7hyib415yxshd9amp911y8w1zss4s38p"))))
     (build-system cargo-build-system)
     (arguments
-     `(;#:skip-build? #t     ; Not all inputs at correct versions?
-       ;#:tests? #f          ; Skip tests for now
-       #:cargo-inputs
+     `(#:cargo-inputs
        (("rust-backtrace" ,rust-backtrace-0.3)
         ("rust-concolor" ,rust-concolor-0.0.8)
         ("rust-content-inspector" ,rust-content-inspector-0.2)
@@ -302,7 +403,7 @@ or any combination.")
          (base32 "0wx4wd849bmkqj0gdi041gmpfpvlyhy2ha4zpin69yw9d9npl8cl"))))
     (build-system cargo-build-system)
     (arguments
-     `(;#:skip-build? #t     ; Not all inputs packaged
+     `(#:skip-build? #t     ; Not all inputs packaged
        ;#:tests? #f          ; Skip tests for now
        #:cargo-inputs
        (("rust-combine" ,rust-combine-4)
