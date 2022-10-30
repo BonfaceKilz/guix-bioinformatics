@@ -231,7 +231,6 @@
          ("python-beautifulsoup4" ,python-beautifulsoup4)
          ;; Disable for now. Build fails on Penguin2
          ;; ("python-flask-socketio" ,python-flask-socketio)
-         ("python-xapian-bindings" ,python-xapian-bindings)
          ("python-xlsxwriter" ,python-xlsxwriter)
          ;; All the external js dependencies
          ("javascript-twitter-post-fetcher" ,javascript-twitter-post-fetcher)
