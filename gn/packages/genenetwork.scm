@@ -153,7 +153,8 @@
              r-wgcna
              r-ctl
              rust-qtlreaper
-	     diffutils))
+	     diffutils
+	     yoyo-migrations))
       (build-system python-build-system)
       (home-page "https://github.com/genenetwork/genenetwork3")
       (synopsis "GeneNetwork3 API for data science and machine learning.")
