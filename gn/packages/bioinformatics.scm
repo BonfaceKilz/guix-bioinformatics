@@ -54,6 +54,7 @@
   #:use-module (gnu packages java)
   #:use-module (gnu packages jemalloc)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages llvm)
   #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages mpi)
@@ -509,6 +510,116 @@ reads.")
      "GFAffix identifies walk-preserving shared affixes in variation graphs and
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
+
+(define-public pgr-tk
+  (package
+    (name "pgr-tk")
+    (version "0.3.6")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/Sema4-Research/pgr-tk")
+               (commit (string-append "v" version))
+               (recursive? #t)))        ; agc, WFA
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "160ngqbi8cbgaafq8crhfqv039mxr9jgl8hxxpwz0fh8mrh4003y"))
+        (snippet
+         #~(begin
+             (use-modules (guix build utils))
+             (substitute* (find-files "." "Cargo.toml")
+               ;; Only use the major+minor version to decrease the number of
+               ;; special version crates.
+               (("(.*= \")([[:digit:]]+\\.[[:digit:]]+)\\.[[:digit:]]+(\".*)"
+                 _ name version tail)
+                (string-append name version tail))
+               ;; Then fix the version string for the actual package.
+               (("^version = \".*")
+                (string-append "version = \"" #$version "\"\n")))))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:install-source? #f
+       #:cargo-test-flags
+       (list "--release" "--"
+             "--skip=get_aln_segements"
+             "--skip=get_shmmr_dots"
+             "--skip=AGCFile"
+             "--skip=SeqIndexDB")
+       #:cargo-inputs
+       (("rust-bindgen" ,rust-bindgen-0.58)
+        ("rust-bgzip" ,rust-bgzip-0.2)
+        ("rust-byteorder" ,rust-byteorder-1)
+        ("rust-clap" ,rust-clap-3.1)
+        ("rust-cuckoofilter" ,rust-cuckoofilter-0.5)
+        ("rust-flate2" ,rust-flate2-1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-petgraph" ,rust-petgraph-0.6)
+        ("rust-pyo3" ,rust-pyo3-0.14)
+        ("rust-rayon" ,rust-rayon-1)
+        ("rust-regex" ,rust-regex-1)
+        ("rust-rustc-hash" ,rust-rustc-hash-1)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-serde-json" ,rust-serde-json-1)
+        ("rust-simple-logger" ,rust-simple-logger-1))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'insert-wfa-source
+           (lambda* (#:key inputs #:allow-other-keys)
+             (copy-recursively (assoc-ref inputs "wfa-src")
+                               "rs-wfa/WFA")))
+         (add-after 'unpack 'adjust-source
+           (lambda _
+             (substitute* '("pgr-bin/build.rs"
+                            "pgr-db/build.rs"
+                            "pgr-tk/build.rs")
+               (("git") "ls")
+               (("bioconda") "Guix"))
+             ;; Build with zlib, not zlib-ng
+             (substitute* '("pgr-bin/Cargo.toml"
+                            "pgr-db/Cargo.toml")
+               (("zlib-ng-compat") "zlib"))))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-directory-excursion "target/release"
+                 (install-file "libpgrtk.so" (string-append out "/lib"))
+                 (for-each
+                   (lambda (file)
+                     (install-file file (string-append out "/bin")))
+                   (list "pgr-filter"
+                         "pgr-mdb"
+                         "pgr-multifilter"
+                         "pgr-probe-match"
+                         "pgr-shmmr-pair-count")))))))))
+    (inputs (list clang python zlib))
+    (native-inputs
+     `(("pkg-config" ,pkg-config)
+       ("wfa-src"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                  ;; forPYO3 branch, 14-03-2021
+                  (url "https://github.com/cschin/WFA")
+                  (commit "1f8c8d2905ed482cd2d306a1676d60c2a45cb098")))
+           (file-name "wfa-for-pgr-tk")
+           (sha256
+            (base32 "19h1cjp2bdlcfq5c6rsbk8bc0f8zn64b471dhj4xlfxd1prv2dpk"))))))
+    (home-page "https://github.com/Sema4-Research/pgr-tk")
+    (synopsis "Pangenome Research Tool Kit")
+    (description
+     "PGR-TK provides pangenome assembly management, query and
+@acronym{Minimizer Anchored Pangenome, MAP} Graph Generation.  It is a project
+to provide Python and Rust libraries to facilitate pangenomics analysis.
+Several algorithms and data structures used for the Peregrine Genome Assembler
+are useful for Pangenomics analysis as well.  This repo takes those algorithms
+and data structure, combining other handy 3rd party tools to expose them as a
+library in Python (with Rust code for those computing parts that need
+performance.)")
+    (license (license:non-copyleft
+               "file:///LICENSE"
+               "CC-BY-NC-SA 4.0"))))
 
 (define-public pangenie
   (let ((commit "e779076827022d1416ab9fabf99a03d8f4725956") ; September 2, 2021 from phasing-tests branch

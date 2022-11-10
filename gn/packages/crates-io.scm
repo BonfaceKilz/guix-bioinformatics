@@ -9,6 +9,31 @@
   #:use-module (gnu packages crates-io)
   #:use-module (gnu packages maths))
 
+(define-public rust-bgzip-0.2
+  (package
+    (name "rust-bgzip")
+    (version "0.2.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "bgzip" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1kssq4hp8csg27rhggabpfiyn9xp5rh5b8al63dghk11vqs7hk5j"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-flate2" ,rust-flate2-1)
+        ("rust-thiserror" ,rust-thiserror-1))
+       #:cargo-development-inputs
+       (("rust-clap" ,rust-clap-2)
+        ("rust-csv" ,rust-csv-1)
+        ("rust-tempfile" ,rust-tempfile-3))))
+    (home-page "https://github.com/informationsea/bgzip-rs")
+    (synopsis "Rust implementation of bgzip")
+    (description "Rust implementation of bgzip")
+    (license license:expat)))
+
 (define-public rust-boomphf-0.5
   (package
     (name "rust-boomphf")
@@ -38,6 +63,36 @@
 @url{https://arxiv.org/abs/1702.03154, fast and scalable minimal perfect hashing
 for massive key sets}.  It generates an @acronym{MPHF, minimal perfect hash
 functions} for a collection of hashable objects.")
+    (license license:expat)))
+
+(define-public rust-cuckoofilter-0.5
+  (package
+    (name "rust-cuckoofilter")
+    (version "0.5.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "cuckoofilter" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "067fkr9dc118rqddr72xdldq05d31yyipvvyrmj9yrrik52ah45q"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:skip-build? #t     ; Not packaging dependencies
+       #:cargo-inputs
+       (("rust-byteorder" ,rust-byteorder-1)
+        ;("rust-clippy" ,rust-clippy-0.0.302)
+        ;("rust-farmhash" ,rust-farmhash-1)
+        ("rust-fnv" ,rust-fnv-1)
+        ("rust-rand" ,rust-rand-0.7)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-serde-bytes" ,rust-serde-bytes-0.11)
+        ("rust-serde-derive" ,rust-serde-derive-1))
+       #:cargo-development-inputs
+       (("rust-serde-json" ,rust-serde-json-1))))
+    (home-page "http://axiom.co")
+    (synopsis "Cuckoo Filter: Practically Better Than Bloom")
+    (description "Cuckoo Filter: Practically Better Than Bloom")
     (license license:expat)))
 
 (define-public rust-gfa-0.6
@@ -145,6 +200,133 @@ functions} for a collection of hashable objects.")
     (synopsis "String optimized for map keys")
     (description "Key String provides a Rust package optimized for map keys.")
     (license (list license:expat license:asl2.0))))
+
+(define-public rust-pyo3-0.14
+  (package
+    (name "rust-pyo3")
+    (version "0.14.5")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "pyo3" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1j70b9bkncgpgnfxjxyvp4mk40rp55lk6qmacxm5c2k78y9hy41m"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-cfg-if" ,rust-cfg-if-1)
+        ("rust-hashbrown" ,rust-hashbrown-0.11)
+        ("rust-indexmap" ,rust-indexmap-1)
+        ("rust-indoc" ,rust-indoc-0.3)
+        ("rust-inventory" ,rust-inventory-0.1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-num-bigint" ,rust-num-bigint-0.4)
+        ("rust-num-complex" ,rust-num-complex-0.4)
+        ("rust-parking-lot" ,rust-parking-lot-0.11)
+        ("rust-paste" ,rust-paste-0.1)
+        ("rust-pyo3-build-config" ,rust-pyo3-build-config-0.14)
+        ("rust-pyo3-macros" ,rust-pyo3-macros-0.14)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-unindent" ,rust-unindent-0.1))
+       #:cargo-development-inputs
+       (("rust-assert-approx-eq" ,rust-assert-approx-eq-1)
+        ("rust-criterion" ,rust-criterion-0.3)
+        ("rust-proptest" ,rust-proptest-0.10)
+        ("rust-rustversion" ,rust-rustversion-1)
+        ("rust-serde-json" ,rust-serde-json-1)
+        ("rust-trybuild" ,rust-trybuild-1))))
+    (inputs (list python))
+    (home-page "https://github.com/pyo3/pyo3")
+    (synopsis "Rust bindings for the Python interpreter")
+    (description
+     "This package provides Rust bindings for Python, including tools for
+creating native Python extension modules.  Running and interacting with
+Python code from a Rust binary is also supported.")
+    (license license:asl2.0)))
+
+(define-public rust-pyo3-build-config-0.14
+  (package
+    (name "rust-pyo3-build-config")
+    (version "0.14.5")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "pyo3-build-config" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "13vkcl49b2x81azb613ss256k8pazrfc4fy4ny8pzgdciirn2afi"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs (("rust-once-cell" ,rust-once-cell-1))))
+    (home-page "https://github.com/pyo3/pyo3")
+    (synopsis "Build configuration for the PyO3 ecosystem")
+    (description "Build configuration for the PyO3 ecosystem")
+    (license license:asl2.0)))
+
+(define-public rust-pyo3-macros-0.14
+  (package
+    (name "rust-pyo3-macros")
+    (version "0.14.5")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "pyo3-macros" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1a4fh24c5q85f31n2rwbqrai2bjprf9kzh6xvpgj8j3hblhwa2zw"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-pyo3-macros-backend" ,rust-pyo3-macros-backend-0.14)
+        ("rust-quote" ,rust-quote-1)
+        ("rust-syn" ,rust-syn-1))))
+    (home-page "https://github.com/pyo3/pyo3")
+    (synopsis "Proc macros for PyO3 package")
+    (description "Proc macros for PyO3 package")
+    (license license:asl2.0)))
+
+(define-public rust-pyo3-macros-backend-0.14
+  (package
+    (name "rust-pyo3-macros-backend")
+    (version "0.14.5")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "pyo3-macros-backend" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1ps068jqyq1275zxxbzn6hyz9lkfz35az8waj6mzlji2jg2kyqki"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-proc-macro2" ,rust-proc-macro2-1)
+        ("rust-pyo3-build-config" ,rust-pyo3-build-config-0.14)
+        ("rust-quote" ,rust-quote-1)
+        ("rust-syn" ,rust-syn-1))))
+    (home-page "https://github.com/pyo3/pyo3")
+    (synopsis "Code generation for PyO3 package")
+    (description "Code generation for PyO3 package")
+    (license license:asl2.0)))
+
+(define-public rust-quick-csv-0.1
+  (package
+    (name "rust-quick-csv")
+    (version "0.1.6")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "quick-csv" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "131k8zzlplk2h62wz813jbvm0sk7v3mixwhhq34y9lmp3mqbgx7d"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs (("rust-rustc-serialize" ,rust-rustc-serialize-0.3))))
+    (home-page "https://github.com/tafia/quick-csv")
+    (synopsis "quick csv reader and decoder")
+    (description "quick csv reader and decoder")
+    (license license:expat)))
 
 (define-public rust-succinct-0.5
   (package
