@@ -29,6 +29,7 @@
   #:use-module (gnu packages graphviz)
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-check)
   #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-science)

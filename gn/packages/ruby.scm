@@ -148,7 +148,8 @@ output")
     (description
      "Ruby/NTLM HTTP provides NTLM authentication over http.")
     (home-page "http://www.mindflowsolutions.net")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-webrobots
   (package
@@ -171,7 +172,8 @@ output")
      "This library helps write robots.txt compliant web robots in Ruby.
 ")
     (home-page "https://github.com/knu/webrobots")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-mechanize ; guix maybe ready
   (package
@@ -240,7 +242,7 @@ a history.")
 ")
   (home-page
     "https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch-transport")
-  (license #f)))
+  (license (license:non-copyleft "will fill in later"))))
 
 (define-public ruby-elasticsearch-api
 (package
@@ -266,7 +268,7 @@ a history.")
 ")
   (home-page
     "https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch-api")
-  (license #f)))
+  (license (license:non-copyleft "will fill in later"))))
 
 (define-public ruby-elasticsearch
   (package
@@ -295,7 +297,7 @@ a history.")
 ")
    (home-page
     "http://github.com/elasticsearch/elasticsearch-ruby")
-   (license #f)))
+   (license (license:non-copyleft "will fill in later"))))
 
 
 
@@ -1720,7 +1722,8 @@ and HTML without having to deal with character set issues.")
     acts as a drop-in replacement for Rails `auto_link`
 ")
     (home-page "https://github.com/vmg/rinku")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-sidekiq
   (package
@@ -1745,7 +1748,8 @@ and HTML without having to deal with character set issues.")
     (description
       "Simple, efficient background processing for Ruby.")
     (home-page "https://sidekiq.org")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-mini-scheduler
   (package
@@ -2007,7 +2011,8 @@ and HTML without having to deal with character set issues.")
     (synopsis "")
     (description "")
     (home-page "")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public generate-ninja   ; or 'gn'
   (let ((commit "dfcbc6fed0a8352696f92d67ccad54048ad182b3")
@@ -2476,7 +2481,8 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (description
       "The CSV library provides a complete interface to CSV files and data.  It offers tools to enable you to read and write to and from Strings or IO objects, as needed.")
     (home-page "https://github.com/ruby/csv")
-    (license (list #f #f))))
+    (license (list (license:non-copyleft "will fill in later")
+                   (license:non-copyleft "will fill in later")))))
 
 (define-public ruby-maxminddb
   (package
@@ -2690,7 +2696,8 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (description
       "HTTP Accept, Accept-Charset, Accept-Encoding, and Accept-Language for Ruby/Rack")
     (home-page "http://mjijackson.github.com/rack-accept")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-mustermann
  (package
@@ -2948,7 +2955,8 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (description
       "Run test/unit tests by line number.  Metal!")
     (home-page "https://github.com/qrush/m")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-allocation-stats
   (package
@@ -3027,7 +3035,8 @@ Use rake-compiler-dock to enter an interactive shell session or add a task to yo
     (description
       "FakeWeb is a helper for faking web requests in Ruby.  It works at a global level, without modifying code or writing extensive stubs.")
     (home-page "http://github.com/chrisk/fakeweb")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-simple-oauth
   (package
@@ -3364,7 +3373,8 @@ Psych also knows how to serialize and de-serialize most Ruby objects to and from
       "   Kwalify is a parser, schema validator, and data binding tool for YAML and JSON.
 ")
     (home-page "http://www.kuwata-lab.com/kwalify/")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-reek
   (package
@@ -4375,7 +4385,8 @@ non-blocking I/O methods for Ruby without raising exceptions on
 EAGAIN and EINPROGRESS.
 ")
     (home-page "https://yhbt.net/kgio/")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-unicorn
   (package
@@ -4405,7 +4416,8 @@ advantage of features in Unix/Unix-like kernels.  Slow clients should
 only be served by placing a reverse proxy capable of fully buffering
 both the the request and response in between unicorn and slow clients.")
     (home-page "https://yhbt.net/unicorn/")
-    (license (list #f #f))))
+    (license (list (license:non-copyleft "will fill in later")
+                   (license:non-copyleft "will fill in later")))))
 
 (define-public ruby-pry-rails
   (package
@@ -4463,7 +4475,8 @@ both the the request and response in between unicorn and slow clients.")
     (description
       "CSS flipper for right-to-left processing.  A Ruby port of https://github.com/ded/r2")
     (home-page "https://github.com/mzsanford/R2rb")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-openssl
   (package
@@ -5146,7 +5159,8 @@ public-key signature system described in RFC 8032.")
     (description
       "Annotates Rails/ActiveRecord Models, routes, fixtures, and others based on the database schema.")
     (home-page "https://github.com/ctran/annotate_models")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-flamegraph
   (package
@@ -5332,7 +5346,8 @@ specify.")
     (description
       "Port of arc90's readability project to ruby")
     (home-page "https://github.com/cantino/ruby-readability")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 ;; TODO: 0.3.3 never finishes the install phase with ruby-2.6
 ;; TODO: Unbundle cppjieba
@@ -5614,7 +5629,8 @@ with processing Chinese text.")
 \"test/unit/rr\".
 ")
     (home-page "https://github.com/test-unit/test-unit-rr")
-    (license #f)))
+    (license (license:non-copyleft
+               "will fill in later"))))
 
 (define-public ruby-aws-sdk-kinesis
   (package

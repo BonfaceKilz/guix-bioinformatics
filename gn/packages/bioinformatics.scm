@@ -461,7 +461,7 @@ reads.")
     (description "Variant detection in massively parallel sequencing data.")
     ;; Free for non-commercial use by academic, government, and
     ;; non-profit/not-for-profit institutions
-    (license license:non-copyleft)))
+    (license (license:non-copyleft "file:///LICENSE"))))
 
 (define-public edirect-gn
   (deprecated-package "edirect-gn" edirect))
