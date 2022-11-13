@@ -33,6 +33,7 @@
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages boost)
   #:use-module (gnu packages bootstrap)
+  #:use-module (gnu packages c)
   #:use-module (gnu packages check)
   #:use-module (gnu packages cmake)
   #:use-module (gnu packages compression)
@@ -511,6 +512,98 @@ reads.")
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
 
+(define-public agc-for-pgr-tk
+  (let ((commit "453c0afdc54b4aa00fa8e97a63f196931fdb81c4") ; April 26, 2022
+        (revision "1"))
+    (package
+      (name "agc")
+      (version (git-version "2.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/cschin/agc")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "1v5s79rl38dcyy5h1lykbp6clcbqq9winn533j54y49q1jp8chix"))
+          (snippet
+           #~(begin
+               (use-modules (guix build utils))
+               ;; Copy the two radul files we can't find a replacement for:
+               ;; https://github.com/refresh-bio/RADULS
+               (mkdir "keep-libs")
+               (rename-file "libs/raduls.h" "keep-libs/raduls.h")
+               (rename-file "libs/libraduls.a" "keep-libs/libraduls.a")
+               (delete-file-recursively "libs")
+               (rename-file "keep-libs" "libs")
+
+               (delete-file-recursively "py_agc_api/pybind11-2.8.1")
+               (substitute* '("makefile" "makefile.release")
+                 (("-mavx") "")
+                 (("-m64") "")
+                 (("\\$\\(AGC_LIBS_DIR)\\/mimalloc/\\$\\(LIB_ALLOC\\)")
+                  "$(pkg-config --cflags --libs mimalloc) /usr/lib/libmimalloc.so")
+                 (("\\$\\(AGC_LIBS_DIR)\\/\\$\\(LIB_ZLIB\\)")
+                  "$(pkg-config --cflags --libs zlib) /usr/lib/libz.so")
+                 (("\\$\\(AGC_LIBS_DIR)\\/\\$\\(LIB_ZSTD\\)")
+                  "$(pkg-config --cflags --libs libzstd) /usr/lib/libzstd.so")
+                 (("^PYBIND11_LIB = .*") "PYBIND11_LIB = /usr/include/pybind11")
+                 (("\\$\\(PYBIND11_LIB\\)/include") "$(PYBIND11_LIB)"))
+               (substitute* (find-files "src" "\\.(h|cpp)$")
+                 (("../../libs/ketopt.h") "ketopt.h")
+                 (("../../libs/zlib.h") "zlib.h")
+                 (("../../libs/zstd.h") "zstd.h"))))))
+      (build-system gnu-build-system)
+      (arguments
+       `(#:tests? #f                    ; No tests.
+         #:phases
+         (modify-phases %standard-phases
+           (delete 'configure)          ; No configure script.
+           (add-after 'unpack 'adjust-sources
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((mimalloc (assoc-ref inputs "mimalloc")))
+                 (substitute* '("makefile" "makefile.release")
+                   (("/usr/include/pybind11")
+                    (search-input-directory inputs "/include/pybind11"))
+                   (("/usr/lib/libmimalloc.so")
+                    (search-input-file inputs "/lib/libmimalloc.so"))
+                   (("/usr/lib/libz.so")
+                    (search-input-file inputs "/lib/libz.so"))
+                   (("/usr/lib/libzstd.so")
+                    (search-input-file inputs "/lib/libzstd.so"))
+                   (("pkg-config") ,(pkg-config-for-target))))))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let* ((out (assoc-ref outputs "out"))
+                      (include (string-append out "/include/")))
+                 (install-file "agc" (string-append out "/bin"))
+                 (install-file "libagc.so" (string-append out "/lib"))
+                 (mkdir-p (string-append include "app"))
+                 (mkdir-p (string-append include "core"))
+                 (mkdir-p (string-append include "lib-cxx"))
+                 (with-directory-excursion "src"
+                   (for-each
+                     (lambda (file)
+                       (copy-file file (string-append include file)))
+                     (find-files "." "\\.h$")))))))))
+      (native-inputs
+       (list minimap2                   ; for ketopt.h
+             pkg-config))
+      (inputs
+       (list mimalloc
+             python
+             pybind11
+             zlib
+             (list zstd "lib")))
+      (home-page "https://github.com/cschin/agc")
+      (synopsis "Assembled Genomes Compressor")
+      (description
+       "@acronym{Assembled Genomes Compressor, AGC} is a tool designed to
+compress collections of de-novo assembled genomes.  It can be used for various
+types of datasets: short genomes (viruses) as well as long (humans).")
+      (license license:expat))))
+
 (define-public pgr-tk
   (package
     (name "pgr-tk")
@@ -520,11 +613,10 @@ collapses them into a non-redundant graph structure.")
         (method git-fetch)
         (uri (git-reference
                (url "https://github.com/Sema4-Research/pgr-tk")
-               (commit (string-append "v" version))
-               (recursive? #t)))        ; agc, WFA
+               (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "160ngqbi8cbgaafq8crhfqv039mxr9jgl8hxxpwz0fh8mrh4003y"))
+         (base32 "0vm1k63v91zd0pfbg2zmwskajylz8xg83m63qxwaiwny5f4y6f1j"))
         (snippet
          #~(begin
              (use-modules (guix build utils))
@@ -570,7 +662,7 @@ collapses them into a non-redundant graph structure.")
              (copy-recursively (assoc-ref inputs "wfa-src")
                                "rs-wfa/WFA")))
          (add-after 'unpack 'adjust-source
-           (lambda _
+           (lambda* (#:key inputs #:allow-other-keys)
              (substitute* '("pgr-bin/build.rs"
                             "pgr-db/build.rs"
                             "pgr-tk/build.rs")
@@ -579,7 +671,17 @@ collapses them into a non-redundant graph structure.")
              ;; Build with zlib, not zlib-ng
              (substitute* '("pgr-bin/Cargo.toml"
                             "pgr-db/Cargo.toml")
-               (("zlib-ng-compat") "zlib"))))
+               (("zlib-ng-compat") "zlib"))
+             ;; Don't look for agc to be bundled.
+             (substitute* "pgr-db/wrapper.h"
+               (("../agc/src/lib-cxx/agc-api.h") "lib-cxx/agc-api.h"))
+             (substitute* "pgr-db/build.rs"
+               ((".*panic!\\(\"Error.*") ""))
+             (mkdir-p "target/release")
+             (symlink (search-input-file inputs "/bin/agc")
+                      "target/release/agc")
+             (symlink (search-input-file inputs "/lib/libagc.so")
+                      "target/release/libagc")))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
@@ -593,7 +695,12 @@ collapses them into a non-redundant graph structure.")
                          "pgr-multifilter"
                          "pgr-probe-match"
                          "pgr-shmmr-pair-count")))))))))
-    (inputs (list clang python zlib))
+    (inputs
+     (list agc-for-pgr-tk
+           clang
+           python
+           zlib
+           (list zstd "lib")))
     (native-inputs
      `(("pkg-config" ,pkg-config)
        ("wfa-src"
