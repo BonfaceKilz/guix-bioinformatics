@@ -7,7 +7,8 @@
   #:use-module (guix build-system cargo)
   #:use-module (gnu packages crates-graphics)
   #:use-module (gnu packages crates-io)
-  #:use-module (gnu packages maths))
+  #:use-module (gnu packages maths)
+  #:use-module (gnu packages python))
 
 (define-public rust-bgzip-0.2
   (package
@@ -64,6 +65,25 @@
 for massive key sets}.  It generates an @acronym{MPHF, minimal perfect hash
 functions} for a collection of hashable objects.")
     (license license:expat)))
+
+(define-public rust-clap-lex-0.3
+  (package
+    (name "rust-clap-lex")
+    (version "0.3.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap-lex" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1a4dzbnlxiamfsn0pnkhn7n9bdfjh66j9fxm6mmr7d227vvrhh8d"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs (("rust-os-str-bytes" ,rust-os-str-bytes-6))))
+    (home-page "https://github.com/clap-rs/clap/tree/master/clap_lex")
+    (synopsis "Minimal, flexible command line parser")
+    (description "Minimal, flexible command line parser")
+    (license (list license:expat license:asl2.0))))
 
 (define-public rust-cuckoofilter-0.5
   (package
@@ -352,6 +372,51 @@ Python code from a Rust binary is also supported.")
     (description "This package provides succinct data structures for Rust.")
     (license (list license:expat license:asl2.0))))
 
+(define-public rust-terminal-size-0.2
+  (package
+    (name "rust-terminal-size")
+    (version "0.2.2")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "terminal-size" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0yhza8sc6jkka6j0nq5sl749ckx1jagvxp3b38yhh4px6k291jj0"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:skip-build? #t
+       ;#:cargo-inputs
+       ;(("rust-rustix" ,rust-rustix-0.35)
+       ; ("rust-windows-sys" ,rust-windows-sys-0.42))
+       ))
+    (home-page "https://github.com/eminence/terminal-size")
+    (synopsis "Gets the size of your Linux or Windows terminal")
+    (description "Gets the size of your Linux or Windows terminal")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-unic-emoji-char-0.9
+  (package
+    (name "rust-unic-emoji-char")
+    (version "0.9.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "unic-emoji-char" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0ka9fr7s6lv0z43r9xphg9injn35pfxf9g9q18ki0wl9d0g241qb"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-unic-char-property" ,rust-unic-char-property-0.9)
+        ("rust-unic-char-range" ,rust-unic-char-range-0.9)
+        ("rust-unic-ucd-version" ,rust-unic-ucd-version-0.9))))
+    (home-page "https://github.com/open-i18n/rust-unic/")
+    (synopsis "UNIC â Unicode Emoji â Emoji Character Properties")
+    (description "UNIC â Unicode Emoji â Emoji Character Properties")
+    (license (list license:expat license:asl2.0))))
+
 (define-public rust-clap-for-jrep
   (package
     (name "rust-clap")
@@ -499,6 +564,48 @@ or any combination.")
       Argument Parser")
     (license (list license:expat license:asl2.0))))
 
+(define-public rust-clap-4
+  (package
+    (name "rust-clap")
+    (version "4.0.9")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1w0dxqzrh449s9l2k8g66pdsff02599bwi5mh0gny3227kcpsq1h"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-atty" ,rust-atty-0.2)
+        ("rust-backtrace" ,rust-backtrace-0.3)
+        ("rust-bitflags" ,rust-bitflags-1)
+        ("rust-clap-derive" ,rust-clap-derive-4)
+        ("rust-clap-lex" ,rust-clap-lex-0.3)
+        ("rust-once-cell" ,rust-once-cell-1)
+        ("rust-strsim" ,rust-strsim-0.10)
+        ("rust-termcolor" ,rust-termcolor-1)
+        ("rust-terminal-size" ,rust-terminal-size-0.2)
+        ("rust-unicase" ,rust-unicase-2)
+        ("rust-unicode-width" ,rust-unicode-width-0.1))
+       #:cargo-development-inputs
+       (("rust-humantime" ,rust-humantime-2)
+        ("rust-rustversion" ,rust-rustversion-1)
+        ("rust-shlex" ,rust-shlex-1)
+        ("rust-snapbox" ,rust-snapbox-0.4)
+        ("rust-static-assertions" ,rust-static-assertions-1)
+        ("rust-trybuild" ,rust-trybuild-1)
+        ("rust-trycmd" ,rust-trycmd-0.13)
+        ("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9))))
+    (home-page "https://github.com/clap-rs/clap")
+    (synopsis
+      "A simple to use, efficient, and full-featured Command Line Argument Parser")
+    (description
+      "This package provides a simple to use, efficient, and full-featured Command Line
+      Argument Parser")
+    (license (list license:expat license:asl2.0))))
+
 ;; ready to upstream, WITH rust-clap-derive
 ;; replace fields with those from upstream.
 (define-public rust-clap-derive-3.1
@@ -512,6 +619,32 @@ or any combination.")
         (file-name (string-append name "-" version ".tar.gz"))
         (sha256
          (base32 "05mz2y6k73wc1gvv9r4mllfqslzvlwkvx77lk7769ag1xlwd15fs"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-heck" ,rust-heck-0.4)
+        ("rust-proc-macro-error" ,rust-proc-macro-error-1)
+        ("rust-proc-macro2" ,rust-proc-macro2-1)
+        ("rust-quote" ,rust-quote-1)
+        ("rust-syn" ,rust-syn-1))))
+    (home-page "https://github.com/clap-rs/clap/tree/master/clap_derive")
+    (synopsis
+      "Parse command line argument by defining a struct, derive crate.")
+    (description
+      "Parse command line argument by defining a struct, derive crate.")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-clap-derive-4
+  (package
+    (name "rust-clap-derive")
+    (version "4.0.9")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap-derive" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "02zhbbmyz3dpy9ml6xfp7i8p3ffj1djvkdnkg6gr6d0s5r4hg8x4"))))
     (build-system cargo-build-system)
     (arguments
      `(#:cargo-inputs

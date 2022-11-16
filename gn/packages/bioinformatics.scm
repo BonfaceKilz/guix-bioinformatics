@@ -512,6 +512,34 @@ reads.")
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
 
+(define-public gafpack
+  (let ((commit "ad31875b6914d964c6fd72d1bf334f0843538fb6")     ; November 10, 2022
+        (revision "1"))
+    (package
+      (name "gafpack")
+      (version (git-version "0.0.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/ekg/gafpack")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "0di2psh0ls7jlbnqs7k71p55f73pn23a09k1h3ril7gwjcrzr3rk"))))
+      (build-system cargo-build-system)
+      (arguments
+       `(#:install-source? #f
+         #:cargo-inputs
+         (("rust-clap" ,rust-clap-4)
+          ("rust-gfa" ,rust-gfa-0.10))))
+      (home-page "https://github.com/ekg/gafpack")
+      (synopsis "Convert variation graph alignments to coverage maps over nodes")
+      (description
+       "Gafpack converts alignments to pangenome variation graphs to coverage
+maps useful in haplotype-based genotyping.")
+      (license license:expat))))
+
 (define-public agc-for-pgr-tk
   (let ((commit "453c0afdc54b4aa00fa8e97a63f196931fdb81c4") ; April 26, 2022
         (revision "1"))
@@ -727,6 +755,61 @@ performance.)")
     (license (license:non-copyleft
                "file:///LICENSE"
                "CC-BY-NC-SA 4.0"))))
+
+(define-public graph-genotyper
+  (let ((commit "e7cc6b43a5b1f389d76bf9aac7f2ee02f92caeaf") ; October 17, 2022
+        (revision "13"))
+    (package
+      (name "graph-genotyper")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/davidebolo1993/graph_genotyper")
+               (commit commit)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1l8yjpkqamiqr1q5i7vr5z04aba7skpbcwyc9dx5fiklvljjfhcx"))))
+      (build-system copy-build-system)
+      (arguments
+       `(#:install-plan
+         '(("genotype.py" "bin/")
+           ("genotype.sh" "bin/"))
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'install 'wrap-genotype
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (wrap-script (string-append out "/bin/genotype.sh")
+                  `("GUIX_PYTHONPATH" ":" prefix (,(getenv "GUIX_PYTHONPATH")))
+                  `("PATH" ":" prefix
+                    ,(map (lambda (file-name)
+                            (string-append (assoc-ref inputs file-name) "/bin"))
+                          (list "gafpack"
+                                "odgi"
+                                "python"
+                                "samtools"
+                                "vg"))))))))))
+      (inputs
+       (list gafpack
+             guile-3.0
+             odgi
+             python
+             python-numpy
+             python-pandas
+             python-scipy
+             samtools
+             vg))
+      (home-page "https://bitbucket.org/jana_ebler")
+      (synopsis "Genotyping based on k-mers and pangenome graphs")
+      (description
+       "This package provides a genotyper for various types of genetic variants
+(such as SNPs, indels and structural variants).  Genotypes are computed based on
+read k-mer counts and a panel of known haplotypes.  A description of the method
+can be found @url{https://www.biorxiv.org/content/10.1101/2020.11.11.378133v1,
+here}.")
+      (license (license:non-copyleft
+                 "No license listed")))))
 
 (define-public pangenie
   (let ((commit "e779076827022d1416ab9fabf99a03d8f4725956") ; September 2, 2021 from phasing-tests branch
@@ -1810,6 +1893,56 @@ available to other researchers.")
                  (delete-file "scanpy/tests/test_neighbors_key_added.py")
                  (delete-file "scanpy/tests/test_pca.py")
                  #t)))))))))
+
+;; TODO: Unbundle everything
+(define-public odgi
+  (package
+    (name "odgi")
+    (version "0.8.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/pangenome/odgi/releases"
+                                  "/download/v" version
+                                  "/odgi-v" version ".tar.gz"))
+              (sha256
+               (base32 "175083pb9hp0vn9a00hbxlayyk5a5j8p52yq5qfmbnfvndisbmbv"))
+              (snippet
+               #~(begin
+                   (use-modules (guix build utils))
+                   (substitute* "CMakeLists.txt"
+                     (("-march=native") "")
+                     (("-msse4\\.2") ""))
+                   (delete-file-recursively "deps/pybind11")
+                   (delete-file-recursively "deps/sdsl-lite")))))
+    (build-system cmake-build-system)
+    (native-inputs
+     (list pkg-config))
+    (inputs
+     (list jemalloc
+           libdivsufsort
+           pybind11
+           python
+           sdsl-lite))
+    (home-page "https://github.com/vgteam/odgi")
+    (synopsis "Optimized Dynamic Genome/Graph Implementation")
+    (description "@acronym{Optimized Dynamic Genome/Graph Implementation, odgi}
+provides an efficient and succinct dynamic DNA sequence graph model, as well as
+a host of algorithms that allow the use of such graphs in bioinformatic
+analyses.
+
+Careful encoding of graph entities allows odgi to efficiently compute and
+transform pangenomes with minimal overheads.  @command{odgi} implements a
+dynamic data structure that leveraged multi-core CPUs and can be updated on the
+fly.
+
+The edges and path steps are recorded as deltas between the current node id and
+the target node id, where the node id corresponds to the rank in the global
+array of nodes.  Graphs built from biological data sets tend to have local
+partial order and, when sorted, the deltas be small.  This allows them to be
+compressed with a variable length integer representation, resulting in a small
+in-memory footprint at the cost of packing and unpacking.")
+    (properties '((tunable? . #t)))
+    (license license:expat)))
 
 (define-public vg
   (package
