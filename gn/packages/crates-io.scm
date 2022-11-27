@@ -577,7 +577,8 @@ or any combination.")
                 "1w0dxqzrh449s9l2k8g66pdsff02599bwi5mh0gny3227kcpsq1h"))))
     (build-system cargo-build-system)
     (arguments
-     `(#:cargo-inputs
+     `(#:skip-build? #t     ; Not all inputs packaged.
+       #:cargo-inputs
        (("rust-atty" ,rust-atty-0.2)
         ("rust-backtrace" ,rust-backtrace-0.3)
         ("rust-bitflags" ,rust-bitflags-1)
@@ -589,15 +590,16 @@ or any combination.")
         ("rust-terminal-size" ,rust-terminal-size-0.2)
         ("rust-unicase" ,rust-unicase-2)
         ("rust-unicode-width" ,rust-unicode-width-0.1))
-       #:cargo-development-inputs
-       (("rust-humantime" ,rust-humantime-2)
-        ("rust-rustversion" ,rust-rustversion-1)
-        ("rust-shlex" ,rust-shlex-1)
-        ("rust-snapbox" ,rust-snapbox-0.4)
-        ("rust-static-assertions" ,rust-static-assertions-1)
-        ("rust-trybuild" ,rust-trybuild-1)
-        ("rust-trycmd" ,rust-trycmd-0.13)
-        ("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9))))
+       ;#:cargo-development-inputs
+       ;(("rust-humantime" ,rust-humantime-2)
+       ; ("rust-rustversion" ,rust-rustversion-1)
+       ; ("rust-shlex" ,rust-shlex-1)
+       ; ("rust-snapbox" ,rust-snapbox-0.4)
+       ; ("rust-static-assertions" ,rust-static-assertions-1)
+       ; ("rust-trybuild" ,rust-trybuild-1)
+       ; ("rust-trycmd" ,rust-trycmd-0.13)
+       ; ("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9))
+       ))
     (home-page "https://github.com/clap-rs/clap")
     (synopsis
       "A simple to use, efficient, and full-featured Command Line Argument Parser")
