@@ -818,7 +818,7 @@ or any combination.")
     (license license:gpl3+)))
 
 (define-public gn-rust-correlation
-  (let ((commit "b82a93b691bb86e9dcf4ed30a4011a159857bba5")
+  (let ((commit "a22381e9830bac9a6848449279d258397217e251")
         (revision "0"))
     (package
       (name "gn-rust-correlation")
@@ -832,7 +832,7 @@ or any combination.")
           (file-name (git-file-name name version))
           (sha256
            (base32
-            "03jqxnv3f8gc8bd1sz4jgrzhrgisd7jwsayvn0njys7i0a715ps3"))))
+            "1cb197p8zmgxymzs9b7bygs0kg67809z6gc2svza909sxr9ac5ps"))))
       (build-system cargo-build-system)
       (native-inputs
        (list gsl))
