@@ -489,7 +489,7 @@ reads.")
     (arguments
      `(#:install-source? #f
        #:cargo-inputs
-       (("rust-clap" ,rust-clap-3.1)
+       (("rust-clap" ,rust-clap-3)
         ("rust-rustc-hash" ,rust-rustc-hash-1)
         ("rust-regex" ,rust-regex-1)
         ("rust-handlegraph" ,rust-handlegraph-0.7)
@@ -670,7 +670,7 @@ types of datasets: short genomes (viruses) as well as long (humans).")
        (("rust-bindgen" ,rust-bindgen-0.58)
         ("rust-bgzip" ,rust-bgzip-0.2)
         ("rust-byteorder" ,rust-byteorder-1)
-        ("rust-clap" ,rust-clap-3.1)
+        ("rust-clap" ,rust-clap-3)
         ("rust-cuckoofilter" ,rust-cuckoofilter-0.5)
         ("rust-flate2" ,rust-flate2-1)
         ("rust-libc" ,rust-libc-0.2)

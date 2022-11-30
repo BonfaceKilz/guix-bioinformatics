@@ -372,51 +372,6 @@ Python code from a Rust binary is also supported.")
     (description "This package provides succinct data structures for Rust.")
     (license (list license:expat license:asl2.0))))
 
-(define-public rust-terminal-size-0.2
-  (package
-    (name "rust-terminal-size")
-    (version "0.2.2")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "terminal-size" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0yhza8sc6jkka6j0nq5sl749ckx1jagvxp3b38yhh4px6k291jj0"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:skip-build? #t
-       ;#:cargo-inputs
-       ;(("rust-rustix" ,rust-rustix-0.35)
-       ; ("rust-windows-sys" ,rust-windows-sys-0.42))
-       ))
-    (home-page "https://github.com/eminence/terminal-size")
-    (synopsis "Gets the size of your Linux or Windows terminal")
-    (description "Gets the size of your Linux or Windows terminal")
-    (license (list license:expat license:asl2.0))))
-
-(define-public rust-unic-emoji-char-0.9
-  (package
-    (name "rust-unic-emoji-char")
-    (version "0.9.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "unic-emoji-char" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0ka9fr7s6lv0z43r9xphg9injn35pfxf9g9q18ki0wl9d0g241qb"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-unic-char-property" ,rust-unic-char-property-0.9)
-        ("rust-unic-char-range" ,rust-unic-char-range-0.9)
-        ("rust-unic-ucd-version" ,rust-unic-ucd-version-0.9))))
-    (home-page "https://github.com/open-i18n/rust-unic/")
-    (synopsis "UNIC â Unicode Emoji â Emoji Character Properties")
-    (description "UNIC â Unicode Emoji â Emoji Character Properties")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-clap-for-jrep
   (package
     (name "rust-clap")
@@ -520,50 +475,6 @@ or any combination.")
       (description "Rust CLI tools for manipulation of Jupyter Notebooks.")
       (license #f)))) ; There is no license.
 
-;; replace fields with those from upstream
-(define-public rust-clap-3.1
-  (package
-    (name "rust-clap")
-    (version "3.1.6")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (crate-uri "clap" version))
-        (file-name (string-append name "-" version ".tar.gz"))
-        (sha256
-         (base32 "08q1hkksfixybnrwrpm44xq028wbn9yr2hnzrax9hihyq8v39jfq"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-atty" ,rust-atty-0.2)
-        ("rust-backtrace" ,rust-backtrace-0.3)
-        ("rust-bitflags" ,rust-bitflags-1)
-        ("rust-clap-derive" ,rust-clap-derive-3.1)
-        ("rust-indexmap" ,rust-indexmap-1)
-        ("rust-lazy-static" ,rust-lazy-static-1)
-        ("rust-os-str-bytes" ,rust-os-str-bytes-6)
-        ("rust-regex" ,rust-regex-1)
-        ("rust-strsim" ,rust-strsim-0.10)
-        ("rust-termcolor" ,rust-termcolor-1)
-        ("rust-terminal-size" ,rust-terminal-size-0.1)
-        ("rust-textwrap" ,rust-textwrap-0.15)
-        ("rust-unicase" ,rust-unicase-2)
-        ("rust-yaml-rust" ,rust-yaml-rust-0.4))
-       #:cargo-development-inputs
-       (("rust-criterion" ,rust-criterion-0.3)
-        ("rust-lazy-static" ,rust-lazy-static-1)
-        ("rust-regex" ,rust-regex-1)
-        ("rust-rustversion" ,rust-rustversion-1)
-        ("rust-trybuild" ,rust-trybuild-1)
-        ("rust-trycmd" ,rust-trycmd-0.12))))
-    (home-page "https://github.com/clap-rs/clap")
-    (synopsis
-      "A simple to use, efficient, and full-featured Command Line Argument Parser")
-    (description
-      "This package provides a simple to use, efficient, and full-featured Command Line
-      Argument Parser")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-clap-4
   (package
     (name "rust-clap")
@@ -608,34 +519,6 @@ or any combination.")
       Argument Parser")
     (license (list license:expat license:asl2.0))))
 
-;; ready to upstream, WITH rust-clap-derive
-;; replace fields with those from upstream.
-(define-public rust-clap-derive-3.1
-  (package
-    (name "rust-clap-derive")
-    (version "3.1.4")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (crate-uri "clap-derive" version))
-        (file-name (string-append name "-" version ".tar.gz"))
-        (sha256
-         (base32 "05mz2y6k73wc1gvv9r4mllfqslzvlwkvx77lk7769ag1xlwd15fs"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-heck" ,rust-heck-0.4)
-        ("rust-proc-macro-error" ,rust-proc-macro-error-1)
-        ("rust-proc-macro2" ,rust-proc-macro2-1)
-        ("rust-quote" ,rust-quote-1)
-        ("rust-syn" ,rust-syn-1))))
-    (home-page "https://github.com/clap-rs/clap/tree/master/clap_derive")
-    (synopsis
-      "Parse command line argument by defining a struct, derive crate.")
-    (description
-      "Parse command line argument by defining a struct, derive crate.")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-clap-derive-4
   (package
     (name "rust-clap-derive")
@@ -661,40 +544,6 @@ or any combination.")
     (description
       "Parse command line argument by defining a struct, derive crate.")
     (license (list license:expat license:asl2.0))))
-
-(define-public rust-textwrap-0.15
-  (package
-    (name "rust-textwrap")
-    (version "0.15.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (crate-uri "textwrap" version))
-        (file-name (string-append name "-" version ".tar.gz"))
-        (sha256
-         (base32 "1yw513k61lfiwgqrfvsjw1a5wpvm0azhpjr2kr0jhnq9c56is55i"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:skip-build? #t     ; Not all inputs packaged
-       ;#:tests? #f          ; Skip tests for now
-       #:cargo-inputs
-       (("rust-hyphenation" ,rust-hyphenation-0.8)
-        ("rust-smawk" ,rust-smawk-0.3)
-        ("rust-terminal-size" ,rust-terminal-size-0.1)
-        ("rust-unicode-linebreak" ,rust-unicode-linebreak-0.1)
-        ("rust-unicode-width" ,rust-unicode-width-0.1))
-       #:cargo-development-inputs
-       (("rust-criterion" ,rust-criterion-0.3)
-        ;("rust-lipsum" ,rust-lipsum-0.8)
-        ("rust-termion" ,rust-termion-1)
-        ;("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9)
-        ("rust-version-sync" ,rust-version-sync-0.9))))
-    (home-page "https://github.com/mgeisler/textwrap")
-    (synopsis
-      "Powerful library for word wrapping, indenting, and dedenting strings")
-    (description
-      "Powerful library for word wrapping, indenting, and dedenting strings")
-    (license license:expat)))
 
 (define-public rust-trycmd-0.12
   (package
