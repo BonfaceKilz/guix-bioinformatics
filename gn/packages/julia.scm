@@ -73,10 +73,12 @@
            (replace 'precompile
              (lambda _
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\""))))))
-      (propagated-inputs
-       `(;; from setup.py
-         ("python-jupyter-server-proxy"
-          ,(@ (gn packages python) python-jupyter-server-proxy-1))))
+      ;;
+      ;; (propagated-inputs
+      ;;  `( ;; from setup.py
+      ;;    ("python-jupyter-server-proxy"
+      ;;     ,(@ (gn packages python) python-jupyter-server-proxy-1)))
+       )
       (inputs
        `(("julia-distributions" ,julia-distributions)
          ("julia-latexstrings" ,julia-latexstrings)
