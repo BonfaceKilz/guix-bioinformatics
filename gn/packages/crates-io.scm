@@ -479,7 +479,7 @@ or any combination.")
         ("rust-once-cell" ,rust-once-cell-1)
         ("rust-strsim" ,rust-strsim-0.10)
         ("rust-termcolor" ,rust-termcolor-1)
-        ("rust-terminal-size" ,rust-terminal-size-0.2)
+        ("rust-terminal-size" ,rust-terminal-size-0.1)
         ("rust-unicase" ,rust-unicase-2)
         ("rust-unicode-width" ,rust-unicode-width-0.1))
        ;#:cargo-development-inputs
