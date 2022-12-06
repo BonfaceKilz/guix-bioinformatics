@@ -31,8 +31,8 @@
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
-                       (url "https://github.com/sens/visuals")
-                       (commit commit)))
+                      (url "https://github.com/sens/visuals")
+                      (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
                  (base32 "15hshm5qrig5qbj02xy4ji79kfc72n93nna5nvxkhvb8gw3vvx07"))))
@@ -53,23 +53,23 @@
                (let ((out (assoc-ref outputs "out")))
                  ;; Copied from the Dockerfile.
                  (for-each
-                   (lambda (file)
-                     (copy-recursively file (string-append out "/" file)))
-                   (list "plutoserver"
-                         "environment.yml"
-                         "setup.py"
-                         "runpluto.sh"
-                         "notebooks"
-                         "Project.toml"
-                         "Manifest.toml")))))
+                  (lambda (file)
+                    (copy-recursively file (string-append out "/" file)))
+                  (list "plutoserver"
+                        "environment.yml"
+                        "setup.py"
+                        "runpluto.sh"
+                        "notebooks"
+                        "Project.toml"
+                        "Manifest.toml")))))
            (add-after 'install 'wrap-program
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
                  ;; Do we need to wrap this with PYTHONPATH too?
                  (wrap-script (string-append out "/runpluto.sh")
-                   `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
-                                        ,(string-append (assoc-ref inputs "coreutils") "/bin")))
-                   `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
+			      `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
+						   ,(string-append (assoc-ref inputs "coreutils") "/bin")))
+			      `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
            (replace 'precompile
              (lambda _
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\""))))))
@@ -78,7 +78,7 @@
       ;;  `( ;; from setup.py
       ;;    ("python-jupyter-server-proxy"
       ;;     ,(@ (gn packages python) python-jupyter-server-proxy-1)))
-       )
+
       (inputs
        `(("julia-distributions" ,julia-distributions)
          ("julia-latexstrings" ,julia-latexstrings)
