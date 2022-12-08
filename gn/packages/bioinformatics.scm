@@ -2406,7 +2406,7 @@ The Genome Browser itself does not draw conclusions; rather, it collates all
 relevant information in one location, leaving the exploration and interpretation
 to the user.")
     (license (list
-               license:bsd-0    ; kent/src/{utils,lib,inc,tabStorm,parasol,hg/ausoSql,hg/autoXml}
+               ;; license:bsd-0    ; kent/src/{utils,lib,inc,tabStorm,parasol,hg/ausoSql,hg/autoXml}
                license:bsd-3    ; these two for bundled htslib-1.3
                license:expat
                (license:non-copyleft
