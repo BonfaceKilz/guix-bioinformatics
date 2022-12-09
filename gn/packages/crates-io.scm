@@ -329,6 +329,25 @@ Python code from a Rust binary is also supported.")
     (description "Code generation for PyO3 package")
     (license license:asl2.0)))
 
+(define-public rust-quick-csv-0.1
+  (package
+    (name "rust-quick-csv")
+    (version "0.1.6")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "quick-csv" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "131k8zzlplk2h62wz813jbvm0sk7v3mixwhhq34y9lmp3mqbgx7d"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs (("rust-rustc-serialize" ,rust-rustc-serialize-0.3))))
+    (home-page "https://github.com/tafia/quick-csv")
+    (synopsis "quick csv reader and decoder")
+    (description "quick csv reader and decoder")
+    (license license:expat)))
+
 (define-public rust-succinct-0.5
   (package
     (name "rust-succinct")
