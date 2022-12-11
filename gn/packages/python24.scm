@@ -140,7 +140,15 @@ pre-defined variants."
     (name "python24-pil")
     (arguments
      (substitute-keyword-arguments (package-arguments python2-pil1)
-       ((#:python _) python-2.4)))))
+       ((#:python _) python-2.4)
+       ((#:phases phases '%standard-phases)
+        `(modify-phases ,phases
+           (replace 'add-install-to-pythonpath
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (setenv "PYTHONPATH"
+                       (string-append (site-packages inputs outputs) ":"
+                                      (getenv "PYTHONPATH")))))
+           (delete 'sanity-check))))))) ; Not applicable to python-2.4
 
 (define-public python24-piddle
   (package
@@ -148,7 +156,15 @@ pre-defined variants."
     (name "python24-piddle")
     (arguments
      (substitute-keyword-arguments (package-arguments python2-piddle-gn)
-       ((#:python _) python-2.4)))
+       ((#:python _) python-2.4)
+       ((#:phases phases '%standard-phases)
+        `(modify-phases ,phases
+           (replace 'add-install-to-pythonpath
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (setenv "PYTHONPATH"
+                       (string-append (site-packages inputs outputs) ":"
+                                      (getenv "PYTHONPATH")))))
+           (delete 'sanity-check)))))   ; Not applicable to python-2.4
     (native-inputs `(("python24-setuptools" ,python24-setuptools)))
     (propagated-inputs
      `(("python24-pil" ,python24-pil)))))
@@ -200,13 +216,18 @@ pre-defined variants."
        (modify-phases %standard-phases
          (delete 'build)
          (delete 'check)
+         (replace 'add-install-to-pythonpath
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (setenv "PYTHONPATH"
+                     (string-append (site-packages inputs outputs) ":"
+                                    (getenv "PYTHONPATH")))))
+         (delete 'sanity-check)     ; Not applicable to python-2.4
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let* ((out     (assoc-ref outputs "out"))
                     (sitedir (string-append out "/lib/python2.4/site-packages/json/")))
                (mkdir-p sitedir)
-               (copy-recursively "thirdparty/json" sitedir)
-               #t))))))
+               (copy-recursively "thirdparty/json" sitedir)))))))
     (home-page "")
     (synopsis "")
     (description "")
@@ -224,13 +245,18 @@ pre-defined variants."
        (modify-phases %standard-phases
          (delete 'build)
          (delete 'check)
+         (replace 'add-install-to-pythonpath
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (setenv "PYTHONPATH"
+                     (string-append (site-packages inputs outputs) ":"
+                                    (getenv "PYTHONPATH")))))
+         (delete 'sanity-check)     ; Not applicable to python-2.4
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let* ((out     (assoc-ref outputs "out"))
                     (sitedir (string-append out "/lib/python2.4/site-packages/svg/")))
                (mkdir-p sitedir)
-               (copy-recursively "thirdparty/svg" sitedir)
-               #t))))))
+               (copy-recursively "thirdparty/svg" sitedir)))))))
     (home-page "")
     (synopsis "")
     (description "")
@@ -248,6 +274,12 @@ pre-defined variants."
        (modify-phases %standard-phases
          (delete 'build)
          (delete 'check)
+         (replace 'add-install-to-pythonpath
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (setenv "PYTHONPATH"
+                     (string-append (site-packages inputs outputs) ":"
+                                    (getenv "PYTHONPATH")))))
+         (delete 'sanity-check)     ; Not applicable to python-2.4
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let* ((out     (assoc-ref outputs "out"))
@@ -322,7 +354,13 @@ pre-defined variants."
        (modify-phases %standard-phases
          (add-after 'unpack 'change-directory
            (lambda _
-             (chdir "thirdparty/pp-1.5.7") #t)))))
+             (chdir "thirdparty/pp-1.5.7")))
+         (replace 'add-install-to-pythonpath
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (setenv "PYTHONPATH"
+                     (string-append (site-packages inputs outputs) ":"
+                                    (getenv "PYTHONPATH")))))
+         (delete 'sanity-check))))  ; Not applicable to python-2.4
     (home-page "")
     (synopsis "")
     (description "")
@@ -346,9 +384,15 @@ pre-defined variants."
      `(#:python ,python-2.4
        #:phases
        (modify-phases %standard-phases
+         (replace 'add-install-to-pythonpath
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (setenv "PYTHONPATH"
+                     (string-append (site-packages inputs outputs) ":"
+                                    (getenv "PYTHONPATH")))))
+         (delete 'sanity-check)     ; Not applicable to python-2.4
          (add-before 'check 'pre-check
            (lambda* (#:key inputs tests? #:allow-other-keys)
-             (if tests?
+             (when tests?
                (begin
                  (mkdir-p "/tmp/mysqld")
                  (call-with-output-file "/tmp/my.cnf"
@@ -368,8 +412,7 @@ pre-defined variants."
                  (sleep 5)
                  (invoke "mysqladmin" "-S" "/tmp/mysqld/mysql.sock" "variables")
                  (invoke "mysql" "-S" "/tmp/mysqld/mysql.sock"
-                         "-e" "'create database mysqldb_test charset utf8;'"))
-               #t))))
+                         "-e" "'create database mysqldb_test charset utf8;'"))))))
        #:tests? #f))    ; TODO: Run the test suite
     (native-inputs
      `(("mysql" ,mysql-5.0) ; Best supported version according to the README.
