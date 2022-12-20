@@ -54,6 +54,7 @@
   #:use-module (gn packages statistics)
   #:use-module (gn packages twint)
   #:use-module (gn packages web)
+  #:use-module (gn packages python-web)
   #:use-module (srfi srfi-1))
 
 
@@ -145,6 +146,7 @@
              python-redis
              python-requests
              python-scipy
+	     python-authlib
              python-sparqlwrapper
              python-xapian-bindings
              r-optparse
