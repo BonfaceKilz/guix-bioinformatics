@@ -143,6 +143,12 @@ and then run:
 
 : guix package --install-from-file=that-file.scm
 
+* Substitute server
+
+We run our own substitution server. Add the key to your machine as
+root with
+
+: guix archive --authorize < tux02-guix-substitutions-public-key.txt
 
 * LICENSE
 
