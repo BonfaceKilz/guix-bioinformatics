@@ -27,6 +27,7 @@
   #:use-module (gnu packages golang)
   #:use-module (gnu packages graph)
   #:use-module (gnu packages graphviz)
+  #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-build)
@@ -140,8 +141,9 @@
              python-mysqlclient
              python-numpy
              python-pandas
-             python-pingouin
+             ;; python-pingouin << build failing
              python-plotly
+             python-scikit-learn
              python-pymonad
              python-redis
              python-requests
