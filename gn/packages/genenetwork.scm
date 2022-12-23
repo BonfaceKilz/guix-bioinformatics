@@ -43,9 +43,7 @@
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages textutils)
   #:use-module (gnu packages version-control)
-  ; #:use-module (gnu packages vim)
   #:use-module (gnu packages web)
-  ; #:use-module (gnu packages wget)
   #:use-module (gnu packages xml)
   #:use-module (gn packages bioinformatics)
   #:use-module (gn packages crates-io)
@@ -103,6 +101,15 @@
       (description "Reimplementation of genenetwork/QTLReaper in Rust")
       (license #f))))
 
+; Tests on the upstream python-pengouin package are broken. So, we
+; create this temporary workaround.
+(define python-pingouin-without-tests
+ (package
+   (inherit python-pingouin)
+   (arguments
+    (substitute-keyword-arguments (package-arguments python-pingouin)
+      ((#:tests? _ #f) #f)))))
+
 (define-public genenetwork3
   (let ((commit "e781996b952bc1ff9d9cd7703cb5e37e2a282162"))
     (package
@@ -142,6 +149,7 @@
              python-numpy
              python-pandas
              ;; python-pingouin << build failing
+             python-pingouin-without-tests
              python-plotly
              python-scikit-learn
              python-pymonad
