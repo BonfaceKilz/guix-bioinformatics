@@ -240,6 +240,7 @@
          ("python-markdown" ,python-markdown)
          ("python-rdflib" ,python-rdflib)
          ("python-twint" ,python-twint)
+	 ("python-authlib" ,python-authlib)
 	 ("python-flask-session" ,python-flask-session)
          ;; TODO: Get rid of Python R bindings
          ("python-rpy2" ,python-rpy2)
