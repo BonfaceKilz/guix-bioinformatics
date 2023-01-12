@@ -262,7 +262,7 @@ if __name__ == '__main__':
 (define-public genecup
   (package
     (name "genecup")
-    (version "1.6")
+    (version "1.7")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -270,7 +270,7 @@ if __name__ == '__main__':
                      (commit (string-append "v" version))))
               (file-name (git-file-name name version))
               (sha256
-               (base32 "050yg4hvjs9rghw41q35xdd2c2rzh9sl4sfwkk3am150mgf2p0nh"))))
+               (base32 "00738zb15fz0qi3ahgv899hmp63kbv800hy3w8wzhyb5ys2zs474"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f  ; no test suite
