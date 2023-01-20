@@ -32,6 +32,26 @@
          ("gettext" ,gnu-gettext)
          ,@(package-native-inputs guix:skribilo))))))
 
+(define guile-xapian-latest
+  (let ((commit "93162fd60dbc0cce726113a82c13d88783a279b6")
+        (revision "1"))
+    (package
+      (inherit guile-xapian)
+      (name "guile-xapian")
+      (version (git-version (package-version guile-xapian) revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://git.systemreboot.net/guile-xapian")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0g9w10wsjw11ayi9l5y0k6lz4mq2qfhq2hwbxbqgdj7jmllwirgp"))))
+      (propagated-inputs
+       (modify-inputs (package-propagated-inputs guile-xapian)
+         (prepend guile-lib))))))
+
 (define-public tissue
   (let ((commit "6d6285d071132960835f848a1703faaea2356937")
         (revision "3"))
@@ -73,7 +93,7 @@
                            `("GUILE_LOAD_COMPILED_PATH" prefix
                              (,(string-append out "/lib/guile/" effective-version "/site-ccache")
                               ,(getenv "GUILE_LOAD_COMPILED_PATH")))))))))))
-      (inputs (list guile-3.0 guile-filesystem guile-git guile-xapian))
+      (inputs (list guile-3.0 guile-filesystem guile-git guile-xapian-latest))
       (propagated-inputs
        (list skribilo-latest))
       (home-page "https://tissue.systemreboot.net")
