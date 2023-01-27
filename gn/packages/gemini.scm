@@ -1,10 +1,12 @@
 (define-module (gn packages gemini)
   #:use-module (gnu packages autotools)
+  #:use-module (gnu packages compression)
   #:use-module (gnu packages gettext)
   #:use-module (gnu packages guile)
   #:use-module (gnu packages guile-xyz)
   #:use-module ((gnu packages skribilo) #:prefix guix:)
   #:use-module (guix build-system gnu)
+  #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix git-download)
@@ -53,50 +55,54 @@
          (prepend guile-lib))))))
 
 (define-public tissue
-  (let ((commit "6d6285d071132960835f848a1703faaea2356937")
-        (revision "3"))
-    (package
-      (name "tissue")
-      (version (git-version "0.1.0" revision commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                      (url "https://git.systemreboot.net/tissue")
-                      (commit commit)))
-                (file-name (git-file-name name version))
-                (sha256
-                 (base32
-                  "1dlcy7m4gz1vmklyny4mxky9822q5hjc4qdmn42yf2qvh8xy62g5"))))
-      (build-system gnu-build-system)
-      (arguments
-       (list #:make-flags #~(list (string-append "prefix=" #$output))
-             #:modules `(((guix build guile-build-system)
-                          #:select (target-guile-effective-version))
-                         ,@%gnu-build-system-modules)
-             #:phases
-             (with-imported-modules '((guix build guile-build-system))
-               #~(modify-phases %standard-phases
-                   (replace 'patch-source-shebangs
-                     (lambda* (#:key inputs #:allow-other-keys)
-                       (substitute* "bin/tissue"
-                         (("^exec guile")
-                          (string-append "exec " (search-input-file inputs "/bin/guile"))))))
-                   (delete 'configure)
-                   (add-after 'install 'wrap
-                     (lambda* (#:key inputs outputs #:allow-other-keys)
-                       (let ((out (assoc-ref outputs "out"))
-                             (effective-version (target-guile-effective-version)))
-                         (wrap-program (string-append out "/bin/tissue")
-                           `("GUILE_LOAD_PATH" prefix
-                             (,(string-append out "/share/guile/site/" effective-version)
-                              ,(getenv "GUILE_LOAD_PATH")))
-                           `("GUILE_LOAD_COMPILED_PATH" prefix
-                             (,(string-append out "/lib/guile/" effective-version "/site-ccache")
-                              ,(getenv "GUILE_LOAD_COMPILED_PATH")))))))))))
-      (inputs (list guile-3.0 guile-filesystem guile-git guile-xapian-latest))
-      (propagated-inputs
-       (list skribilo-latest))
-      (home-page "https://tissue.systemreboot.net")
-      (synopsis "Text based issue tracker")
-      (description "tissue is a text based issue tracker.")
-      (license license:gpl3+))))
+  (package
+    (name "tissue")
+    (version "0.1.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://tissue.systemreboot.net/releases/tissue-"
+                                  version ".tar.lz"))
+              (sha256
+               (base32
+                "0vsybgnzv8nnwf58pnxrs4101xczl8jvxd1wzmk4vmdyrp8a2kkm"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:make-flags #~(list (string-append "prefix=" #$output))
+           #:modules `(((guix build guile-build-system)
+                        #:select (target-guile-effective-version))
+                       ,@%gnu-build-system-modules)
+           #:phases
+           (with-imported-modules '((guix build guile-build-system))
+             #~(modify-phases %standard-phases
+                 (replace 'patch-source-shebangs
+                   (lambda* (#:key inputs #:allow-other-keys)
+                     (substitute* "bin/tissue"
+                       (("^exec guile")
+                        (string-append "exec " (search-input-file inputs "/bin/guile"))))))
+                 (delete 'configure)
+                 (add-after 'install 'wrap
+                   (lambda* (#:key inputs outputs #:allow-other-keys)
+                     (let ((out (assoc-ref outputs "out"))
+                           (effective-version (target-guile-effective-version)))
+                       (wrap-program (string-append out "/bin/tissue")
+                         `("GUILE_LOAD_PATH" prefix
+                           (,(string-append out "/share/guile/site/" effective-version)
+                            ,(getenv "GUILE_LOAD_PATH")))
+                         `("GUILE_LOAD_COMPILED_PATH" prefix
+                           (,(string-append out "/lib/guile/" effective-version "/site-ccache")
+                            ,(getenv "GUILE_LOAD_COMPILED_PATH")))))))))))
+    (inputs (list guile-3.0 guile-filesystem guile-git guile-xapian-latest))
+    (native-inputs
+     (list lzip))
+    (propagated-inputs
+     (list skribilo-latest))
+    (home-page "https://tissue.systemreboot.net")
+    (synopsis "Text based project information management system")
+    (description
+     "tissue is an issue tracker and project information management system
+built on plain text files and git.  It features a static site
+generator to build a project website and a powerful search interface
+to search through project issues and documentation.  The search
+interface is built on the Xapian search engine library, and is
+available both as a command-line program and as a web server.")
+    (license license:gpl3+)))
