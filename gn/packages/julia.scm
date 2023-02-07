@@ -23,8 +23,8 @@
 (define S specification->package)
 
 (define-public julia-visuals
-  (let ((commit "e7d670eb045a9f8e3a839476dc166318da7fe9dc")
-        (revision "1"))
+  (let ((commit "e8e2b601f40a76c8f20f0ddfe80c56257dd9a294")
+        (revision "2"))
     (package
       (name "julia-visuals")
       (version (git-version "0.0.0" revision commit))
@@ -35,7 +35,7 @@
                       (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32 "15hshm5qrig5qbj02xy4ji79kfc72n93nna5nvxkhvb8gw3vvx07"))))
+                 (base32 "0lm9yhk0mq5cvvkcbsgcjc1y7fzhr8qz2nxn38cy1zdxd8vfknsx"))))
       (build-system julia-build-system)
       (arguments
        `(#:tests? #f    ; no test suite
@@ -67,25 +67,29 @@
                (let ((out (assoc-ref outputs "out")))
                  ;; Do we need to wrap this with PYTHONPATH too?
                  (wrap-script (string-append out "/runpluto.sh")
-			      `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
-						   ,(string-append (assoc-ref inputs "coreutils") "/bin")))
-			      `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
+                  `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
+                                        ,(string-append (assoc-ref inputs "coreutils") "/bin")))
+                  `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
            (replace 'precompile
              (lambda _
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\""))))))
-      ;;
-      ;; (propagated-inputs
-      ;;  `( ;; from setup.py
-      ;;    ("python-jupyter-server-proxy"
-      ;;     ,(@ (gn packages python) python-jupyter-server-proxy-1)))
+
+      (propagated-inputs
+       `(;; from setup.py
+         ("python-jupyter-server-proxy"
+          ,(@ (gn packages python) python-jupyter-server-proxy-1))))
 
       (inputs
-       `(("julia-distributions" ,julia-distributions)
-         ("julia-latexstrings" ,julia-latexstrings)
-         ("julia-optim" ,julia-optim)
-         ("julia-plots" ,julia-plots)
-         ("julia-pluto" ,julia-pluto)
-         ("julia-plutoui" ,julia-plutoui)
+       `(;("julia-cairomakie" ,julia-cairomakie)         ; ~0.8.13
+         ("julia-distributions" ,julia-distributions)   ; ~0.25.76
+         ("julia-latexstrings" ,julia-latexstrings)     ; ~1.3.0
+         ("julia-optim" ,julia-optim)                   ; ~1.7.2
+         ("julia-plots" ,julia-plots)                   ; ~1.35.3
+         ("julia-pluto" ,julia-pluto)                   ; ~0.19.11
+         ("julia-plutoui" ,julia-plutoui)               ; ~0.7.46
+         ("julia-prettytables" ,julia-prettytables)     ; ~2.1.0
+         ("julia-quadgk" ,julia-quadgk)                 ; ~2.5.0
+         ;("julia-roots" ,julia-roots)                   ; ~2.0.3
          ("guile" ,(@ (gnu packages guile) guile-3.0))))    ; for wrap-script
       (home-page "https://github.com/sens/visuals")
       (synopsis "Visualizations using Pluto.jl notebooks")
@@ -264,7 +268,7 @@ distributed computing.")
 (define-public julia-distributions
   (package
     (name "julia-distributions")
-    (version "0.25.11")
+    (version "0.25.80")
     (source
       (origin
         (method git-fetch)
@@ -273,12 +277,14 @@ distributed computing.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0n5xgdpzrpb4s0g23rjggk7c7x8677hbhq0sam7xbw9mn2w79m7n"))))
+         (base32 "0nqlnkh8grxfm8d1mivi7dnrvb31bznj9s540a10d2v396ikfggn"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f))        ; Some failed tests
     (propagated-inputs
-     `(("julia-fillarrays" ,julia-fillarrays)
+     `(("julia-chainrulescore" ,julia-chainrulescore)
+       ("julia-densityinterface" ,julia-densityinterface)
+       ("julia-fillarrays" ,julia-fillarrays)
        ("julia-pdmats" ,julia-pdmats)
        ("julia-quadgk" ,julia-quadgk)
        ("julia-specialfunctions" ,julia-specialfunctions)
@@ -286,9 +292,11 @@ distributed computing.")
        ("julia-statsfuns" ,julia-statsfuns)))
     (native-inputs
      `(("julia-calculus" ,julia-calculus)
+       ("julia-chainrulestestutils" ,julia-chainrulestestutils)
        ("julia-finitedifferences" ,julia-finitedifferences)
        ("julia-forwarddiff" ,julia-forwarddiff)
        ("julia-json" ,julia-json)
+       ("julia-offsetarrays" ,julia-offsetarrays)
        ("julia-stablerngs" ,julia-stablerngs)
        ("julia-staticarrays" ,julia-staticarrays)))
     (home-page "https://github.com/JuliaStats/Distributions.jl")
@@ -303,6 +311,31 @@ properties
 @item Sampling from population or from a distribution
 @item Maximum likelihood estimation
 @end enumerate")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-densityinterface
+  (package
+    (name "julia-densityinterface")
+    (version "0.4.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaMath/DensityInterface.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "10yr69lndh4jdyhjnpm421zvbw8v48bimxjawz05lqkd7k4w4lw6"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list julia-inversefunctions))
+    (native-inputs
+     (list julia-documenter))
+    (home-page "https://github.com/JuliaMath/DensityInterface.jl")
+    (synopsis "Interface for mathematical/statistical densities")
+    (description "This package defines an interface for mathematical/statistical
+densities and objects associated with a density in Julia.")
     (license license:expat)))
 
 (define-public julia-plots
@@ -444,7 +477,7 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
 (define-public julia-statsfuns
   (package
     (name "julia-statsfuns")
-    (version "0.9.8")
+    (version "0.9.18")
     (source
       (origin
         (method git-fetch)
@@ -453,25 +486,46 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "1zl46p9gbx9xkjnnpd45csshqvq2i94mxw10karpr8xkx8msyk3k"))))
+         (base32 "1y71gz4skp6hxw8k5vjbjayplxmdfh3m3yjfw4ggi0azav6c9hrk"))))
     (build-system julia-build-system)
-    (arguments
-     `(#:phases
-       (modify-phases %standard-phases
-         (add-after 'link-depot 'adjust-test-suite
-           (lambda _
-             (substitute* "test/misc.jl"
-               (("test logmvbeta\\(1") "test_nowarn logmvbeta(1")))))))
     (propagated-inputs
-     (list julia-logexpfunctions
+     (list julia-chainrulescore
+           julia-inversefunctions
+           julia-irrationalconstants
+           julia-logexpfunctions
+           julia-reexport
            julia-rmath
            julia-specialfunctions))
     (native-inputs
-     (list julia-forwarddiff))
+     (list julia-chainrulestestutils
+           julia-forwarddiff))
     (home-page "https://github.com/JuliaStats/StatsFuns.jl")
     (synopsis "Mathematical functions related to statistics")
     (description "This package provides a collection of mathematical constants
 and numerical functions for statistical computing.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-inversefunctions
+  (package
+    (name "julia-inversefunctions")
+    (version "0.1.8")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaMath/InverseFunctions.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "05g9f6i735x7syfr56l4yf4fy71kgdisjc6cfxi4jkf46iq86a69"))))
+    (build-system julia-build-system)
+    (native-inputs
+     (list julia-documenter))
+    (home-page "https://github.com/JuliaMath/InverseFunctions.jl")
+    (synopsis "Interface for function inversion in Julia")
+    (description
+     "This package provides an interface to invert functions in Julia.")
     (license license:expat)))
 
 ;; ready to upstream
@@ -691,6 +745,40 @@ polynomials.")
     (description "This package defines:
 
                      AbstractInterval, along with its subtypes Interval and AnchoredInterval, and also Bound.")
+    (license license:expat)))
+
+(define-public julia-infinity
+  (package
+    (name "julia-infinity")
+    (version "0.2.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/cjdoris/Infinity.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1941lwvrdjnrynigzixxin3chpg1ba6xplvcwc89x0f6z658hwmm"))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+      #:tests? #f           ; TODO: Fix tests!
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'link-depot 'remove-timezones.jl
+            (lambda _
+              (substitute* "test/runtests.jl"
+                (("using TimeZones.*") "")
+                ((".*infextendedtime.*") "")))))))
+    (propagated-inputs
+     (list julia-requires))
+    (native-inputs
+     (list julia-compat))
+    (home-page "https://docs.juliahub.com/Infinity/")
+    (synopsis "Representation of infinity in Julia")
+    (description "This package provides representations for infinity and
+negative infinity in Julia.")
     (license license:expat)))
 
 ;; TODO: There is talk upstream about separating out the timezone data into a
