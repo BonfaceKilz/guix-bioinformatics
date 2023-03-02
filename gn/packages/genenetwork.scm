@@ -158,6 +158,7 @@
              python-scipy
 	     python-authlib
              python-sparqlwrapper
+	     python-email-validator
              python-xapian-bindings
              r-optparse
              r-qtl
