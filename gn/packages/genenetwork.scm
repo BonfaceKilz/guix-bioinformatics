@@ -139,7 +139,8 @@
              python-wrapper
              csvdiff
              gn-rust-correlation
-             python-bcrypt
+             python-bcrypt ;; Replace use of bcrypt with argon below
+	     python-argon2-cffi
              python-flask
              python-flask-cors
              ;; Not working in Python > 3.8
