@@ -985,14 +985,13 @@ server.")
 (define-public python-antlr4-python3-runtime
   (package
     (name "python-antlr4-python3-runtime")
-    (version "4.7.1")
+    (version "4.9.3")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "antlr4-python3-runtime" version))
         (sha256
-         (base32
-          "1lrzmagawmavyw1n1z0qarvs2jmbnbv0p89dah8g7klj8hnbf9hv"))))
+         (base32 "06w8fz73rk8vzjz9rydfk56g4mbqpyl81yhypc14jab886dlc97j"))))
     (build-system python-build-system)
     (home-page "https://www.antlr.org/")
     (synopsis "ANTLR runtime for Python")
