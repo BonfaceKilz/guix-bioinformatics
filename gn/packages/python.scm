@@ -1296,6 +1296,7 @@ sorted order.")
        ((#:tests? _ #f) #f)))
     (native-inputs
      `(("python-argcomplete" ,python-argcomplete)
+       ("python-atomicwrites" ,python-atomicwrites)
        ("python-requests" ,python-requests)
        ,@(package-native-inputs python-pytest)))))
 
