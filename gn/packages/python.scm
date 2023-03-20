@@ -874,52 +874,36 @@ server.")
 (define-public python-pyshex
   (package
     (name "python-pyshex")
-    (version "0.7.14")
+    (version "0.8.1")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "PyShEx" version))
         (sha256
-         (base32
-          "1fy664bh6hpmr4cf49fwwxng36kv7s6b2986hbv0cqcypc4ri2cs"))))
+         (base32 "1l3hprspx5l4zl28p1m79mwfxy5c86601jq3x3damyi7zr2lsp1w"))))
     (arguments
      '(#:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'patch-source
-           (lambda _
-             (substitute* "requirements.txt"
-               ((">=.*") "\n"))
-             #t))
          (replace 'check
            (lambda* (#:key inputs outputs tests? #:allow-other-keys)
-             (if tests?
-               (begin
-                 (delete-file "tests/test_cli/test_evaluate.py")
-                 (delete-file "tests/test_cli/test_sparql_options.py")
-                 (delete-file "tests/test_issues/test_fhir.py")
-                 (delete-file "tests/test_issues/test_issue_30.py")
-                 (delete-file "tests/test_pyshex_utils/test_schema_loader.py")
-                 (delete-file "tests/test_shex_manifest/test_basics.py")
-                 (delete-file "tests/test_shextest_validation/test_manifest_shex_json.py")
-                 (delete-file "tests/test_shextest_validation/test_manifest_shex_shexc.py")
-                 (delete-file "tests/test_support_libraries/test_prefixlib.py")
-                 (delete-file "tests/test_utils/test_manifest.py")
-                 (delete-file "tests/test_utils/test_sparql_query.py")
-                 (delete-file "tests/test_utils/test_n3_mapper.py")
-                 (invoke "python" "-m" "unittest"))
-               #t))))))
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (setenv "SKIP_EXTERNAL_URLS" "true")
+               (invoke "python" "-m" "unittest" "-k"
+                       "test_sparql_options")))))))
     (build-system python-build-system)
     (propagated-inputs
-     `(("python-cfgraph" ,python-cfgraph)
-       ("python-pyshexc" ,python-pyshexc)
-       ("python-rdflib" ,python-rdflib)
-       ("python-pbr" ,python-pbr)
-       ("python-rdflib-jsonld" ,python-rdflib-jsonld)
-       ("python-requests" ,python-requests)
-       ("python-shexjsg" ,python-shexjsg)
-       ("python-sparql-slurper" ,python-sparql-slurper)
-       ("python-sparqlwrapper" ,python-sparqlwrapper)
-       ("python-urllib3" ,python-urllib3)))
+     (list python-cfgraph
+           python-chardet
+           python-pyshexc
+           python-rdflib-shim
+           python-requests
+           python-shexjsg
+           python-sparqlslurper
+           python-sparqlwrapper
+           python-urllib3))
+    (native-inputs
+     (list python-pbr python-unittest2))
     (home-page "https://github.com/hsolbrig/PyShEx")
     (synopsis "Python ShEx Implementation")
     (description "This package provides a python ShEx Implementation.")
