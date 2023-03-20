@@ -928,54 +928,34 @@ server.")
 (define-public python-pyshexc
   (package
     (name "python-pyshexc")
-    (version "0.5.4")
+    (version "0.9.1")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "PyShExC" version))
         (sha256
-         (base32
-          "0hyhmc971gh25ja34j9hbkr7dg9n3jfin8668cqzjmcpjvb1jnil"))))
+         (base32 "1lq4lf0nal1v1d3vbyrr1hfkhmhphy06dyqhyw7b5zls9dfrga9m"))))
     (build-system python-build-system)
     (arguments
-     '(#:tests? #f  ; Tests aren't included in release tarball.
+     '(#:tests? #f  ; It isn't clear how the tests expect to succeed.
        #:phases
        (modify-phases %standard-phases
          (replace 'check
            (lambda* (#:key inputs outputs tests? #:allow-other-keys)
-             (if tests?
-               (begin (add-installed-pythonpath inputs outputs)
-                      (substitute* "tests/test_basic_parser.py"
-                        (("BasicParserTestCase.repo_url.*")
-                         (string-append "BasicParserTestCase.repo_url = \""
-                                        (assoc-ref inputs "test-suite")
-                                        "/schemas\"\n")))
-                      (with-directory-excursion "tests"
-                        (invoke "python" "build_test_harness.py")
-                        (invoke "python" "test_basic_parser.py")
-                        (invoke "python" "test_issue_2.py")
-                        (invoke "python" "test_shexr.py")))
-               #t))))))
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (invoke "python" "-m" "unittest" "discover" "-s" "tests")))))))
     (propagated-inputs
-     `(("python-antlr4-python3-runtime" ,python-antlr4-python3-runtime)
-       ("python-jsonasobj" ,python-jsonasobj)
-       ("python-pyjsg" ,python-pyjsg)
-       ("python-rdflib" ,python-rdflib)
-       ("python-rdflib-jsonld" ,python-rdflib-jsonld)
-       ("python-requests" ,python-requests)))
+     (list python-antlr4-python3-runtime
+           python-chardet
+           python-jsonasobj
+           python-pyjsg
+           python-rdflib-shim
+           python-shexjsg))
     (native-inputs
-     `(("python-yadict-compare" ,python-yadict-compare)
-       ("python-shexjsg" ,python-shexjsg-min)
-       ("test-suite"
-        ,(origin
-           (method git-fetch)
-           (uri (git-reference
-                  (url "https://github.com/shexSpec/shexTest")
-                  (commit "v2.0.2")))
-           (file-name (git-file-name name version))
-           (sha256
-            (base32
-             "1x788nyrwycfr55wbg0ay6mc8mi6wwsg81h614rx9pw6rvrsppps"))))))
+     (list python-pbr
+           python-requests
+           python-yadict-compare))
     (home-page "https://github.com/shexSpec/grammar/tree/master/parsers/python")
     (synopsis "Python ShExC Parser")
     (description "This package converts the @dfn{Shape Expression Compact}
@@ -1095,19 +1075,6 @@ treats name/value pairs as first class attributes whenever possible.")
     (description "This package provides an astract syntax tree for the
 ShEx 2.0 language.")
     (license license:cc0)))
-
-;; Lets use this one for tests.
-(define python-shexjsg-min
-  (package
-    (inherit python-shexjsg)
-    (name "python-shexjsg")
-    (arguments
-     (substitute-keyword-arguments (package-arguments python-shexjsg)
-       ((#:tests? _ #t) #f)))
-    (native-inputs
-     `(,@(alist-delete "python-pyshexc"
-                       (package-native-inputs python-shexjsg))))
-    (properties `((hidden? . #t)))))
 
 (define-public python-yadict-compare
   (package
