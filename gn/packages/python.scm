@@ -1152,6 +1152,38 @@ handles recursion and lists.")
     (description "This package provides a SPARQL Slurper for rdflib.")
     (license license:asl2.0)))
 
+(define-public python-sparqlslurper
+  (package
+    (name "python-sparqlslurper")
+    (version "0.5.1")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "sparqlslurper" version))
+              (sha256
+               (base32 "0ipma74dr5jvsxwaa9al147mn9vv3v5r9lb9hajm4qgwcjqfp0lj"))))
+    (build-system python-build-system)
+    (arguments
+     '(#:tests? #f  ; Tests try to use the internet.
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (invoke "python" "-m" "unittest")))))))
+    (propagated-inputs
+     (list python-rdflib-shim
+           python-sparqlwrapper))
+    (native-inputs
+     (list python-pbr python-unittest2))
+    (home-page "http://github.com/hsolbrig/sparqlslurper")
+    (synopsis "SPARQL Slurper for rdflib")
+    (description "This package provides an implementation of a
+@code{rdflibGraph} that acts as a cache for a SPARQL endpoint.  SPARQL Slurper
+translates the @code{Graph.triples()} function into the corresponding SPARQL
+query and resolves it against an endpoint.")
+    (license license:cc0)))
+
 (define-public python38-ruaml.yaml-0.15.76 ;; no longer in use 
   (package
     (inherit python-ruamel.yaml)
