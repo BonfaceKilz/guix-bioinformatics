@@ -11,6 +11,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages monitoring)
   #:use-module (gnu packages pcre)
+  #:use-module (gnu packages protobuf)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-check)
@@ -835,34 +836,39 @@ spreadsheets without the need for COM objects.")
 (define-public python-arvados-python-client
   (package
     (name "python-arvados-python-client")
-    (version "2.0.2")
+    (version "2.5.0")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "arvados-python-client" version))
         (sha256
-         (base32
-          "19l4w6m5426x5k2kick630dh2jx26j16ycs2nhbfgr4cd43d29y4"))))
+         (base32 "1j08aykj0v2z2bqwr5nfnbjgc1yzdnfdafcnxbf2jbwqh8kx7zc9"))
+        (modules '((guix build utils)))
+        (snippet
+         '(begin
+            (substitute* "setup.py"
+              ;; Don't set a maximum version of pycurl.
+              (("(pycurl >=([[:digit:]]+\\.?)+),.*" _ pycurl)
+               (string-append pycurl "',\n")))))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f))    ; tests not included?
     (propagated-inputs
-     `(("python-ciso8601" ,python-ciso8601)
-       ("python-future" ,python-future)
-       ;("python-google-api-python-client" ,python-google-api-python-client)
-       ("python-google-api-client" ,python-google-api-client)
-       ("python-httplib2" ,python-httplib2)
-       ("python-pycurl" ,python-pycurl)
-       ("python-ruaml.yaml" ,python38-ruaml.yaml-0.15.76)
-       ("python-setuptools" ,python-setuptools)
-       ("python-oauth2client" ,python-oauth2client)
-       ("python-uritemplate" ,python-uritemplate)
-       ("python-ws4py" ,python-ws4py)))
+     (list python-ciso8601
+           python-future
+           python-google-api-client
+           python-google-api-core-1
+           python-google-auth-1
+           python-httplib2
+           python-protobuf
+           python-pycurl
+           python-pyparsing-2.4.7       ; < 3
+           python-ruamel.yaml
+           python-ws4py))
     (native-inputs
-     `(("python-mock" ,python-mock)
-       ("python-pbr" ,python-pbr-1.6.0)
-       ("python-pyyaml" ,python-pyyaml)
-       ))
+     (list python-mock
+           python-pbr-1.6.0
+           python-pyyaml))
     (home-page "https://arvados.org")
     (synopsis "Arvados client library")
     (description "This package provides the arvados module, an API client for
@@ -1151,31 +1157,6 @@ handles recursion and lists.")
 translates the @code{Graph.triples()} function into the corresponding SPARQL
 query and resolves it against an endpoint.")
     (license license:cc0)))
-
-(define-public python38-ruaml.yaml-0.15.76 ;; no longer in use 
-  (package
-    (inherit python-ruamel.yaml)
-    (name "python-ruamel.yaml")
-    (version "0.15.76")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "ruamel.yaml" "0.15.78"))
-        (sha256
-         (base32
-          "0pwxgrma6k47kvsphqz5yrhwnfrhwsrhn6sjp8p21s91wdgkqyc5"))))
-    (arguments
-     `(#:tests? #f  ; suprise test failures
-       #:phases
-       (modify-phases %standard-phases
-         ;; For some unknown reason we need: ruamel.yaml<=0.15.77,>=0.15.54
-         ;; But 0.15.78 is the first which builds with python-3.8.
-         (add-after 'unpack 'patch-source
-           (lambda _
-             (substitute* "__init__.py"
-               (("0\\.15\\.78") "0.15.76")
-               (("15, 78") "15, 76"))
-             #t)))))))
 
 (define-public python2-ruamel.ordereddict
   (package
