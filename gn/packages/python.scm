@@ -995,65 +995,33 @@ treats name/value pairs as first class attributes whenever possible.")
 (define-public python-shexjsg
   (package
     (name "python-shexjsg")
-    (version "0.6.5")
+    (version "0.8.2")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "ShExJSG" version))
         (sha256
-         (base32
-          "1nn69sl5j949qy21nl5gr56cxfhmml1vng08hayxqfj6vn3ay3gg"))))
+         (base32 "1dnhpk6n6vzadkv13y7r6y2mi1pzv4y19vmxh91k9ykpqngn4ypi"))))
     (build-system python-build-system)
     (arguments
      '(#:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'patch-source
-           (lambda _
-             (substitute* '("requirements.txt"
-                            "requirements-dev.txt")
-              (("pyshexc.*") "") ; no loops
-               (("==.*") "\n"))
-             #t))
          (replace 'check
            (lambda* (#:key inputs outputs tests? #:allow-other-keys)
              (if tests?
                (begin (add-installed-pythonpath inputs outputs)
-                      (substitute* '("tests/test_shexc.py"
-                                     "tests/test_shexj.py")
-                        (("shexTestRepository =.*")
-                         (string-append "shexTestRepository = \""
-                                        (assoc-ref inputs "test-suite")
-                                        "/schemas\"\n")))
-                      (invoke "python" "-m" "unittest"))
-               #t))))))
+                      ;; Tries to download files from the internet.
+                      (substitute* "tests/test_shexj.py"
+                        (("skipIf\\(False") "skipIf(True"))
+                      (invoke "python" "-m" "unittest"))))))))
     (propagated-inputs
-     `(("python-antlr4-python3-runtime" ,python-antlr4-python3-runtime)
-       ("python-certifi" ,python-certifi)
-       ("python-chardet" ,python-chardet)
-       ("python-idna" ,python-idna)
-       ("python-isodate" ,python-isodate)
-       ("python-pyjsg" ,python-pyjsg)
-       ("python-requests" ,python-requests)
-       ("python-urllib3" ,python-urllib3)))
+     (list python-pyjsg))
     (native-inputs
-     `(("python-jsonasobj" ,python-jsonasobj)
-       ("python-pbr" ,python-pbr)
-       ("python-pyparsing" ,python-pyparsing)
-       ("python-pyshexc" ,python-pyshexc)
-       ("python-rdflib" ,python-rdflib)
-       ("python-rdflib-jsonld" ,python-rdflib-jsonld)
-       ("python-six" ,python-six)
-       ("python-yadict-compare" ,python-yadict-compare)
-       ("test-suite"
-        ,(origin
-           (method git-fetch)
-           (uri (git-reference
-                  (url "https://github.com/shexSpec/shexTest")
-                  (commit "v2.0.2")))
-           (file-name (git-file-name name version))
-           (sha256
-            (base32
-             "1x788nyrwycfr55wbg0ay6mc8mi6wwsg81h614rx9pw6rvrsppps"))))))
+     (list python-jsonasobj
+           python-pbr
+           python-rdflib-shim
+           python-requests
+           python-yadict-compare))
     (home-page "https://github.com/hsolbrig/ShExJSG")
     (synopsis "Astract Syntax Tree for the ShEx 2.0 language")
     (description "This package provides an astract syntax tree for the
