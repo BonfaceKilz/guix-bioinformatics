@@ -1822,7 +1822,12 @@ file format spec.")
               (uri (pypi-uri "rdflib_shim" version))
               (sha256
                (base32
-                "03gwsjcinbyyqrhs2jfhs6mr7j69dfn5djihd0mv9al654gd2mfr"))))
+                "03gwsjcinbyyqrhs2jfhs6mr7j69dfn5djihd0mv9al654gd2mfr"))
+              (modules '((guix build utils)))
+              (snippet
+               '(begin
+                  (substitute* "requirements.txt"
+                    (("rdflib-jsonld==0.6.1") "rdflib-jsonld"))))))
     (build-system python-build-system)
     (arguments
      '(#:phases
@@ -1833,34 +1838,10 @@ file format spec.")
                (add-installed-pythonpath inputs outputs)
                (invoke "python" "-m" "unittest" "discover" "-s" "tests")))))))
     (propagated-inputs
-     (list python-rdflib python-rdflib-jsonld-0.6.1))
+     (list python-rdflib python-rdflib-jsonld))
     (native-inputs
      (list python-pbr))
     (home-page "http://hsolbrig.github.io/rdflib-shim")
     (synopsis "Shim for rdflib 5 and 6 incompatibilities")
     (description "Shim for rdflib 5 and 6 incompatibilities")
     (license license:cc0)))
-
-;; Don't inherit from python-rdflib-jsonld, that package is scheduled to be removed.
-(define python-rdflib-jsonld-0.6.1
-  (package
-    (name "python-rdflib-jsonld")
-    (version "0.6.1")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "rdflib-jsonld" version))
-        (sha256
-         (base32 "1q50h89zppdwnzk425cg6rsz5kdwhk3baclflx6hvy095qma99gd"))))
-    (build-system python-build-system)
-    (arguments
-     (list #:tests? #f))
-    (native-inputs
-     (list python-nose))
-    (propagated-inputs
-     (list python-rdflib))
-    (home-page "https://github.com/RDFLib/rdflib-jsonld")
-    (synopsis "rdflib extension adding JSON-LD parser and serializer")
-    (description "This package provides an rdflib extension adding JSON-LD
-parser and serializer.")
-    (license license:bsd-3)))
