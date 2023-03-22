@@ -952,6 +952,75 @@ server.")
 (ShExC) into @dfn{Python JSON Schema Binding} (pyjsg) objects.")
     (license license:asl2.0)))
 
+(define-public python-pyshexc-0.7
+  (package
+    (inherit python-pyshexc)
+    (name "python-pyshexc")
+    (version "0.7.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/shexSpec/grammar")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name "shexspec-grammar" version))
+        (sha256
+         (base32 "08wsknjq8zyi3hk01w6yl6z8jld63l6l64n43gjhj0jphbm4s9iz"))
+        (modules '((guix build utils)))
+        (snippet
+         '(begin
+            (substitute* "parsers/python/setup.cfg"
+              (("python-requires = 3") "python_requires = >=3.6"))))))
+    (arguments
+     `(#:tests? #f  ; Tests try to access the internet.
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'chdir
+           (lambda _
+             (chdir "parsers/python")
+             (setenv "PBR_VERSION" ,version)))
+         (replace 'check
+           (lambda* (#:key inputs outputs tests? #:allow-other-keys)
+             (when tests?
+               (add-installed-pythonpath inputs outputs)
+               (substitute* "tests/__init__.py"
+                 (("schemas_base =.*")
+                  (string-append "schemas_base = \""
+                                 (assoc-ref inputs "test-suite")
+                                 "/schemas\"\n")))
+               (substitute* "tests/test_shexr.py"
+                 (("https://raw.githubusercontent.com/shexSpec/shexTest/master/validation/manifest")
+                  (string-append (assoc-ref inputs "test-suite")
+                                 "/validation/manifest")))
+               (substitute* "tests/test_issue_9.py"
+                 (("https://raw.githubusercontent.com/shexSpec/shexTest/master/schemas/1dotNS2.shex")
+                  (search-input-file inputs "/schemas/1dotNS2.shex")))
+               (symlink (assoc-ref inputs "test-suite")
+                        "../../../shexTest")
+               (invoke "python" "-m" "unittest" "discover" "-s" "tests")))))))
+    (propagated-inputs
+     (list python-antlr4-python3-runtime
+           python-certifi
+           python-jsonasobj
+           python-rdflib-shim
+           python-requests
+           python-shexjsg))
+    (native-inputs
+     `(("python-pbr" ,python-pbr)
+       ("python-unittest2" ,python-unittest2)
+       ("python-yadict-compare" ,python-yadict-compare)
+       ("test-suite"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                  (url "https://github.com/shexSpec/shexTest")
+                  (commit "v2.0.2")))
+           (file-name (git-file-name name version))
+           (sha256
+            (base32
+             "1x788nyrwycfr55wbg0ay6mc8mi6wwsg81h614rx9pw6rvrsppps"))))))
+    (home-page "https://github.com/shexSpec/grammar/tree/master/parsers/python")))
+
 (define-public python-antlr4-python3-runtime
   (package
     (name "python-antlr4-python3-runtime")
