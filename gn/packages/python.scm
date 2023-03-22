@@ -907,32 +907,37 @@ server.")
 (define-public python-pyshex
   (package
     (name "python-pyshex")
-    (version "0.8.1")
+    (version "0.7.14")
     (source
       (origin
         (method url-fetch)
         (uri (pypi-uri "PyShEx" version))
         (sha256
-         (base32 "1l3hprspx5l4zl28p1m79mwfxy5c86601jq3x3damyi7zr2lsp1w"))))
+         (base32 "1fy664bh6hpmr4cf49fwwxng36kv7s6b2986hbv0cqcypc4ri2cs"))))
     (arguments
-     '(#:phases
+     '(#:tests? #f          ; Tests try to use the internet.
+       #:phases
        (modify-phases %standard-phases
+         (add-after 'unpack 'drop-rdflib-namespace-rdfnamespace
+           (lambda _
+             ;; _RDFNamespace is in rdflib-5
+             ;; https://github.com/hsolbrig/PyShEx/commit/d138a5b4f2249212f2141b7b9bbaff6696ee9415
+             (substitute* "pyshex/prefixlib.py"
+               (("XMLNS, _RDFNamespace") "XMLNS"))))
          (replace 'check
            (lambda* (#:key inputs outputs tests? #:allow-other-keys)
              (when tests?
                (add-installed-pythonpath inputs outputs)
                (setenv "SKIP_EXTERNAL_URLS" "true")
-               (invoke "python" "-m" "unittest" "-k"
-                       "test_sparql_options")))))))
+               (invoke "python" "-m" "unittest")))))))
     (build-system python-build-system)
     (propagated-inputs
      (list python-cfgraph
-           python-chardet
-           python-pyshexc
-           python-rdflib-shim
+           python-pyshexc-0.7
+           python-rdflib
            python-requests
            python-shexjsg
-           python-sparqlslurper
+           python-sparql-slurper
            python-sparqlwrapper
            python-urllib3))
     (native-inputs
