@@ -30,6 +30,7 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix gexp)
   #:use-module (guix utils)
   #:use-module (guix build-system python)
   #:use-module (srfi srfi-1))
@@ -832,6 +833,32 @@ spreadsheets without the need for COM objects.")
         (sha256
          (base32
           "1lg1klrczvzfan89y3bl9ykrknl3nb01vvai37fkww24apzyibjf"))))))
+
+(define-public python-py-dateutil
+  (package
+    (name "python-py-dateutil")
+    (version "2.2")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "py-dateutil" version))
+              (sha256
+               (base32
+                "0j5hyhn2yqwyapbhvdvw14a0ydhdl6ddw95nii091iarf6hjryky"))))
+    (build-system python-build-system)
+    (arguments
+     (list
+       #:tests? #f          ; Package is unmaintained since ~2014
+       #:phases
+       #~(modify-phases %standard-phases
+           (replace 'check
+             (lambda* (#:key tests? #:allow-other-keys)
+               (when tests?
+                 (invoke "python" "test.py")))))))
+    (propagated-inputs (list python-six))
+    (home-page "https://bitbucket.org/cld/dateutil")
+    (synopsis "Extensions to the standard Python datetime module")
+    (description "Extensions to the standard Python datetime module")
+    (license license:bsd-3)))
 
 (define-public python-arvados-python-client
   (package
