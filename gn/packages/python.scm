@@ -1187,6 +1187,22 @@ query and resolves it against an endpoint.")
 sorted order.")
     (license license:expat)))
 
+(define-public python-pytest-5
+  (package
+    (inherit python-pytest)
+    (name "python-pytest")
+    (version "5.4.3")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "pytest" version))
+              (sha256
+               (base32
+                "1n67lk8iwlsmfdm8663k8l7isllg1xd3n9p1yla7885szhdk6ybr"))))
+    (build-system python-build-system)
+    (native-inputs
+     (modify-inputs (package-native-inputs python-pytest)
+                    (prepend python-argcomplete python-requests)))))
+
 (define-public python-pytest-4
   (package
     (inherit python-pytest)
