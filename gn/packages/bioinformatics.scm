@@ -1791,17 +1791,6 @@ reads, also called read-based phasing or haplotype assembly.  It is especially
 suitable for long reads, but works also well with short reads.")
     (license license:expat)))
 
-(define-public python-pytest-runner-2
-  (package
-    (inherit python-pytest-runner)
-    (version "2.12.2")
-    (source (origin
-              (method url-fetch)
-              (uri (pypi-uri "pytest-runner" version))
-              (sha256
-               (base32
-                "11ivjj9hfphkv4yfb2g74av4yy86y8gcbf7gbif0p1hcdfnxg3w6"))))))
-
 (define-public bh20-seq-resource
   (let ((commit "ae4cb3c2cf7103bbc84f52618bb755d7ce25775b")
         (revision "3"))

@@ -1324,6 +1324,29 @@ sorted order.")
        ("python-requests" ,python-requests)
        ,@(package-native-inputs python-pytest)))))
 
+(define-public python-pytest-runner-4
+  (package
+    (inherit python-pytest-runner)
+    (name "python-pytest-runner")
+    (version "4.5.1")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "pytest-runner" version))
+              (sha256
+               (base32
+                "1vzilbayx5mznsdm1r258m3616374p6kvhsbj4j6238j9djkvjyi"))))))
+
+(define-public python-pytest-runner-2
+  (package
+    (inherit python-pytest-runner)
+    (version "2.12.2")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "pytest-runner" version))
+              (sha256
+               (base32
+                "11ivjj9hfphkv4yfb2g74av4yy86y8gcbf7gbif0p1hcdfnxg3w6"))))))
+
 (define-public python-pandas-plink
   (package
     (name "python-pandas-plink")
