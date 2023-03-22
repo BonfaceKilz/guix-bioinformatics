@@ -978,7 +978,7 @@ server.")
      (list python-pbr
            python-requests
            python-yadict-compare))
-    (home-page "https://github.com/shexSpec/grammar/tree/master/parsers/python")
+    (home-page "https://github.com/shexSpec/grammar-python-antlr")
     (synopsis "Python ShExC Parser")
     (description "This package converts the @dfn{Shape Expression Compact}
 (ShExC) into @dfn{Python JSON Schema Binding} (pyjsg) objects.")
