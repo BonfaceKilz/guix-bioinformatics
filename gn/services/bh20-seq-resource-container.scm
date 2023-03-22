@@ -5,6 +5,7 @@
              (guix modules)
              ((guix packages) #:select (package-source))
              (guix records)
+             (guix build-system python) ; for python-version from guix/build/python-build-system.scm
              (ice-9 match))
 (use-service-modules shepherd)
 (use-package-modules compression python python-web)
@@ -58,9 +59,10 @@
                           #:directory #$deploy-directory
                           #:log-file "/var/log/covid19-pubseq.log"
                           #:environment-variables
+                          ;(let (pyversion (python-version (@ (gnu packages python) python)))
                           '("TMPDIR=/export/tmp"
-                            ;; TODO: Don't hardcode python version!
-                            "PYTHONPATH=/run/current-system/profile/lib/python3.8/site-packages")
+                            "PYTHONPATH=/run/current-system/profile/lib/python3.9/site-packages")
+                          ;  (string-append "PYTHONPATH=/run/current-system/profile/lib/python" pyversion "/site-packages")))
                           ;#:mappings
                           ;(list (file-system-mapping
                           ;        (source "/export/tmp")
@@ -68,7 +70,7 @@
                           ;        (writable? #t))
                           ;      (file-system-mapping
                           ;        ;; TODO: Don't hardcode python version!
-                          ;        (source "/run/current-system/profile/lib/python3.8/site-packages")
+                          ;        (source "/run/current-system/profile/lib/python3.9/site-packages")
                           ;        (target source)))
                           ))
                (stop  #~(make-kill-destructor))))))))
@@ -104,3 +106,5 @@
   (packages '())
 
   (services (list (service covid19-pubseq-service-type))))
+
+;; guix system container /home/shepherd/guix-bioinformatics/gn/services/bh20-seq-resource-container.scm --share=/export/tmp=/export/tmp --network
