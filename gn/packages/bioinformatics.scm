@@ -1792,8 +1792,8 @@ suitable for long reads, but works also well with short reads.")
     (license license:expat)))
 
 (define-public bh20-seq-resource
-  (let ((commit "ae4cb3c2cf7103bbc84f52618bb755d7ce25775b")
-        (revision "3"))
+  (let ((commit "2ae71911cd87ce4f2eabdff21e538267b3270d45")
+        (revision "4"))
     (package
       (name "bh20-seq-resource")
       (version (git-version "1.0" revision commit))
@@ -1804,36 +1804,34 @@ suitable for long reads, but works also well with short reads.")
                        (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32 "1k0gsz4yc8l5znanzd094g2jp40ksbpa9667zr31ayrjx6labz02"))
+                 (base32 "1k6cc88hrcm77jwpdk2084q0zirv2vlbz3c07nmpbhk1lhqk5x0n"))
                 (modules '((guix build utils)))
                 (snippet
                  '(begin
-                    (substitute* "setup.py"
-                      (("py-dateutil") "python-dateutil"))
-                    #t))))
+                    (delete-file "gittaggers.py")))))
       (build-system python-build-system)
+      (arguments
+       (list
+         #:tests? #f))  ; Tests can't find pytest
       (propagated-inputs
-       `(("python-arvados-python-client" ,python-arvados-python-client)
-         ("python-dateutil" ,python-dateutil)
-         ("python-flask" ,python-flask)
-         ("python-magic" ,python-magic)
-         ("python-pyyaml" ,python-pyyaml)
-         ("python-pycurl" ,python-pycurl)
-         ("python-pyshex" ,python-pyshex)
-         ("python-redis" ,python-redis)
-         ("python-ruaml.yaml" ,python38-ruaml.yaml-0.15.76)
-         ("clustalw" ,clustalw)
-         ("python-schema-salad" ,python-schema-salad)
-         ("python-twint" ,python-twint)
-         ;; and for the service
-         ("python" ,python)
-         ("gunicorn" ,gunicorn)))
+       (list python-arvados-python-client
+             python-schema-salad
+             python-magic
+             python-pyshex
+             python-pyshexc-0.7
+             python-py-dateutil
+
+             ;; for the web
+             python-flask
+             python-pyyaml
+             python-redis
+
+             ;; and for the service
+             python
+             gunicorn))
       (native-inputs
-       `(("git" ,(@ (gnu packages version-control) git))
-         ("python-oauth2client" ,python-oauth2client)
-         ("python-pytest" ,python-pytest-4)
-         ("python-pytest-runner" ,python-pytest-runner-2)
-         ("python-uritemplate" ,python-uritemplate)))
+       (list python-pytest-4                ; < 6
+             python-pytest-runner-4))       ; < 5
       (home-page "https://github.com/pubseq/bh20-seq-resource")
       (synopsis
        "Tool to upload SARS-CoV-19 sequences and service to kick off analysis")
