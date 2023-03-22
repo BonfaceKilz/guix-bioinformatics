@@ -1812,7 +1812,16 @@ suitable for long reads, but works also well with short reads.")
       (build-system python-build-system)
       (arguments
        (list
-         #:tests? #f))  ; Tests can't find pytest
+         #:tests? #f    ; Tests can't find pytest
+         #:phases
+         #~(modify-phases %standard-phases
+             (add-after 'unpack 'patch-program-calls
+               (lambda* (#:key inputs #:allow-other-keys)
+                 (substitute* "bh20sequploader/qc_fasta.py"
+                   (("\"minimap2\"")
+                    (string-append "\"" (search-input-file
+                                          inputs "/bin/minimap2")
+                                   "\""))))))))
       (propagated-inputs
        (list python-arvados-python-client
              python-schema-salad
@@ -1829,6 +1838,8 @@ suitable for long reads, but works also well with short reads.")
              ;; and for the service
              python
              gunicorn))
+      (inputs
+       (list minimap2))
       (native-inputs
        (list python-pytest-4                ; < 6
              python-pytest-runner-4))       ; < 5
