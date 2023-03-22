@@ -1852,6 +1852,18 @@ it to upload the genomes of SARS-CoV-2 samples to make them publicly and freely
 available to other researchers.")
       (license license:asl2.0))))
 
+;; This version has no profile collisions.
+(define-public bh20-seq-resource-for-service
+  (package
+    ;(inherit (fix-profile-collisions-for-bh20 bh20-seq-resource))
+    (inherit
+      ((package-input-rewriting/spec
+        `(("python-google-api-core" . ,(const python-google-api-core-1))
+          ("python-google-auth" . ,(const python-google-auth-1))
+          ("python-pyparsing" . ,(const python-pyparsing-2.4.7))))
+       bh20-seq-resource))
+    (properties `((hidden? . #t)))))
+
 (define-public python-scanpy-git
   (let ((commit "590d42309f9ed6550d7b887039990edfc1ac7648") ; April 22, 2020
         (revision "1"))

@@ -14,7 +14,7 @@
   make-covid19-pubseq-configuration
   covid19-pubseq-configuration?
   (package          covid19-pubseq-configuration-package    ; package
-                    (default bh20-seq-resource))
+                    (default bh20-seq-resource-for-service))
   (deploy-directory covid19-pubseq-deploy-directory         ; string
                     (default "/srv/http"))
   (port             covid19-pubseq-configuration-port       ; string
