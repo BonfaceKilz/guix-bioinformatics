@@ -5987,7 +5987,9 @@ Simple gem that adds various color methods to String class, and can be used as f
     `(("ruby-rake" ,ruby-rake)
        ("ruby-rake-compiler" ,ruby-rake-compiler)
        ("ruby-rspec" ,ruby-rspec)      ("ruby-rspec" ,ruby-rspec)))
-   (synopsis "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
+   (arguments
+    `(#:tests? #f ; There are no tests.
+   ))   (synopsis "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
    (description "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
    (home-page "https://github.com/doriantaylor/rb-lmdb")
    (license license:expat)))
