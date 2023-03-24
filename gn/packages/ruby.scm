@@ -5971,3 +5971,23 @@ Simple gem that adds various color methods to String class, and can be used as f
   (home-page
     "http://github.com/pjotrp/regressiontest")
   (license license:expat)))
+
+(define-public ruby-lmdb
+  (package
+   (name "ruby-lmdb")
+   (version "0.6.1")
+   (source (origin
+            (method url-fetch)
+            (uri (rubygems-uri "lmdb" version))
+            (sha256
+             (base32
+              "0yzlf56ynj545ln5dxl422rpi8r6h11cr6rag5hk2qpbkzs6l9c2"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("ruby-rake" ,ruby-rake)
+       ("ruby-rake-compiler" ,ruby-rake-compiler)
+       ("ruby-rspec" ,ruby-rspec)      ("ruby-rspec" ,ruby-rspec)))
+   (synopsis "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
+   (description "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
+   (home-page "https://github.com/doriantaylor/rb-lmdb")
+   (license license:expat)))
