@@ -2187,7 +2187,7 @@ in-memory footprint at the cost of packing and unpacking.")
     (inputs
      `(("boost" ,boost)
        ("cairo" ,cairo)
-       ("curl" ,curl-minimal)
+       ("curl" ,curl)
        ("elfutils" ,elfutils)
        ("fastahack" ,fastahack)
        ("htslib" ,htslib)
