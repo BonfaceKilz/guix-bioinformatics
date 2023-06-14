@@ -9,8 +9,10 @@
   #:use-module (gnu packages image)
   #:use-module (gnu packages libffi)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages maths)
   #:use-module (gnu packages monitoring)
   #:use-module (gnu packages pcre)
+  #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages protobuf)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-build)
@@ -1845,3 +1847,34 @@ file format spec.")
     (synopsis "Shim for rdflib 5 and 6 incompatibilities")
     (description "Shim for rdflib 5 and 6 incompatibilities")
     (license license:cc0)))
+
+(define-public python-h5py-2
+  (package
+    (name "python-h5py")
+    (version "2.10.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "h5py" version))
+              (sha256
+               (base32
+                "0baipzv8n93m0dq0riyi8rfhzrjrfrfh8zqhszzp1j2xjac2fhc4"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:tests? #f ;no test target
+       #:phases (modify-phases %standard-phases
+                  (add-after 'unpack 'fix-hdf5-paths
+                    (lambda* (#:key inputs #:allow-other-keys)
+                      (setenv "HDF5_DIR"
+                              (assoc-ref inputs "hdf5")))))))
+    (propagated-inputs (list python-six python-numpy))
+    (inputs (list hdf5-1.10))
+    (native-inputs (list python-cython python-pkgconfig pkg-config))
+    (home-page "https://www.h5py.org/")
+    (synopsis "Read and write HDF5 files from Python")
+    (description
+     "The h5py package provides both a high- and low-level interface to the
+HDF5 library from Python.  The low-level interface is intended to be a
+complete wrapping of the HDF5 API, while the high-level component supports
+access to HDF5 files, datasets and groups using established Python and NumPy
+concepts.")
+    (license license:bsd-3)))

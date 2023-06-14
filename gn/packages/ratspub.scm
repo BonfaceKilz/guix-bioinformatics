@@ -17,6 +17,7 @@
   #:use-module (gnu packages python-xyz)
   #:use-module (gn packages javascript)
   #:use-module (gn packages machine-learning)
+  #:use-module (gn packages python)
   #:use-module (gn packages web))
 
 (define-public ratspub
@@ -147,6 +148,13 @@ into six categories.  Data from @url{https://www.ebi.ac.uk/gwas/,
 Association Studies}} catalog are also included in the search.  These
 gene-keyword relationships are presented as an interactive graph and a table.")
     (license license:expat)))
+
+(define use-corrected-inputs
+  (package-input-rewriting/spec
+    ;; Tensorflow-native provides much improved speeds. python-h5py@2 provides
+    ;; compatibility with our version of tensorflow.
+    `(("tensorflow" . ,(const tensorflow-native))
+      ("python-h5py" . ,(const python-h5py-2)))))
 
 (define-public ratspub-with-tensorflow-native
   (package
@@ -399,11 +407,11 @@ concepts and a list of keywords for each concept.")
 (define-public genecup-with-tensorflow-native
   (package
     (inherit
-      (tensowflow-native-instead-of-tensorflow genecup))
+      (use-corrected-inputs genecup))
     (name "genecup-with-tensorflow-native")))
 
 (define-public genecup-latest-with-tensorflow-native
   (package
     (inherit
-      (tensowflow-native-instead-of-tensorflow genecup-master))
+      (use-corrected-inputs genecup-master))
     (name "genecup-latest-with-tensorflow-native")))
