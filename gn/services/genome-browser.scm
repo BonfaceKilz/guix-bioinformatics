@@ -23,7 +23,7 @@
                    ;"db.host=localhost\n"
                    ;"db.user=readonly\n"
                    ;"db.password=access\n"
-                   "db.host=penguin2\n"
+                   "db.host=tux02\n"
                    "db.user=webqtlout\n"
                    "db.password=webqtlout\n"
                    "db.trackDb=trackDb\n"
@@ -40,12 +40,12 @@
                    ;"central.socket=/run/mysqld/mysqld.sock\n"   ; default for mysql service
                    ;"central.user=readwrite\n"
                    ;"central.password=update\n"
-                   "central.host=penguin2\n"
+                   "central.host=tux02\n"
                    "central.user=webqtlout\n"
                    "central.password=webqtlout\n"
                    "central.domain=\n"
                    "backupcentral.db=hgcentral\n"
-                   "backupcentral.host=penguin2\n"
+                   "backupcentral.host=tux02\n"
                    "backupcentral.user=webqtlout\n"
                    "backupcentral.password=webqtlout\n"
                    "backupcentral.domain=\n"
@@ -130,7 +130,7 @@
                            (program (file-append ucsc-genome-browser "/bin/gfServer"))
                            (arguments
                              '("gfServer" "dynserver" "/gbdb")))))))
-          (syslog-service)  ; needed by inetd
+          (service syslog-service-type)  ; needed by inetd
           (service httpd-service-type
                    (httpd-configuration
                      (config
