@@ -51,7 +51,6 @@
   #:use-module (gn packages javascript)
   #:use-module (gn packages python)
   #:use-module (gn packages statistics)
-  #:use-module (gn packages twint)
   #:use-module (gn packages web)
   #:use-module (gn packages python-web)
   #:use-module (srfi srfi-1))
@@ -241,7 +240,6 @@
          ("python-simplejson" ,python-simplejson)
          ("python-markdown" ,python-markdown)
          ("python-rdflib" ,python-rdflib)
-         ("python-twint" ,python-twint)
 	 ("python-authlib" ,python-authlib)
 	 ("python-flask-session" ,python-flask-session)
          ;; TODO: Get rid of Python R bindings

@@ -23,7 +23,6 @@
   #:use-module (gn packages java)
   #:use-module (gn packages ocaml)
   #:use-module (gn packages python)
-  #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
   #:use-module (gnu packages assembly)
   #:use-module (gnu packages autotools)
