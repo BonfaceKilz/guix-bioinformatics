@@ -87,7 +87,7 @@
                                       #$(virtuoso-configuration-server-ip config)
                                       #$(virtuoso-configuration-server-port config)))
                             (when #$(virtuoso-dirs-allowed config)
-                                  (format port "[DirsAllowed] = ~a~%"
+                                  (format port "DirsAllowed = ~a~%"
                                           #$(virtuoso-dirs-allowed config)))
                             (when #$(virtuoso-configuration-number-of-buffers config)
                                   (format port "NumberOfBuffers = ~a~%"
