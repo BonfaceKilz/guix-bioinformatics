@@ -55,8 +55,6 @@
            (base32 "0n6m3aqvdfnsrhlhqjcy72d1i55lbkjg13ij5c7vw003p1n78wxi"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
-      (arguments
-       `(#:asd-files '("defstar.asd")))
       (home-page "https://github.com/lisp-maintainers/defstar")
       (synopsis "Type declarations for defun et all")
       (description
@@ -89,8 +87,6 @@ with a star added at the end.")
            (base32 "0zgx4ymyzvfg44z36yr4l87cd9mprajd7sycr2zc67ab6330rynf"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
-      (arguments
-       `(#:asd-files '("2am.asd")))
       (home-page "https://gitlab.common-lisp.net/dkochmanski/2am")
       (synopsis "Small testing framework based on 1am")
       (description
@@ -175,8 +171,6 @@ fringilla labore. Tellus penatibus arcu ligula nisi.")
            (base32 "1blmrb4c9gsxj87scz74z1s8w9d1w2r48fyxj0y1sw3vr6bsbb8f"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
-      (arguments
-       `(#:asd-files '("fare-memoization.asd")))
       (native-inputs
         (list sbcl-hu.dwim.stefil))
       (inputs
@@ -212,8 +206,6 @@ with the same arguments again, rather than re-doing the computation.")
            (base32 "08s53zj3mcx82kszp1bg2vsb4kydvkc70kj4hpq9h1l5a1wh44cy"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
-      (arguments
-       `(#:asd-files '("meta.asd")))
       (inputs
         (list sbcl-named-readtables))
       (home-page "https://gitlab.common-lisp.net/frideau/meta")
@@ -245,8 +237,6 @@ generators.")
            (base32 "056qi6vw9bk19s42mapyg55mimhhvhlwgny080v9mhv4fhnqi196"))
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
-      (arguments
-       `(#:asd-files '("scribble.asd")))
       (native-inputs
         (list sbcl-babel))
       (inputs
