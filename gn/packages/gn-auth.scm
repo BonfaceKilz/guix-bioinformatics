@@ -38,12 +38,13 @@
 	  "036k561kvzb6nwr1k1pd9fi20v4d7cnj5jdps6a30yjprfvj8y4l")))))
     (build-system python-build-system)
     (arguments
-     `(#:phases
-       #~(modify-phases %standard-phases
-	   (replace 'check
-	     (lambda* (#:key tests? #:allow-other-keys)
-	       (when tests?
-		 (invoke "pytest" "-k" "unit_test")))))))
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+	  (replace 'check
+	    (lambda* (#:key tests? #:allow-other-keys)
+	      (when tests?
+		(invoke "pytest" "-k" "unit_test")))))))
     (native-inputs
      (list python-mypy
 	   python-pytest
