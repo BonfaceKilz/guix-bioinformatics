@@ -1,5 +1,6 @@
 (define-module (gn packages gn-auth)
   #:use-module (guix)
+  #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
@@ -30,11 +31,11 @@
        (method git-fetch)
        (uri (git-reference
 	     (url "https://github.com/genenetwork/gn-auth.git")
-	     (commit "a183445c6ecf7e99aee82a2d729378b79bed58e7")))
+	     (commit "6b4e800ad2b642d3dce80cdcf84a102aad64fcfd")))
        (hash
 	(content-hash
 	 (base32
-	  "053h4w705v8dai3xj3qhj54d8am39w8x504y4gvbrdyczkl2fxci")))))
+	  "036k561kvzb6nwr1k1pd9fi20v4d7cnj5jdps6a30yjprfvj8y4l")))))
     (build-system python-build-system)
     (arguments
      `(#:phases
