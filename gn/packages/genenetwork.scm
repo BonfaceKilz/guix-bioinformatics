@@ -463,47 +463,93 @@
       (description "Genenetwork installation sumo.")
       (license license:agpl3+))))
 
+(define-public gn-auth
+  (package
+    (name "gn-auth")
+    (version "1.0.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+	     (url "https://github.com/genenetwork/gn-auth.git")
+	     (commit "6b4e800ad2b642d3dce80cdcf84a102aad64fcfd")))
+       (hash
+	(content-hash
+	 (base32
+	  "036k561kvzb6nwr1k1pd9fi20v4d7cnj5jdps6a30yjprfvj8y4l")))))
+    (build-system python-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+	  (replace 'check
+	    (lambda* (#:key tests? #:allow-other-keys)
+	      (when tests?
+		(invoke "pytest" "-k" "unit_test")))))))
+    (native-inputs
+     (list python-mypy
+	   python-pytest
+	   python-pylint
+	   python-hypothesis
+	   python-pytest-mock
+           python-mypy-extensions))
+    (propagated-inputs
+     (list gunicorn
+	   python-flask
+	   python-redis
+	   python-authlib
+	   python-pymonad
+	   yoyo-migrations
+	   python-bcrypt ;; remove after removing all references
+	   python-mysqlclient
+	   python-argon2-cffi
+	   python-email-validator))
+    (home-page "https://github.com/genenetwork/gn-auth")
+    (synopsis "Authentication and Authorisation server for GeneNetwork services")
+    (description "Authentication and Authorisation server for GeneNetwork services.")
+    (license license:agpl3+)))
+
 ;; ./pre-inst-env guix download http://files.genenetwork.org/raw_database/db_webqtl_s.zip
 ;; 0sscjh0wml2lx0mb43vf4chg9gpbfi7abpjxb34n3kyny9ll557x
 
 (define-public genenetwork2-files-small
   (let ((pfff "xx"))
     (package
-    (name "genenetwork2-files-small")
-    (version "1.0")
-    (source
-     (origin
-       (method url-fetch)
-       (uri "http://files.genenetwork.org/data_files/gn2_data_s-20160303-C9E672ECED1F51B915DE419B5B2C524E.tar.lz4")
-       (file-name (string-append name "-" pfff))
-       (sha256
-        (base32 "058ymx3af6abdhdxyxj0i9qfvb6v7j091frjpp6jh4ahks7r23lj"))))
-    (build-system trivial-build-system)
-    (native-inputs `(("lz4" ,lz4)
-                     ("tar" ,tar)
-                     ("source" ,source)))
+      (name "genenetwork2-files-small")
+      (version "1.0")
+      (source
+       (origin
+         (method url-fetch)
+         (uri "http://files.genenetwork.org/data_files/gn2_data_s-20160303-C9E672ECED1F51B915DE419B5B2C524E.tar.lz4")
+         (file-name (string-append name "-" pfff))
+         (sha256
+          (base32 "058ymx3af6abdhdxyxj0i9qfvb6v7j091frjpp6jh4ahks7r23lj"))))
+      (build-system trivial-build-system)
+      (native-inputs `(("lz4" ,lz4)
+                       ("tar" ,tar)
+                       ("source" ,source)))
 
-    (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (let* ((out (assoc-ref %outputs "out"))
-              (name "gn2_data_s")
-              (tarfn (string-append name ".tar"))
-              (targetdir (string-append out "/share/genenetwork2/")))
+      (arguments
+       `(#:modules ((guix build utils))
+         #:builder
+         (let* ((out (assoc-ref %outputs "out"))
+                (name "gn2_data_s")
+                (tarfn (string-append name ".tar"))
+                (targetdir (string-append out "/share/genenetwork2/")))
            (begin
              (use-modules (guix build utils))
              (let ((source (assoc-ref %build-inputs "source"))
                    (lz4unpack (string-append (assoc-ref %build-inputs "lz4") "/bin/lz4"))
                    (tar (string-append (assoc-ref %build-inputs "tar") "/bin/tar")))
                (and
-                 (zero? (system* lz4unpack source "-d" tarfn))
-                 (zero? (system* tar "xf" tarfn))
-                 (mkdir-p targetdir)
-                 (copy-recursively name targetdir)))))))
-    (home-page "http://genenetwork.org/")
-    (synopsis "Small file archive to run on genenetwork")
-    (description "Genenetwork genotype and mapping files.")
-    (license license:agpl3+))))
+                (zero? (system* lz4unpack source "-d" tarfn))
+                (zero? (system* tar "xf" tarfn))
+                (mkdir-p targetdir)
+                (copy-recursively name targetdir)))))))
+      (home-page "http://genenetwork.org/")
+      (synopsis "Small file archive to run on genenetwork")
+      (description "Genenetwork genotype and mapping files.")
+      (license license:agpl3+))))
 
 (define-public genenetwork2-database-small
   (let ((md5 "93e745e9c"))
