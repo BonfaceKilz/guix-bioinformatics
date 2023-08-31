@@ -2,11 +2,6 @@
  (version 0)
  (dependencies
   (channel
-   (name guix-bioinformatics)
-   (url "https://gitlab.com/genenetwork/guix-bioinformatics.git")
-   (branch "master")
-   (commit "fb1e8dbcf7cc46fa9a09a431f6842d9290f6e819"))
-  (channel
    (name guix-past)
    (url "https://gitlab.inria.fr/guix-hpc/guix-past")
    (introduction
