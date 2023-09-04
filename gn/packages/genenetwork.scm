@@ -135,7 +135,7 @@
              python-pytest-mock))
       (propagated-inputs
        (list gemma-wrapper
-             python-wrapper
+	     `("python" (specification->package "python@3.8.5"))
              csvdiff
              gn-rust-correlation
              python-bcrypt ;; Replace use of bcrypt with argon below
@@ -218,7 +218,7 @@
 	 ("gn-rust-correlation" ,gn-rust-correlation)
          ("glibc-utf8-locales" ,glibc-utf8-locales)
          ("nginx" ,nginx)
-         ("python" ,python-wrapper)
+         ("python" ,(specification->package "python@3.8.5"))
          ("python-pillow" ,python-pillow)
          ("python-coverage" ,python-coverage)
          ("python-configparser" ,python-configparser) ;; maintenance/scripts
