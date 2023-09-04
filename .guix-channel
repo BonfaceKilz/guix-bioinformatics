@@ -4,6 +4,7 @@
    (channel
     (name guix-forge)
     (url "https://git.systemreboot.net/guix-forge/")
+    (branch "main")
     (introduction
      (channel-introduction
       (version 0)
