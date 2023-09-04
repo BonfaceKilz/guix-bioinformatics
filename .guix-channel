@@ -6,9 +6,10 @@
     (url "https://git.systemreboot.net/guix-forge/")
     (branch "main")
     (introduction
-     (make-channel-introduction
-      "0432e37b20dd678a02efee21adf0b9525a670310"
-      (openpgp-fingerprint
+     (channel-introduction
+      (version 0)
+      (commit "0432e37b20dd678a02efee21adf0b9525a670310")
+      (signer
        "7F73 0343 F2F0 9F3C 77BF  79D3 2E25 EE8B 6180 2BB3"))))
   (channel
    (name guix-past)
