@@ -3,7 +3,7 @@
  (dependencies
    (channel
     (name guix-forge)
-    (url "https://git.systemreboot.net/guix-forge")
+    (url "https://git.systemreboot.net/guix-forge/")
     (introduction
      (channel-introduction
       (version 0)
