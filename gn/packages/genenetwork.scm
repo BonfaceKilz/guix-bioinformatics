@@ -14,6 +14,7 @@
   #:use-module (guix scripts graph)
   #:use-module (guix store)
   #:use-module (guix gexp)
+  #:use-module (guix packages)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bioconductor)
@@ -128,7 +129,7 @@
        (list python-click))
       (native-inputs
        `(("python-hypothesis" ,python-hypothesis)
-	 ("python-mypy" ,python-mypy)
+	 ("python-mypy" ,python-mypy-0.981)
 	 ("python-mypy-extensions" ,python-mypy-extensions)
          ("python-pylint" ,python-pylint)
          ("python-pytest" ,python-pytest)
@@ -169,7 +170,7 @@
 	 ("r-ctl" ,r-ctl)
 	 ("rust-qtlreaper" ,rust-qtlreaper)
 	 ("diffutils" ,diffutils)
-	 ("yoyo-migrations" ,yoyo-migrations)))
+	 ("yoyo-migrations" ,yoyo-migrations-8.2.0)))
       (build-system python-build-system)
       (arguments
        (list #:phases
