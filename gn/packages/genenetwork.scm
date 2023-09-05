@@ -127,48 +127,49 @@
       (inputs
        (list python-click))
       (native-inputs
-       (list python-hypothesis
-             python-mypy
-             python-mypy-extensions
-             python-pylint
-             python-pytest
-             python-pytest-mock))
+       `(("python-hypothesis" ,python-hypothesis)
+	 ("python-mypy" ,python-mypy)
+	 ("python-mypy-extensions" ,python-mypy-extensions)
+         ("python-pylint" ,python-pylint)
+         ("python-pytest" ,python-pytest)
+         ("python-pytest-mock" ,python-pytest-mock)))
       (propagated-inputs
-       (list gemma-wrapper
-             python-wrapper
-             csvdiff
-             gn-rust-correlation
-             python-bcrypt ;; Replace use of bcrypt with argon below
-	     python-argon2-cffi
-             python-flask
-             python-flask-cors
-             ;; Not working in Python > 3.8
-             ;; python-ipfshttpclient
-             python-lmdb
-             python-mysqlclient
-             python-numpy
-             python-pandas
-             ;; python-pingouin << build failing
-             python-pingouin-without-tests
-             python-plotly
-             python-scikit-learn
-             python-pymonad
-             python-redis
-             python-requests
-             python-scipy
-	     python-authlib
-             python-sparqlwrapper
-	     python-email-validator
-             python-xapian-bindings
-             r-optparse
-             r-qtl
-             r-rjson
-             r-stringi
-             r-wgcna
-             r-ctl
-             rust-qtlreaper
-	     diffutils
-	     yoyo-migrations))
+       `(("gemma-wrapper" ,gemma-wrapper)
+	 ("python-wrapper" ,python-wrapper)
+	 ("csvdiff" ,csvdiff)
+	 ("gn-rust-correlation" ,gn-rust-correlation)
+	 ;; Replace use of bcrypt with argon below
+	 ("python-bcrypt" ,python-bcrypt)
+	 ("python-argon2-cffi" ,python-argon2-cffi)
+	 ("python-flask" ,python-flask)
+	 ("python-flask-cors" ,python-flask-cors)
+	 ;; Not working in Python > 3.8
+	 ;; python-ipfshttpclient
+	 ("python-lmdb" ,python-lmdb)
+	 ("python-mysqlclient" ,python-mysqlclient)
+	 ("python-numpy" ,python-numpy)
+	 ("python-pandas" ,python-pandas)
+	 ;; python-pingouin << build failing
+	 ("python-pingouin-without-tests" ,python-pingouin-without-tests)
+	 ("python-plotly" ,python-plotly)
+	 ("python-scikit-learn" ,python-scikit-learn)
+	 ("python-pymonad" ,python-pymonad)
+	 ("python-redis" ,python-redis)
+	 ("python-requests" ,python-requests)
+	 ("python-scipy" ,python-scipy)
+	 ("python-authlib" ,python-authlib)
+	 ("python-sparqlwrapper" ,python-sparqlwrapper)
+	 ("python-email-validator" ,python-email-validator)
+	 ("python-xapian-bindings" ,python-xapian-bindings)
+	 ("r-optparse" ,r-optparse)
+	 ("r-qtl" ,r-qtl)
+	 ("r-rjson" ,r-rjson)
+	 ("r-stringi" ,r-stringi)
+	 ("r-wgcna" ,r-wgcna)
+	 ("r-ctl" ,r-ctl)
+	 ("rust-qtlreaper" ,rust-qtlreaper)
+	 ("diffutils" ,diffutils)
+	 ("yoyo-migrations" ,yoyo-migrations)))
       (build-system python-build-system)
       (arguments
        (list #:phases
