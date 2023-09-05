@@ -1900,3 +1900,26 @@ concepts.")
     (propagated-inputs
      (modify-inputs (package-propagated-inputs yoyo-migrations)
        (append python-importlib-metadata)))))
+
+(define-public python-mypy-0.981
+  (package
+    (inherit python-mypy)
+    (name "python-mypy")
+    (version "0.981")
+    (source
+     (origin
+       ;; Because of https://github.com/python/mypy/issues/9584, the
+       ;; mypyc/analysis directory is missing in the PyPI archive, leading to
+       ;; test failures.
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/python/mypy")
+             (commit (string-append "v" version))
+             ;; Fetch git submodules otherwise typeshed is not fetched.
+             ;; Typeshed is a collection of Python sources type annotation
+             ;; (data) files.
+             (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0awigl51an7466yk236f9vsbqpz2jzd6dsg9v5a4cia37vz4li0a"))))))
