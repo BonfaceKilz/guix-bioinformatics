@@ -43,33 +43,14 @@
                (requirement '(networking))
                (modules '((gnu build shepherd)
                           (gnu system file-systems)))
-               #;
-               (start #~(make-forkexec-constructor/container
-                          ;(list #$(file-append package "/runpluto.sh") #$port)
-                          ;(list #$(file-append package "/runpluto"))
-                          (list #$(file-append package "/runsliderservice"))
-                          #:log-file "/var/log/pluto.log"
-                          #:user "julia"
-                          #:group "julia"
-                          ;; This prevents the service from using /root as $HOME.
-                          #:environment-variables '()
-                          #:mappings (list (file-system-mapping
-                                             (source "/home/jovyan")
-                                             (target source)
-                                             (writable? #t))
-                                           (file-system-mapping
-                                             (source "/etc/ssl")
-                                             (target source)))))
                (start #~(make-forkexec-constructor
-                          ;(list #$(file-append package "/runpluto.sh") #$port)
-                          ;(list #$(file-append package "/runpluto"))
-                          '(#$(file-append package "/runsliderservice"))
+                          '(#$(file-append package "/bin/runsliderserver"))
                           #:log-file "/var/log/pluto.log"
                           #:user "julia"
                           #:group "julia"
-                          ;; This prevents the service from using /root as $HOME.
-                          ;#:environment-variables '()
-                          ))
+                          #:environment-variables
+                          (list "SSL_CERT_DIR=/etc/ssl/certs"
+                                "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt")))
                (stop  #~(make-kill-destructor))))))))
 
 (define pluto-service-type
