@@ -144,7 +144,7 @@ functions} for a collection of hashable objects.")
      "Library for working with graphs in the GFA (Graphical Fragment Assembly) format")
     (license license:expat)))
 
-(define-public rust-handlegraph-0.7
+(define-public rust-handlegraph-0.7.0-alpha.9
   (package
     (name "rust-handlegraph")
     (version "0.7.0-alpha.9")
@@ -180,7 +180,7 @@ functions} for a collection of hashable objects.")
 
 (define-public rust-handlegraph-0.3
   (package
-    (inherit rust-handlegraph-0.7)
+    (inherit rust-handlegraph-0.7.0-alpha.9)
     (name "rust-handlegraph")
     (version "0.3.0")
     (source (origin
