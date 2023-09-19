@@ -475,50 +475,6 @@ or any combination.")
       (description "Rust CLI tools for manipulation of Jupyter Notebooks.")
       (license #f)))) ; There is no license.
 
-(define-public rust-clap-4
-  (package
-    (name "rust-clap")
-    (version "4.0.9")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1w0dxqzrh449s9l2k8g66pdsff02599bwi5mh0gny3227kcpsq1h"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:skip-build? #t     ; Not all inputs packaged.
-       #:cargo-inputs
-       (("rust-atty" ,rust-atty-0.2)
-        ("rust-backtrace" ,rust-backtrace-0.3)
-        ("rust-bitflags" ,rust-bitflags-1)
-        ("rust-clap-derive" ,rust-clap-derive-4)
-        ("rust-clap-lex" ,rust-clap-lex-0.3)
-        ("rust-once-cell" ,rust-once-cell-1)
-        ("rust-strsim" ,rust-strsim-0.10)
-        ("rust-termcolor" ,rust-termcolor-1)
-        ("rust-terminal-size" ,rust-terminal-size-0.1)
-        ("rust-unicase" ,rust-unicase-2)
-        ("rust-unicode-width" ,rust-unicode-width-0.1))
-       ;#:cargo-development-inputs
-       ;(("rust-humantime" ,rust-humantime-2)
-       ; ("rust-rustversion" ,rust-rustversion-1)
-       ; ("rust-shlex" ,rust-shlex-1)
-       ; ("rust-snapbox" ,rust-snapbox-0.4)
-       ; ("rust-static-assertions" ,rust-static-assertions-1)
-       ; ("rust-trybuild" ,rust-trybuild-1)
-       ; ("rust-trycmd" ,rust-trycmd-0.13)
-       ; ("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9))
-       ))
-    (home-page "https://github.com/clap-rs/clap")
-    (synopsis
-      "A simple to use, efficient, and full-featured Command Line Argument Parser")
-    (description
-      "This package provides a simple to use, efficient, and full-featured Command Line
-      Argument Parser")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-clap-derive-4
   (package
     (name "rust-clap-derive")
