@@ -575,6 +575,32 @@ or any combination.")
     (description "Yet another format-preserving TOML parser.")
     (license (list license:expat license:asl2.0))))
 
+(define-public rust-vcf-0.6
+  (package
+    (name "rust-vcf")
+    (version "0.6.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "vcf" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0dc0p00a19rpmhrqcshrn2qg5l716b5s1fy8vpd3p32bw77vpbs0"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:tests? #f      ; Not all files included
+       #:cargo-inputs
+       (("rust-nom" ,rust-nom-7)
+        ("rust-once-cell" ,rust-once-cell-1)
+        ("rust-thiserror" ,rust-thiserror-1))
+       #:cargo-development-inputs
+       (("rust-clap" ,rust-clap-2)
+        ("rust-flate2" ,rust-flate2-1))))
+    (home-page "https://github.com/informationsea/vcf-rs")
+    (synopsis "Rust implmentation of VCF parser")
+    (description "This package provides a rust implmentation of a VCF parser.")
+    (license license:asl2.0)))
+
 (define-public rust-gsl-sys
   (package
     (name "rust-gsl-sys")

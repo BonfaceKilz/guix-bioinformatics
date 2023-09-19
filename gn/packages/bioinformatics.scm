@@ -499,6 +499,55 @@ reads.")
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
 
+(define-public vcfbub
+  (package
+    (name "vcfbub")
+    (version "0.1.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/pangenome/vcfbub")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0sk2ab22z6qa00j1w8a8f5kbb7q2xb10fhd32zy4lh351v3mqmyg"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:install-source? #f
+       #:cargo-inputs
+       (("rust-clap" ,rust-clap-2)
+        ("rust-flate2" ,rust-flate2-1)
+        ("rust-vcf" ,rust-vcf-0.6))))
+    (home-page "https://github.com/pangenome/vcfbub")
+    (synopsis "Popping bubbles in vg deconstruct VCFs")
+    (description
+     "The VCF output produced by a command like @command{vg deconstruct -e -a
+-H '#' ...} includes information about the nesting of variants.  With @code{-a},
+@code{--all-snarls}, we obtain not just the top level bubbles, but all nested
+ones.  This exposed snarl tree information can be used to filter the VCF to
+obtain a set of non-overlapping sites (n.b. \"snarl\" is a generic model of
+graph bubbles including tips and loops).
+@code{vcfbub} lets us do two common operations on these VCFs:
+@enumerate
+@item We can filter sites by maximum level in the snarl tree.  For instance,
+@code{--max-level 0} would keep only sites with @code{LV=0}.  In practice, vg's
+snarl finder ensures that these are sites rooted on the main linear axis of the
+pangenome graph.  Those at higher levels occur within larger variants.
+@item We can filter sites by maximum allele size, either for the reference
+allele or any allele.  In this case, @code{--max-ref-length 10000} would keep
+only sites where the reference allele is less than 10kb long.  Setting
+@code{--max-ref-length} or @code{--max-allele-length} additionally ensures that
+the output contains the bubbles nested inside of any popped bubble, even if
+they are at greater than @code{--max-level}.
+@end enumerate
+@code{vcfbub} accomplishes a simple task: we keep sites that are the children
+of those which we \"pop\" due to their size.  These occur around complex large
+SVs, such as multi-Mbp inversions and segmental duplications.  We often need to
+remove these, as they provide little information for many downstream
+applications, such as haplotype panels or other imputation references.")
+    (license license:expat)))
+
 (define-public gafpack
   (let ((commit "ad31875b6914d964c6fd72d1bf334f0843538fb6")     ; November 10, 2022
         (revision "1"))
