@@ -246,6 +246,64 @@ functions} for a collection of hashable objects.")
     (description "Key String provides a Rust package optimized for map keys.")
     (license (list license:expat license:asl2.0))))
 
+(define-public rust-line-drawing-0.8
+  (package
+    (name "rust-line-drawing")
+    (version "0.8.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "line-drawing" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "18a940s3mv8w5prpb99sdxykzhrvzrnymw3hvd7wisnkgbr11jqm"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-num-traits" ,rust-num-traits-0.2))
+       #:cargo-development-inputs
+       (("rust-bresenham" ,rust-bresenham-0.1)
+        ("rust-image" ,rust-image-0.23)
+        ("rust-rand" ,rust-rand-0.8))))
+    (home-page "https://github.com/expenses/line_drawing")
+    (synopsis
+     "A collection of line-drawing algorithms for use in graphics and video games.")
+    (description
+     "This package provides a collection of line-drawing algorithms for use in
+graphics and video games.")
+    (license license:expat)))
+
+(define-public rust-lodepng-3
+  (package
+    (name "rust-lodepng")
+    (version "3.8.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "lodepng" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1f5d9bva17sq7npw9qh7h6sh02k0ycrjx5hr147q0jv4m0qd2970"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-test-flags
+       (list "--release" "--"
+             ;; Not all files included.
+             "--skip=test::read_icc")
+       #:cargo-inputs
+       (("rust-crc32fast" ,rust-crc32fast-1)
+        ("rust-fallible-collections" ,rust-fallible-collections-0.4)
+        ("rust-flate2" ,rust-flate2-1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-rgb" ,rust-rgb-0.8))))
+    (home-page "https://lib.rs/crates/lodepng")
+    (synopsis
+     "Reading and writing PNG files without system dependencies. Pure Rust port of LodePNG.")
+    (description
+     "Reading and writing PNG files without system dependencies.  Pure Rust port of
+@code{LodePNG}.")
+    (license license:zlib)))
+
 (define-public rust-pyo3-0.14
   (package
     (name "rust-pyo3")

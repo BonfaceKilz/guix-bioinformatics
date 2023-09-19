@@ -39,6 +39,7 @@
   #:use-module (gnu packages cpp)
   #:use-module (gnu packages cran)
   #:use-module (gnu packages crates-io)
+  #:use-module (gnu packages crates-graphics)
   #:use-module (gnu packages curl)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages datastructures)
@@ -573,6 +574,42 @@ idea is to support pangenomic applications, following the
 @url{https://github.com/pangenome/PanSN-spec, PanSN} hierarchical naming
 specification.")
     (license license:expat)))
+
+(define-public pafplot
+  (let ((commit "7dda24c0aeba8556b600d53d748ae3103ec85501")
+        (revision "1"))
+    (package
+      (name "pafplot")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/ekg/pafplot.git")
+                       (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "04ffz0zfj4mvfxmrwgisv213fypgl02f7sim950a067pm7375g1l"))))
+      (build-system cargo-build-system)
+      (arguments
+       `(#:install-source? #f
+         #:cargo-inputs
+         (("rust-clap" ,rust-clap-2)
+          ("rust-boomphf" ,rust-boomphf-0.5)
+          ("rust-itertools" ,rust-itertools-0.10)
+          ("rust-fnv" ,rust-fnv-1)
+          ("rust-lodepng" ,rust-lodepng-3)
+          ("rust-rgb" ,rust-rgb-0.8)
+          ("rust-line-drawing" ,rust-line-drawing-0.8))))
+      (home-page "https://github.com/ekg/pafplot.git")
+      (synopsis "Base-level dotplots from PAF alignments")
+      (description "In the process of generating alignments between whole
+genomes, we often need to understand the base-level alignment between
+particular sequences.  @command{pafplot} allows us to do so by rasterizing the
+matches alignment set.  It draws a line on a raster image to represent each
+match found in a set of alignments.  The resulting image provides a high-level
+view of the structure of the alignments, and in consequence the homology
+relationships between the sequences in consideration.")
+      (license license:expat))))
 
 (define-public gafpack
   (let ((commit "ad31875b6914d964c6fd72d1bf334f0843538fb6")     ; November 10, 2022
