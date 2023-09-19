@@ -548,6 +548,32 @@ remove these, as they provide little information for many downstream
 applications, such as haplotype panels or other imputation references.")
     (license license:expat)))
 
+(define-public fastix
+  (package
+    (name "fastix")
+    (version "0.1.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "fastix" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32 "1mzk65mg8vx0hz39xis6zqdmq56abhmza656gn9pgmlsn151gpx2"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:install-source? #f
+       #:cargo-inputs
+       (("rust-clap" ,rust-clap-2))
+       #:cargo-development-inputs
+       (("rust-assert-cmd" ,rust-assert-cmd-0.12)
+        ("rust-predicates" ,rust-predicates-1))))
+    (home-page "https://github.com/ekg/fastix")
+    (synopsis "Prefix-renaming FASTA records")
+    (description "A command line tool to add prefixes to FASTA headers.  The
+idea is to support pangenomic applications, following the
+@url{https://github.com/pangenome/PanSN-spec, PanSN} hierarchical naming
+specification.")
+    (license license:expat)))
+
 (define-public gafpack
   (let ((commit "ad31875b6914d964c6fd72d1bf334f0843538fb6")     ; November 10, 2022
         (revision "1"))

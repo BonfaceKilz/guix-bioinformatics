@@ -10,6 +10,31 @@
   #:use-module (gnu packages maths)
   #:use-module (gnu packages python))
 
+(define-public rust-assert-cmd-0.12
+  (package
+    (name "rust-assert-cmd")
+    (version "0.12.2")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "assert-cmd" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1xfn2spazxk3ljj9q3250a24gndja9vwa0h0rnbccdrbd4ncyvwk"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-doc-comment" ,rust-doc-comment-0.3)
+        ("rust-escargot" ,rust-escargot-0.5)
+        ("rust-predicates" ,rust-predicates-1)
+        ("rust-predicates-core" ,rust-predicates-core-1)
+        ("rust-predicates-tree" ,rust-predicates-tree-1)
+        ("rust-wait-timeout" ,rust-wait-timeout-0.2))))
+    (home-page "https://github.com/assert-rs/assert_cmd")
+    (synopsis "Test CLI Applications.")
+    (description "Test CLI Applications.")
+    (license (list license:expat license:asl2.0))))
+
 (define-public rust-bgzip-0.2
   (package
     (name "rust-bgzip")
