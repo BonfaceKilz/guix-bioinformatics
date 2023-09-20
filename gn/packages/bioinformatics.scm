@@ -195,6 +195,99 @@ accurately delineate genomic rearrangements throughout the genome.  Structural
 variants can be visualized using Delly-maze and Delly-suave.")
     (license license:gpl3)))
 
+(define-public wfmash-x86-64-v2
+  (package/inherit wfmash
+    (name "wfmash-x86-64-v2")
+    (arguments
+     (substitute-keyword-arguments (package-arguments wfmash)
+       ((#:configure-flags flags #~())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v2"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v2"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v2"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-binary
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)))))
+
+(define-public wfmash-x86-64-v3
+  (package/inherit wfmash
+    (name "wfmash-x86-64-v3")
+    (arguments
+     (substitute-keyword-arguments (package-arguments wfmash)
+       ((#:configure-flags flags #~())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v3"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v3"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v3"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-binary
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))))))
+    (supported-systems '("x86_64-linux"))
+    #;(properties `((hidden? . #t)))))
+
+(define-public wfmash-x86-64-v4
+  (package/inherit wfmash
+    (name "wfmash-x86-64-v4")
+    (arguments
+     (substitute-keyword-arguments (package-arguments wfmash)
+       ((#:configure-flags flags #~())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v4"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v4"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v4"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-binary
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)))))
+
+;; This copy of wfmash will automatically use the libraries that target the
+;; x86_64 psABI which the hardware supports.
+(define-public wfmash-hwcaps
+  (package/inherit wfmash
+    (name "wfmash-hwcaps")
+    (arguments
+     (substitute-keyword-arguments (package-arguments wfmash)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'install-optimized-libraries
+              (lambda* (#:key inputs outputs #:allow-other-keys)
+                (let ((hwcaps "/lib/glibc-hwcaps"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "wfmash-x86-64-v2")
+                                   hwcaps "/x86-64-v2")
+                    (string-append #$output hwcaps "/x86-64-v2"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "wfmash-x86-64-v3")
+                                   hwcaps "/x86-64-v3")
+                    (string-append #$output hwcaps "/x86-64-v3"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "wfmash-x86-64-v4")
+                                   hwcaps "/x86-64-v4")
+                    (string-append #$output hwcaps "/x86-64-v4")))))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs wfmash)
+                    (append wfmash-x86-64-v2
+                            wfmash-x86-64-v3
+                            wfmash-x86-64-v4)))))
+
 (define-public freec
   (package
     (name "control-freec")
