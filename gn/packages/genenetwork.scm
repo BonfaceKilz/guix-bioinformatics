@@ -287,6 +287,7 @@
          ("javascript-datatables-buttons-styles" ,javascript-datatables-buttons-styles)
          ("javascript-shapiro-wilk" ,javascript-shapiro-wilk)
          ("javascript-underscore-string" ,javascript-underscore-string)
+	 ("javascript-htmx" ,javascript-htmx)
          ("javascript-qtip2" ,javascript-qtip2)
          ("javascript-d3js" ,javascript-d3js)
          ("javascript-nvd3" ,javascript-nvd3)
