@@ -1881,3 +1881,27 @@ Popper will automatically put the tooltip in the right place near the button.")
     (description "Font Awesome is a full suite of pictographic icons for easy scalable
 vector graphics.")
     (license license:silofl1.1)))
+
+
+(define-public javascript-htmx
+  (package
+    (name "javascript-htmx")
+    (version "1.9.5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/bigskysoftware/htmx")
+              (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "14m9wan8sp5lzblfzbi1hln621p7ld3npajxrhq1a19zm5bcrz3y"))))
+    (build-system minify-build-system)
+    (arguments
+     `(#:javascript-files '("dist/htmx.min.js")))
+    (home-page "https://htmx.org/")
+    (synopsis "High Power Tools for HTML")
+    (description
+     "htmx allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes, so you can build modern user interfaces with the simplicity and power of hypertext")
+    (license license:expat)))
