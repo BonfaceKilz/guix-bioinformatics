@@ -91,25 +91,6 @@ for massive key sets}.  It generates an @acronym{MPHF, minimal perfect hash
 functions} for a collection of hashable objects.")
     (license license:expat)))
 
-(define-public rust-clap-lex-0.3
-  (package
-    (name "rust-clap-lex")
-    (version "0.3.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap-lex" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1a4dzbnlxiamfsn0pnkhn7n9bdfjh66j9fxm6mmr7d227vvrhh8d"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs (("rust-os-str-bytes" ,rust-os-str-bytes-6))))
-    (home-page "https://github.com/clap-rs/clap/tree/master/clap_lex")
-    (synopsis "Minimal, flexible command line parser")
-    (description "Minimal, flexible command line parser")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-cuckoofilter-0.5
   (package
     (name "rust-cuckoofilter")
@@ -557,32 +538,6 @@ or any combination.")
       (synopsis "Rust CLI tools for manipulation of Jupyter Notebooks")
       (description "Rust CLI tools for manipulation of Jupyter Notebooks.")
       (license #f)))) ; There is no license.
-
-(define-public rust-clap-derive-4
-  (package
-    (name "rust-clap-derive")
-    (version "4.0.9")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap-derive" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "02zhbbmyz3dpy9ml6xfp7i8p3ffj1djvkdnkg6gr6d0s5r4hg8x4"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-heck" ,rust-heck-0.4)
-        ("rust-proc-macro-error" ,rust-proc-macro-error-1)
-        ("rust-proc-macro2" ,rust-proc-macro2-1)
-        ("rust-quote" ,rust-quote-1)
-        ("rust-syn" ,rust-syn-1))))
-    (home-page "https://github.com/clap-rs/clap/tree/master/clap_derive")
-    (synopsis
-      "Parse command line argument by defining a struct, derive crate.")
-    (description
-      "Parse command line argument by defining a struct, derive crate.")
-    (license (list license:expat license:asl2.0))))
 
 (define-public rust-trycmd-0.12
   (package
