@@ -2058,6 +2058,18 @@ available to other researchers.")
      (list
        #:phases
        #~(modify-phases %standard-phases
+           (add-after 'unpack 'use-gnuinstalldirs-macros
+             (lambda _
+               (substitute* "CMakeLists.txt"
+                 (("project\\(odgi\\)" all)
+                  (string-append all "\ninclude(GNUInstallDirs)"))
+                 ;; This is different than the default.
+                 ;(("PUBLIC_HEADER DESTINATION include/odgi")
+                 ; "PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}")
+                 (("LIBRARY DESTINATION lib")
+                  "LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}")
+                 (("ARCHIVE DESTINATION lib")
+                  "ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}"))))
            (add-after 'unpack 'link-to-libodgi
              (lambda _
                ;; This lets us provide libraries for different psABI levels.
@@ -2099,6 +2111,121 @@ compressed with a variable length integer representation, resulting in a small
 in-memory footprint at the cost of packing and unpacking.")
     (properties '((tunable? . #t)))
     (license license:expat)))
+
+(define-public odgi-x86-64-v2
+  (package/inherit odgi
+    (name "odgi-x86-64-v2")
+    (arguments
+     (substitute-keyword-arguments (package-arguments odgi)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v2"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v2"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v2"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))
+            (replace 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v2/libodgi.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)))))
+
+(define-public odgi-x86-64-v3
+  (package/inherit odgi
+    (name "odgi-x86-64-v3")
+    (arguments
+     (substitute-keyword-arguments (package-arguments odgi)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v3"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v3"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v3"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))
+            (replace 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v3/libodgi.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)))))
+
+(define-public odgi-x86-64-v4
+  (package/inherit odgi
+    (name "odgi-x86-64-v4")
+    (arguments
+     (substitute-keyword-arguments (package-arguments odgi)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v4"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v4"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v4"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))
+            (replace 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v4/libodgi.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)))))
+
+;; This copy of odgi will automatically use the libraries that target the
+;; x86_64 psABI which the hardware supports.
+(define-public odgi-hwcaps
+  (package/inherit odgi
+    (name "odgi-hwcaps")
+    (arguments
+     (substitute-keyword-arguments (package-arguments odgi)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'install-optimized-libraries
+              (lambda* (#:key inputs outputs #:allow-other-keys)
+                (let ((hwcaps "/lib/glibc-hwcaps"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "odgi-x86-64-v2")
+                                   hwcaps "/x86-64-v2")
+                    (string-append #$output hwcaps "/x86-64-v2"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "odgi-x86-64-v3")
+                                   hwcaps "/x86-64-v3")
+                    (string-append #$output hwcaps "/x86-64-v3"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "odgi-x86-64-v4")
+                                   hwcaps "/x86-64-v4")
+                    (string-append #$output hwcaps "/x86-64-v4")))))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs odgi)
+                    (append odgi-x86-64-v2
+                            odgi-x86-64-v3
+                            odgi-x86-64-v4)))
+    (properties `((tunable? . #f)))))
 
 (define-public vg
   (package
