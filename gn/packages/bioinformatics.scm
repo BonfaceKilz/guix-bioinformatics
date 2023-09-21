@@ -2033,32 +2033,48 @@ available to other researchers.")
                  (delete-file "scanpy/tests/test_pca.py")
                  #t)))))))))
 
-;; TODO: Unbundle everything
+;; TODO: Unbundle everything before upstreaming
 (define-public odgi
   (package
     (name "odgi")
-    (version "0.8.1")
+    (version "0.8.3")
+    (outputs '("out" "static"))
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/pangenome/odgi/releases"
                                   "/download/v" version
                                   "/odgi-v" version ".tar.gz"))
               (sha256
-               (base32 "175083pb9hp0vn9a00hbxlayyk5a5j8p52yq5qfmbnfvndisbmbv"))
+               (base32 "1gw1xdb945z25rar6pba6kq5xdx8l7fkhxjyrvc1z1brva53p9hk"))
               (snippet
                #~(begin
                    (use-modules (guix build utils))
                    (substitute* "CMakeLists.txt"
                      (("-march=native") "")
-                     (("-msse4\\.2") ""))
-                   (delete-file-recursively "deps/pybind11")
-                   (delete-file-recursively "deps/sdsl-lite")))))
+                     (("-msse4\\.2") ""))))))
     (build-system cmake-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'link-to-libodgi
+             (lambda _
+               ;; This lets us provide libraries for different psABI levels.
+               (substitute* "CMakeLists.txt"
+                 (("^  \\$<TARGET_OBJECTS:odgi_objs>.*") "")
+                 (("target_link_libraries\\(odgi " all)
+                  (string-append all "libodgi_shared ")))))
+           (add-after 'install 'move-static-library
+             (lambda* (#:key outputs #:allow-other-keys)
+               (mkdir-p (string-append #$output:static "/lib"))
+               (rename-file (string-append #$output "/lib/libodgi.a")
+                            (string-append #$output:static "/lib/libodgi.a")))))))
     (native-inputs
      (list pkg-config))
     (inputs
      (list jemalloc
            libdivsufsort
+           openmpi
            pybind11
            python
            sdsl-lite))
