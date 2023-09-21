@@ -19,6 +19,7 @@
 (define-module (gn packages java)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
+  #:use-module (guix gexp)
   #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix git-download)
@@ -27,11 +28,11 @@
   #:use-module (guix build-system ant)
   #:use-module (gnu packages)
   #:use-module (gnu packages autotools)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages certs)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gcc)
-  #:use-module (gnu packages icu4c)
   #:use-module (gnu packages java)
   #:use-module (gnu packages java-compression)
   #:use-module (gnu packages perl)
@@ -325,8 +326,7 @@ piece of information.")
                (("\"git\"") "\"echo\"")
                (("\\$\\{vcs\\.cmd\\.out\\}") "${product.version}")
                (("\\$\\{build\\.time\\}") "1970-01-01")
-               (("-\\$\\{rtg\\.vcs\\.commit\\.revision\\}") ""))
-             #t))
+               (("-\\$\\{rtg\\.vcs\\.commit\\.revision\\}") ""))))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out"))
@@ -337,52 +337,59 @@ piece of information.")
                  (invoke "unzip" (string-append pkg "-nojre.zip"))
                  (copy-recursively (string-append pkg "/") ".")
                  (delete-file-recursively pkg)
-                 (delete-file (string-append pkg "-nojre.zip")))
-               #t)))
+                 (delete-file (string-append pkg "-nojre.zip"))))))
          (add-after 'install 'create-rtg.cfg
-           (lambda* (#:key outputs #:allow-other-keys)
+           (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
                (with-output-to-file (string-append out "/rtg.cfg")
                  (lambda _
                    (format #t "RTG_JAVA=\"~a\"~@
                            RTG_TALKBACK=false~@
                            RTG_USAGE=false~%"
-                           (which "java"))))
-                 #t)))
-           (add-after 'install 'install-completions
-             (lambda* (#:key outputs #:allow-other-keys)
-               (install-file "installer/resources/common/scripts/rtg-bash-completion"
-                             (string-append (assoc-ref outputs "out")
-                                            "/share/bash-completion/completions"))
-               #t))
+                           (search-input-file inputs "/bin/java")))))))
+         (add-after 'install 'create-wrapper-script
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (wrapper (string-append out "/bin/rtg")))
+               ;; We want an executable in the bin directory without rewriting
+               ;; the existing wrapper script.
+               (mkdir-p (dirname wrapper))
+               (with-output-to-file wrapper
+                 (lambda _
+                   (format #t "#!~a~@
+                           exec -a \"$0\" \"~a/rtg\" \"$@\"~%"
+                           (search-input-file inputs "/bin/bash")
+                           out)))
+               (chmod wrapper #o555))))
+         (add-after 'install 'install-completions
+           (lambda* (#:key outputs #:allow-other-keys)
+             (install-file "installer/resources/common/scripts/rtg-bash-completion"
+                           (string-append (assoc-ref outputs "out")
+                                          "/share/bash-completion/completions"))))
          (delete 'generate-jar-indices))))  ; manually installed
     (inputs
-     `(("java-commons-collections" ,java-commons-collections)
-       ("java-commons-compress" ,java-commons-compress)
-       ("java-commons-lang" ,java-commons-lang)
-       ;("java-graal-sdk" ,java-graal-sdk)
-       ;("java-gzipfix" ,java-gzipfix)
-       ;("java-htsjdk" ,java-sam-rtg)
-       ("java-icu4j" ,java-icu4j)
-       ;("java-js" ,java-js)
-       ;("java-js-scriptengine" ,java-js-scriptengine)
-       ;("java-json-simple" ,java-json-simple)
-       ;("java-regex" ,java-regex)
-       ;("java-rplot" ,java-rplot)
-       ("java-snappy" ,java-snappy)
-       ;("java-truffle-api" ,java-truffle-api)
-       ;("java-velocity" ,java-velocity)
-       ;("java-velocity-tools-generic" ,java-velocity-tools-generic)
-       ))
+     (list bash-minimal     ; for the wrapper script
+           java-commons-collections
+           java-commons-compress
+           java-commons-lang
+           ;java-gzipfix
+           ;java-sam-rtg
+           ;java-json-simple
+           ;java-rplot
+           java-snappy
+           ;java-velocity
+           ;java-velocity-tools-generic
+           ))
     (native-inputs
-     `(;("java-findbugs-annotations" ,java-findbugs-annotations)
-       ;("java-findbugs-jsr305" ,java-findbugs-jsr305)
-       ;("java-jumble-annotations" ,java-jumble-annotations)
-       ;; for tests
-       ("java-hamcrest-core" ,java-hamcrest-core)
-       ("java-junit" ,java-junit)
-       ;("java-spelling" ,java-spelling)
-       ("unzip" ,unzip)))
+     (list ;java-findbugs-annotations
+           ;java-findbugs-jsr305
+           ;java-jumble-annotations
+           ;; for tests
+           java-hamcrest-core
+           java-junit
+           ;java-spelling
+           ;; For the 'install phase.
+           unzip))
     (home-page "https://github.com/RealTimeGenomics/rtg-tools/")
     (synopsis "Utilities for accurate VCF comparison and manipulation")
     (description "RTG Tools is a subset of RTG Core that includes several useful
