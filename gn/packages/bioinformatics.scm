@@ -48,6 +48,7 @@
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages ghostscript)
+  #:use-module (gnu packages graph)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages guile)
   #:use-module (gnu packages image)
@@ -61,6 +62,7 @@
   #:use-module (gnu packages mpi)
   #:use-module (gnu packages ncurses)
   #:use-module (gnu packages ocaml)
+  #:use-module (gnu packages parallel)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages protobuf)
@@ -2482,6 +2484,133 @@ multiple sequence alignment.")
         license:gpl3+   ; all sdsl-lite copies
         license:zlib    ; deps/sonLib/externalTools/cutest
         license:boost1.0)))) ; catch.hpp
+
+(define-public pggb
+  (let ((commit "9ebff27320382e470ed38a85b4448402e1e7c353")
+        (revision "1"))
+    (package
+      (name "pggb")
+      (version (git-version "0.5.1" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                       (url "https://github.com/pangenome/pggb")
+                       (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32 "0rgpj52q3ai7f1saqbilgx5gz4f403x3427wq649qwv84ivmi1sf"))))
+      (build-system copy-build-system)
+      (arguments
+       (list
+         #:install-plan
+         #~'(("pggb" "bin/")
+             ("partition-before-pggb" "bin/")
+             ("scripts/" "bin/")
+             ("scripts" "bin/scripts"))
+         #:phases
+         #~(modify-phases %standard-phases
+             (add-before 'install 'patch-binary-path
+               (lambda* (#:key inputs #:allow-other-keys)
+                 (substitute* "scripts/vcf_preprocess.sh"
+                   (("bcftools ")
+                    (string-append (search-input-file inputs "/bin/bcftools") " ")))
+                 (wrap-script "scripts/net2communities.py"
+                   `("GUIX_PYTHONPATH" ":" prefix
+                     (,(getenv "GUIX_PYTHONPATH"))))))
+             (add-after 'install 'wrap-scripts
+               (lambda* (#:key inputs outputs #:allow-other-keys)
+                 (let ((out (assoc-ref outputs "out")))
+                   (for-each
+                     (lambda (file)
+                       (wrap-script file
+                         `("PATH" ":" prefix
+                           ,(map (lambda (input) (string-append input "/bin"))
+                                 '#$(map (lambda (label) (this-package-input label))
+                                         (list "bcftools"
+                                               "bedtools"
+                                               "gfaffix"
+                                               "fastix"
+                                               "multiqc"
+                                               "mummer"
+                                               "odgi-hwcaps"
+                                               "pafplot"
+                                               "parallel"
+                                               "pigz"
+                                               "r-data-table"
+                                               "rtg-tools"
+                                               "samtools"
+                                               "seqwish"
+                                               "smoothxg"
+                                               ;"tabix"
+                                               "vcfbub"
+                                               "vcflib"
+                                               "vg"
+                                               "wfmash-hwcaps"))))))
+                          (list (string-append out "/bin/pggb")
+                                (string-append out "/bin/partition-before-pggb")
+                                (string-append out "/bin/gfa2evaluation.sh")
+                                (string-append out "/bin/scripts/gfa2evaluation.sh"))))))
+             (add-after 'install 'substitute-file-paths
+               (lambda* (#:key outputs #:allow-other-keys)
+                 (let ((out (assoc-ref outputs "out")))
+                   (substitute* (string-append out "/bin/gfa2evaluation.sh")
+                     (("/usr/local/bin/vcf_preprocess.sh")
+                      (string-append out "/bin/vcf_preprocess.sh"))
+                     (("/usr/local/bin/nucmer2vcf.R")
+                      (string-append out "/bin/nucmer2vcf.R")))))))))
+      (inputs
+       (list bcftools
+             bedtools
+             gfaffix
+             guile-3.0      ; for wrap-script
+             fastix
+             multiqc
+             mummer
+             odgi-hwcaps
+             pafplot
+             parallel
+             pigz
+             python-igraph
+             python-pycairo
+             python-wrapper
+             r-data-table
+             rtg-tools
+             samtools
+             seqwish
+             smoothxg
+             ;tabix
+             vcfbub
+             vcflib
+             vg
+             wfmash-hwcaps))
+      (home-page "https://doi.org/10.1101/2023.04.05.535718")
+      (synopsis "PanGenome Graph Builder")
+      (description "@command{pggb} builds
+@url{https://doi.org/10.1146%2Fannurev-genom-120219-080406, pangenome}
+@url{https://doi.org/10.1038/nbt.4227, variation graphs} from a set of input
+sequences.
+A pangenome variation graph is a kind of generic multiple sequence alignment.
+It lets us understand any kind of sequence variation between a collection of
+genomes.  It shows us similarity where genomes walk through the same parts of
+the graph, and differences where they do not.
+@command{pggb} generates this kind of graph using an all-to-all alignment of
+input sequences (@url{https://github.com/waveygang/wfmash, wfmash}), graph
+induction (@url{https://doi.org/10.1101/2022.02.14.480413, seqwish}), and
+progressive normalization (@url{https://github.com/pangenome/smoothxg,
+smoothxg}, @url{https://github.com/marschall-lab/GFAffix, gfaffix}).  After
+construction, @command{pggb} generates diagnostic visualizations of the graph
+(@url{https://doi.org/10.1093/bioinformatics/btac308, odgi}).  A variant call
+report (in VCF) representing both small and large variants can be generated
+based on any reference genome included in the graph
+(@url{https://github.com/vgteam/vg, vg}).  @command{pggb} writes its output in
+@url{https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md, GFAv1} format,
+which can be used as input by numerous \"genome graph\" and pangenome tools,
+such as the @url{https://github.com/vgteam/vg, vg} and
+@url{https://doi.org/10.1093/bioinformatics/btac308, odgi} toolkits.
+@command{pggb} has been tested at scale in the @acronym{Human Pangenome
+Reference Consortium, HPRC} as a method to build a graph from the
+@url{https://doi.org/10.1101/2022.07.09.499321, draft human pangenome}.")
+      (license license:expat))))
 
 (define-public ucsc-genome-browser
   (package
