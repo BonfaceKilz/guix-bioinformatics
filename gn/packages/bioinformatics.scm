@@ -2268,7 +2268,7 @@ in-memory footprint at the cost of packing and unpacking.")
              (substitute* "Makefile"
                ;; PKG_CONFIG_DEPS needs to be substituted to actually link to everything.
                (("cairo libzstd")
-                "cairo htslib libzstd libdw libelf protobuf raptor2 sdsl-lite tabixpp vcflib fastahack")
+                "cairo htslib libzstd libdw libelf protobuf raptor2 sdsl-lite tabixpp vcflib fastahack libdeflate")
 
                ;; Skip the part where we link static libraries special. It doesn't like the changes we make
                (("-Wl,-B.*") "\n")
@@ -2284,6 +2284,10 @@ in-memory footprint at the cost of packing and unpacking.")
                 (string-append " " (assoc-ref inputs "htslib") "/lib/libhts.so"))
                (("\\$\\(LIB_DIR\\)/pkgconfig/htslib\\.pc")
                 (string-append " " (assoc-ref inputs "htslib") "/lib/pkgconfig/htslib.pc"))
+
+               (("\\$\\(CWD\\)/\\$\\(LIB_DIR\\)/libdeflate\\.a") "$(LIB_DIR)/libdeflate.a")
+               ((" \\$\\(LIB_DIR\\)/libdeflate\\.a")
+                (string-append " " (assoc-ref inputs "libdeflate") "/lib/libdeflate.so"))
 
                ((" \\$\\(LIB_DIR\\)/libvcflib.a")
                 (string-append " " (assoc-ref inputs "vcflib") "/lib/libvcflib.so"))
@@ -2309,8 +2313,12 @@ in-memory footprint at the cost of packing and unpacking.")
                ;((" \\$\\(LIB_DIR\\)/libsdsl.a")
                ; (string-append " " (assoc-ref inputs "sdsl-lite") "/lib/libsdsl.so"))
 
+               ((" \\$\\(LIB_DIR\\)/%divsufsort.a")
+                (string-append " " (assoc-ref inputs "libdivsufsort") "/lib/%divsufsort.so"))
                ((" \\$\\(LIB_DIR\\)/libdivsufsort.a")
                 (string-append " " (assoc-ref inputs "libdivsufsort") "/lib/libdivsufsort.so"))
+               ((" \\$\\(LIB_DIR\\)/%divsufsort64.a")
+                (string-append " " (assoc-ref inputs "libdivsufsort") "/lib/%divsufsort64.so"))
                ((" \\$\\(LIB_DIR\\)/libdivsufsort64.a")
                 (string-append " " (assoc-ref inputs "libdivsufsort") "/lib/libdivsufsort64.so"))
 
@@ -2325,10 +2333,38 @@ in-memory footprint at the cost of packing and unpacking.")
                ((" \\$\\(LIB_DIR\\)/libraptor2.a")
                 (string-append " " (assoc-ref inputs "raptor2") "/lib/libraptor2.so"))
                ((" \\$\\(BIN_DIR\\)/rapper")
-                (string-append " " (assoc-ref inputs "raptor2") "/bin/rapper")))
-             ;; vcf2tsv shows up in a couple of other places
-             (substitute* "test/t/02_vg_construct.t"
-               (("../deps/vcflib/bin/vcf2tsv") (which "vcf2tsv")))))
+                (string-append " " (assoc-ref inputs "raptor2") "/bin/rapper")))))
+         #;
+         (add-before 'patch-source 'use-shared-libvg
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (substitute* "Makefile"
+               (("libvg\\.a") "libvg.so")
+               ;; Have the linker find the shared library.
+               (("\\$\\(LIB_DIR\\)/libvg.\\$\\(SHARED_SUFFIX\\) \\$\\(LDFLAGS\\)")
+                "-lvg $(LDFLAGS)")
+               (("\\$\\(LDFLAGS\\) \\$\\(LIB_DIR\\)/libvg.so")
+                "$(LDFLAGS) -lvg"))
+             (setenv "LDFLAGS" (string-append "-Wl,-rpath="
+                                              (assoc-ref outputs "out") "/lib"))
+
+             ;; We need to tell a number of dependencies to build with -fPIC.
+             (substitute* "Makefile"
+               (("^CXXFLAGS := -O3")
+                (string-append "CFLAGS := -fPIC\n"
+                               "CXXFLAGS := -O3 -fPIC"))
+               (("^export CXXFLAGS")
+                (string-append "export CFLAGS\n"
+                               "$(info CFLAGS are $(CFLAGS))\n"
+                               "export CXXFLAGS"))
+               ((" \\$\\(LIB_DIR\\)/libjemalloc.a")
+                (string-append " " (assoc-ref inputs "jemalloc")
+                               "/lib/libjemalloc_pic.a")))
+             ;; We don't want to pull in all the global CXXFLAGS here.
+             (substitute* "deps/sublinear-Li-Stephens/makefile"
+               (("^CXXFLAGS:=") "CXXFLAGS:= -fPIC "))
+             ;; CMAKE_CXX_FLAGS aren't set globally.
+             (substitute* "deps/kff-cpp-api/CMakeLists.txt"
+               (("CMAKE_CXX_FLAGS \"") "CMAKE_CXX_FLAGS \" -fPIC "))))
          (add-after 'unpack 'dont-build-shared-vgio
            (lambda _
              ;; vg will link with libvgio and fail the 'validate-runpath phase.
@@ -2378,7 +2414,7 @@ in-memory footprint at the cost of packing and unpacking.")
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
                (install-file "bin/vg" (string-append out "/bin"))
-               (install-file "lib/libvg.a" (string-append out "/lib"))
+               ;(install-file "lib/libvg.so" (string-append out "/lib"))
                (for-each
                  (lambda (file)
                    (install-file file (string-append out "/share/man/man1")))
@@ -2408,6 +2444,7 @@ in-memory footprint at the cost of packing and unpacking.")
            htslib
            jansson
            jemalloc
+           libdeflate
            libdivsufsort
            ncurses
            openmpi
