@@ -2561,7 +2561,9 @@ multiple sequence alignment.")
                        (wrap-script file
                          `("PATH" ":" prefix
                            ,(map (lambda (input) (string-append input "/bin"))
-                                 '#$(map (lambda (label) (this-package-input label))
+                                 '#$(map (lambda (label)
+                                           (or (this-package-input (string-append label "-hwcaps"))
+                                               (this-package-input label)))
                                          (list "bcftools"
                                                "bedtools"
                                                "gfaffix"
@@ -2569,7 +2571,7 @@ multiple sequence alignment.")
                                                "fastix"
                                                "multiqc"
                                                "mummer"
-                                               "odgi-hwcaps"
+                                               "odgi"
                                                "pafplot"
                                                "parallel"
                                                "pigz"
@@ -2581,7 +2583,7 @@ multiple sequence alignment.")
                                                "vcfbub"
                                                "vcflib"
                                                "vg"
-                                               "wfmash-hwcaps"))))))
+                                               "wfmash"))))))
                           (list (string-append out "/bin/pggb")
                                 (string-append out "/bin/partition-before-pggb")
                                 (string-append out "/bin/gfa2evaluation.sh")
