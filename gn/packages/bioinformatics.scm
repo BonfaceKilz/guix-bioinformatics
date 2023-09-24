@@ -1713,11 +1713,14 @@ dictionaries to record a queryable version of the graph.")
                  (("\".*libsdsl\\.a\"") "\"-lsdsl\"")
                  (("\".*libdivsufsort\\.a\"") "\"-ldivsufsort\"")
                  (("\".*libdivsufsort64\\.a\"") "\"-ldivsufsort64\"")
+                 (("\".*libodgi\\.a\"") "\"-lodgi\"")
                  (("\\$\\{sdsl-lite_INCLUDE\\}")
                   (search-input-directory inputs "/include/sdsl"))
                  (("\\$\\{sdsl-lite-divsufsort_INCLUDE\\}")
                   (dirname
-                    (search-input-file inputs "/include/divsufsort.h"))))))
+                    (search-input-file inputs "/include/divsufsort.h")))
+                 (("\\$\\{odgi_INCLUDE\\}")
+                  (search-input-directory inputs "/include/odgi")))))
            (add-before 'build 'build-abPOA
              (lambda* (#:key make-flags #:allow-other-keys)
                ;; This helps with portability to other architectures.
@@ -1729,6 +1732,7 @@ dictionaries to record a queryable version of the graph.")
     (inputs
      (list jemalloc
            libdivsufsort
+           odgi
            openmpi
            pybind11
            python
