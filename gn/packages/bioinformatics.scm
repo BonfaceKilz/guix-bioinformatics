@@ -1637,6 +1637,19 @@ runApp(launch.browser=0, port=4208)~%\n"
                  (else '())))
        #:phases
        (modify-phases %standard-phases
+         (add-after 'unpack 'link-with-some-shared-libraries
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* '("CMakeLists.txt"
+                            "deps/mmmulti/CMakeLists.txt")
+               (("\".*libsdsl\\.a\"") "\"-lsdsl\"")
+               (("\".*libdivsufsort\\.a\"") "\"-ldivsufsort\"")
+               (("\".*libdivsufsort64\\.a\"") "\"-ldivsufsort64\"")
+               (("\\$\\{sdsl-lite_INCLUDE\\}")
+                (string-append (assoc-ref inputs "sdsl-lite")
+                               "/include/sdsl"))
+               (("\\$\\{sdsl-lite-divsufsort_INCLUDE\\}")
+                (string-append (assoc-ref inputs "libdivsufsort")
+                               "/include")))))
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
              ;; Add seqwish to the PATH for the tests.
@@ -1646,6 +1659,9 @@ runApp(launch.browser=0, port=4208)~%\n"
                  (invoke "make"))))))))
     (inputs
      (list jemalloc
+           libdivsufsort
+           openmpi
+           sdsl-lite
            zlib))
     (native-inputs
      (list perl))
