@@ -2572,7 +2572,6 @@ multiple sequence alignment.")
              parallel
              pigz
              python-igraph
-             python-pycairo
              python-wrapper
              r-data-table
              rtg-tools
