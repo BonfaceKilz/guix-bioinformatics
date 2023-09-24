@@ -32,11 +32,19 @@
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages certs)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages cups)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages java)
   #:use-module (gnu packages java-compression)
   #:use-module (gnu packages perl)
   #:use-module (srfi srfi-1))
+
+;; This is an attempt to make a smaller version of openjdk
+(define openjdk11-minimal
+  (package/inherit openjdk11
+    (inputs
+      (modify-inputs (package-inputs openjdk11)
+                     (replace "cups" cups-minimal)))))
 
 ;; ----------------------------------------------------------------------------
 ;; WORKING PACKAGES
@@ -316,7 +324,8 @@ piece of information.")
                (base32 "13fjhhcjgnynxscaymkn3rpdciplbg2m2qmihc7fxsylgn4m6gxk"))))
     (build-system ant-build-system)
     (arguments
-     `(#:build-target "zip-nojre"
+     `(#:jdk ,openjdk11-minimal
+       #:build-target "zip-nojre"
        #:test-target "runalltests"
        #:phases
        (modify-phases %standard-phases
