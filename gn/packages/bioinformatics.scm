@@ -20,6 +20,7 @@
   #:use-module (guix build-system waf)
   #:use-module (gnu packages)
   #:use-module (gn packages crates-io)
+  #:use-module (gn packages datastructures)
   #:use-module (gn packages java)
   #:use-module (gn packages ocaml)
   #:use-module (gn packages python)
@@ -2602,7 +2603,7 @@ multiple sequence alignment.")
              fastix
              multiqc
              mummer
-             odgi-hwcaps
+             odgi
              pafplot
              parallel
              pigz
@@ -2616,7 +2617,7 @@ multiple sequence alignment.")
              vcfbub
              vcflib
              vg
-             wfmash-hwcaps))
+             wfmash))
       (home-page "https://doi.org/10.1101/2023.04.05.535718")
       (synopsis "PanGenome Graph Builder")
       (description "@command{pggb} builds
@@ -2645,6 +2646,19 @@ such as the @url{https://github.com/vgteam/vg, vg} and
 Reference Consortium, HPRC} as a method to build a graph from the
 @url{https://doi.org/10.1101/2022.07.09.499321, draft human pangenome}.")
       (license license:expat))))
+
+(define use-glibc-hwcaps
+  (package-input-rewriting/spec
+    ;; Replace some packages with ones built targeting custom packages build
+    ;; with glibc-hwcaps support.
+    `(("sdsl-lite" . ,(const sdsl-lite-hwcaps))
+      ("odgi" . ,(const odgi-hwcaps))
+      ("wfmash" . ,(const wfmash-hwcaps)))))
+
+(define-public pggb-with-hwcaps
+  (package
+    (inherit (use-glibc-hwcaps pggb))
+    (name "pggb-with-hwcaps")))
 
 (define-public ucsc-genome-browser
   (package
