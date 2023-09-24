@@ -2372,6 +2372,20 @@ in-memory footprint at the cost of packing and unpacking.")
                 (string-append " " (assoc-ref inputs "raptor2") "/lib/libraptor2.so"))
                ((" \\$\\(BIN_DIR\\)/rapper")
                 (string-append " " (assoc-ref inputs "raptor2") "/bin/rapper")))))
+         (add-after 'unpack 'link-with-some-shared-libraries
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* '("deps/mmmultimap/CMakeLists.txt"
+                            "deps/xg/CMakeLists.txt"
+                            "deps/xg/deps/mmmulti/CMakeLists.txt")
+               (("\".*libsdsl\\.a\"") "\"-lsdsl\"")
+               (("\".*libdivsufsort\\.a\"") "\"-ldivsufsort\"")
+               (("\".*libdivsufsort64\\.a\"") "\"-ldivsufsort64\"")
+               (("\\$\\{sdsl-lite_INCLUDE\\}")
+                (string-append (assoc-ref inputs "sdsl-lite")
+                               "/include/sdsl"))
+               (("\\$\\{sdsl-lite-divsufsort_INCLUDE\\}")
+                (string-append (assoc-ref inputs "libdivsufsort")
+                               "/include")))))
          #;
          (add-before 'patch-source 'use-shared-libvg
            (lambda* (#:key inputs outputs #:allow-other-keys)
