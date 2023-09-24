@@ -2529,6 +2529,7 @@ multiple sequence alignment.")
                                          (list "bcftools"
                                                "bedtools"
                                                "gfaffix"
+                                               "htslib"
                                                "fastix"
                                                "multiqc"
                                                "mummer"
@@ -2541,7 +2542,6 @@ multiple sequence alignment.")
                                                "samtools"
                                                "seqwish"
                                                "smoothxg"
-                                               ;"tabix"
                                                "vcfbub"
                                                "vcflib"
                                                "vg"
@@ -2563,6 +2563,7 @@ multiple sequence alignment.")
              bedtools
              gfaffix
              guile-3.0      ; for wrap-script
+             htslib         ; tabix
              fastix
              multiqc
              mummer
@@ -2578,7 +2579,6 @@ multiple sequence alignment.")
              samtools
              seqwish
              smoothxg
-             ;tabix
              vcfbub
              vcflib
              vg
