@@ -1705,6 +1705,19 @@ dictionaries to record a queryable version of the graph.")
        #~(list (string-append "CC = " #$(cc-for-target)))
        #:phases
        #~(modify-phases %standard-phases
+           (add-after 'unpack 'link-with-some-shared-libraries
+             (lambda* (#:key inputs #:allow-other-keys)
+               (substitute* '("CMakeLists.txt"
+                              "deps/mmmulti/CMakeLists.txt"
+                              "deps/odgi/deps/mmmulti/CMakeLists.txt")
+                 (("\".*libsdsl\\.a\"") "\"-lsdsl\"")
+                 (("\".*libdivsufsort\\.a\"") "\"-ldivsufsort\"")
+                 (("\".*libdivsufsort64\\.a\"") "\"-ldivsufsort64\"")
+                 (("\\$\\{sdsl-lite_INCLUDE\\}")
+                  (search-input-directory inputs "/include/sdsl"))
+                 (("\\$\\{sdsl-lite-divsufsort_INCLUDE\\}")
+                  (dirname
+                    (search-input-file inputs "/include/divsufsort.h"))))))
            (add-before 'build 'build-abPOA
              (lambda* (#:key make-flags #:allow-other-keys)
                ;; This helps with portability to other architectures.
@@ -1715,9 +1728,11 @@ dictionaries to record a queryable version of the graph.")
                  (apply invoke "make" "libabpoa" make-flags)))))))
     (inputs
      (list jemalloc
+           libdivsufsort
            openmpi
            pybind11
            python
+           sdsl-lite
            zlib
            (list zstd "lib")))
     (native-inputs
