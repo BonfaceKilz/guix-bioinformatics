@@ -1613,7 +1613,8 @@ runApp(launch.browser=0, port=4208)~%\n"
              (snippet
               #~(begin
                   (use-modules (guix build utils))
-                  (substitute* '("deps/atomic_queue/Makefile"
+                  (substitute* '("CMakeLists.txt"
+                                 "deps/atomic_queue/Makefile"
                                  "deps/mmmulti/deps/DYNAMIC/CMakeLists.txt"
                                  "deps/mmmulti/deps/atomic_queue/Makefile"
                                  "deps/mmmulti/deps/ips4o/CMakeLists.txt")
@@ -1625,17 +1626,12 @@ runApp(launch.browser=0, port=4208)~%\n"
     (build-system cmake-build-system)
     (arguments
      `(#:configure-flags
-       '(,@(cond ((target-x86-64?)
-                  ;; This seems to be about the minimum
-                  '("-DEXTRA_FLAGS=-march=x86-64-v2"))
-                 ((target-aarch64?)
-                  '("-DEXTRA_FLAGS=-march=armv8-a"))
-                 ((target-riscv64?)
-                  '("-DEXTRA_FLAGS=-march=rv64imafdc"))
-                 ((target-ppc64le?)
-                  '("-DEXTRA_FLAGS=-mcpu=power8"))
-                 ;; The default case is '-march=native'
-                 (else '())))
+       '(,@(if (target-x86?)
+             ;; This is the minimum needed to compile on x86_64, and is a
+             ;; subset of any other optimizations which might be applied.
+             '("-DCMAKE_C_FLAGS=-mcx16"
+               "-DCMAKE_CXX_FLAGS=-mcx16")
+             '()))
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'link-with-some-shared-libraries
@@ -1678,6 +1674,7 @@ large inputs that are commonly encountered when working with large numbers of
 noisy input sequences.  Memory usage during construction and traversal is
 limited by the use of sorted disk-backed arrays and succinct rank/select
 dictionaries to record a queryable version of the graph.")
+    (properties `((tunable? . #t)))
     (license license:expat)))
 
 (define-public smoothxg
