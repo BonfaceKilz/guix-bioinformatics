@@ -129,7 +129,7 @@
        (list python-click))
       (native-inputs
        `(("python-hypothesis" ,python-hypothesis)
-	 ("python-mypy" ,python-mypy-0.981)
+	 ("python-mypy" ,python-mypy)
 	 ("python-mypy-extensions" ,python-mypy-extensions)
          ("python-pylint" ,python-pylint)
          ("python-pytest" ,python-pytest)
