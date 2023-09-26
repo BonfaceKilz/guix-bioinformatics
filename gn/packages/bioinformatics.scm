@@ -1609,7 +1609,8 @@ runApp(launch.browser=0, port=4208)~%\n"
              (file-name (git-file-name name version))
              (sha256
               (base32 "0xnv40kjlb610bk67n4xdqz5dfsjhrqld5bxzblji57k6bb4n66x"))
-             (patches (search-patches "seqwish-paryfor-riscv.diff"))
+             (patches (search-patches "seqwish-paryfor-riscv.diff"
+                                      "seqwish-shared-library.diff"))
              (snippet
               #~(begin
                   (use-modules (guix build utils))
@@ -1626,14 +1627,24 @@ runApp(launch.browser=0, port=4208)~%\n"
     (build-system cmake-build-system)
     (arguments
      `(#:configure-flags
-       '(,@(if (target-x86?)
-             ;; This is the minimum needed to compile on x86_64, and is a
-             ;; subset of any other optimizations which might be applied.
-             '("-DCMAKE_C_FLAGS=-mcx16"
-               "-DCMAKE_CXX_FLAGS=-mcx16")
-             '()))
+       (cons* ,@(if (target-x86?)
+                  ;; This is the minimum needed to compile on x86_64, and is a
+                  ;; subset of any other optimizations which might be applied.
+                  '("-DCMAKE_C_FLAGS=-mcx16"
+                    "-DCMAKE_CXX_FLAGS=-mcx16")
+                  '())
+              '("-DSEQWISH_LINK_SHARED_LIBRARY=ON"))
        #:phases
        (modify-phases %standard-phases
+         (add-after 'unpack 'set-version
+           (lambda _
+             ;; This stashes the build version in the executable.
+             (mkdir "include")
+             (substitute* "CMakeLists.txt"
+               (("^execute_process") "#execute_process"))
+             (with-output-to-file "include/seqwish_git_version.hpp"
+               (lambda ()
+                 (format #t "#define SEQWISH_GIT_VERSION \"~a\"~%" ,version)))))
          (add-after 'unpack 'link-with-some-shared-libraries
            (lambda* (#:key inputs #:allow-other-keys)
              (substitute* '("CMakeLists.txt"
@@ -1642,11 +1653,10 @@ runApp(launch.browser=0, port=4208)~%\n"
                (("\".*libdivsufsort\\.a\"") "\"-ldivsufsort\"")
                (("\".*libdivsufsort64\\.a\"") "\"-ldivsufsort64\"")
                (("\\$\\{sdsl-lite_INCLUDE\\}")
-                (string-append (assoc-ref inputs "sdsl-lite")
-                               "/include/sdsl"))
+                (search-input-directory inputs "/include/sdsl"))
                (("\\$\\{sdsl-lite-divsufsort_INCLUDE\\}")
-                (string-append (assoc-ref inputs "libdivsufsort")
-                               "/include")))))
+                (dirname
+                  (search-input-file inputs "/include/divsufsort.h"))))))
          (replace 'check
            (lambda* (#:key tests? #:allow-other-keys)
              ;; Add seqwish to the PATH for the tests.
