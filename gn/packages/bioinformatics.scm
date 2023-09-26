@@ -2692,7 +2692,11 @@ multiple sequence alignment.")
              ("scripts" "bin/scripts"))
          #:phases
          #~(modify-phases %standard-phases
-             (add-before 'install 'patch-binary-path
+             (add-after 'unpack 'force-python3
+               (lambda _
+                 (substitute* (find-files "scripts" "\\.py$")
+                   (("/usr/bin/python") "/usr/bin/python3"))))
+             (add-before 'install 'patch-and-wrap-scripts
                (lambda* (#:key inputs #:allow-other-keys)
                  (substitute* "scripts/vcf_preprocess.sh"
                    (("bcftools ")
@@ -2706,6 +2710,8 @@ multiple sequence alignment.")
                    (for-each
                      (lambda (file)
                        (wrap-script file
+                         `("R_LIBS_SITE" ":" prefix
+                           (,(getenv "R_LIBS_SITE")))
                          `("PATH" ":" prefix
                            ,(map (lambda (input) (string-append input "/bin"))
                                  '#$(map (lambda (label)
@@ -2722,7 +2728,9 @@ multiple sequence alignment.")
                                                "pafplot"
                                                "parallel"
                                                "pigz"
+                                               "python"
                                                "r-data-table"
+                                               "r-minimal"
                                                "rtg-tools"
                                                "samtools"
                                                "seqwish"
@@ -2756,9 +2764,10 @@ multiple sequence alignment.")
              pafplot
              parallel
              pigz
+             python
              python-igraph
-             python-wrapper
              r-data-table
+             r-minimal
              rtg-tools
              samtools
              seqwish
