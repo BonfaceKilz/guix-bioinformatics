@@ -2717,7 +2717,8 @@ multiple sequence alignment.")
                                  '#$(map (lambda (label)
                                            (or (this-package-input (string-append label "-hwcaps"))
                                                (this-package-input label)))
-                                         (list "bcftools"
+                                         (list "bc"
+                                               "bcftools"
                                                "bedtools"
                                                "gfaffix"
                                                "htslib"
@@ -2735,6 +2736,7 @@ multiple sequence alignment.")
                                                "samtools"
                                                "seqwish"
                                                "smoothxg"
+                                               "time"
                                                "vcfbub"
                                                "vcflib"
                                                "vg"
@@ -2752,7 +2754,8 @@ multiple sequence alignment.")
                      (("/usr/local/bin/nucmer2vcf.R")
                       (string-append out "/bin/nucmer2vcf.R")))))))))
       (inputs
-       (list bcftools
+       (list bc
+             bcftools
              bedtools
              gfaffix
              guile-3.0      ; for wrap-script
@@ -2772,6 +2775,7 @@ multiple sequence alignment.")
              samtools
              seqwish
              smoothxg
+             time
              vcfbub
              vcflib
              vg
