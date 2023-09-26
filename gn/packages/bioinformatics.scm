@@ -1687,6 +1687,124 @@ dictionaries to record a queryable version of the graph.")
     (properties `((tunable? . #t)))
     (license license:expat)))
 
+(define-public seqwish-x86-64-v2
+  (package/inherit seqwish
+    (name "seqwish-x86-64-v2")
+    (outputs '("out" "static"))
+    (arguments
+     (substitute-keyword-arguments (package-arguments seqwish)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v2"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v2"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v2"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))
+            (add-after 'install 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v2/libseqwish.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+(define-public seqwish-x86-64-v3
+  (package/inherit seqwish
+    (name "seqwish-x86-64-v3")
+    (outputs '("out" "static"))
+    (arguments
+     (substitute-keyword-arguments (package-arguments seqwish)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v3"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v3"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v3"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))
+            (add-after 'install 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v3/libseqwish.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+(define-public seqwish-x86-64-v4
+  (package/inherit seqwish
+    (name "seqwish-x86-64-v4")
+    (outputs '("out" "static"))
+    (arguments
+     (substitute-keyword-arguments (package-arguments seqwish)
+       ((#:configure-flags flags #~'())
+        #~(append (list "-DEXTRA_FLAGS=-march=x86-64-v4"
+                        "-DCMAKE_INSTALL_LIBDIR=lib/glibc-hwcaps/x86-64-v4"
+                        (string-append "-DCMAKE_INSTALL_RPATH=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v4"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))))
+            (add-after 'install 'move-static-library
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib "/lib/glibc-hwcaps/x86-64-v4/libseqwish.a"))
+                  (mkdir-p (dirname (string-append #$output:static lib)))
+                  (rename-file (string-append #$output lib)
+                               (string-append #$output:static lib)))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+;; This copy of seqwish will automatically use the libraries that target the
+;; x86_64 psABI which the hardware supports.
+(define-public seqwish-hwcaps
+  (package/inherit seqwish
+    (name "seqwish-hwcaps")
+    (arguments
+     (substitute-keyword-arguments (package-arguments seqwish)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'install-optimized-libraries
+              (lambda* (#:key inputs outputs #:allow-other-keys)
+                (let ((hwcaps "/lib/glibc-hwcaps"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "seqwish-x86-64-v2")
+                                   hwcaps "/x86-64-v2")
+                    (string-append #$output hwcaps "/x86-64-v2"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "seqwish-x86-64-v3")
+                                   hwcaps "/x86-64-v3")
+                    (string-append #$output hwcaps "/x86-64-v3"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "seqwish-x86-64-v4")
+                                   hwcaps "/x86-64-v4")
+                    (string-append #$output hwcaps "/x86-64-v4")))))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs seqwish)
+                    (append seqwish-x86-64-v2
+                            seqwish-x86-64-v3
+                            seqwish-x86-64-v4)))
+    (properties `((tunable? . #f)))))
+
 (define-public smoothxg
   (package
     (name "smoothxg")
@@ -2675,6 +2793,7 @@ Reference Consortium, HPRC} as a method to build a graph from the
     ;; Replace some packages with ones built targeting custom packages build
     ;; with glibc-hwcaps support.
     `(("sdsl-lite" . ,(const sdsl-lite-hwcaps))
+      ("seqwish" . ,(const seqwish-hwcaps))
       ("odgi" . ,(const odgi-hwcaps))
       ("wfmash" . ,(const wfmash-hwcaps)))))
 
