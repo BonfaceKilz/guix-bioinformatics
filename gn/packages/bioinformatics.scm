@@ -22,6 +22,7 @@
   #:use-module (gn packages crates-io)
   #:use-module (gn packages datastructures)
   #:use-module (gn packages java)
+  #:use-module (gn packages maths)
   #:use-module (gn packages ocaml)
   #:use-module (gn packages python)
   #:use-module (gnu packages algebra)
@@ -2799,7 +2800,8 @@ Reference Consortium, HPRC} as a method to build a graph from the
   (package-input-rewriting/spec
     ;; Replace some packages with ones built targeting custom packages build
     ;; with glibc-hwcaps support.
-    `(("sdsl-lite" . ,(const sdsl-lite-hwcaps))
+    `(;("gsl" . ,(const gsl-hwcaps))        ; Causes too many rebuilds through multiqc
+      ("sdsl-lite" . ,(const sdsl-lite-hwcaps))
       ("seqwish" . ,(const seqwish-hwcaps))
       ("odgi" . ,(const odgi-hwcaps))
       ("wfmash" . ,(const wfmash-hwcaps)))))

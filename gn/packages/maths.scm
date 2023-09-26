@@ -3,6 +3,7 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix utils)
+  #:use-module (guix gexp)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gperf)
   #:use-module (gnu packages maths)
@@ -131,3 +132,110 @@
     (inputs
      `(,@(fold alist-delete (package-inputs suitesparse)
                '("metis"))))))
+
+(define-public gsl-x86-64-v2
+  (package/inherit gsl
+    (name "gsl-x86-64-v2")
+    (arguments
+     (substitute-keyword-arguments (package-arguments gsl)
+       ((#:make-flags flags #~'())
+        #~(append (list "CFLAGS=-march=x86-64-v2"
+                        "CXXFLAGS=-march=x86-64-v2")
+                  #$flags))
+       ((#:configure-flags flags #~'())
+        #~(append (list (string-append "--libdir=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v2"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+(define-public gsl-x86-64-v3
+  (package/inherit gsl
+    (name "gsl-x86-64-v3")
+    (arguments
+     (substitute-keyword-arguments (package-arguments gsl)
+       ((#:make-flags flags #~'())
+        #~(append (list "CFLAGS=-march=x86-64-v3"
+                        "CXXFLAGS=-march=x86-64-v3")
+                  #$flags))
+       ((#:configure-flags flags #~'())
+        #~(append (list (string-append "--libdir=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v3"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+(define-public gsl-x86-64-v4
+  (package/inherit gsl
+    (name "gsl-x86-64-v4")
+    (outputs '("out" "static"))
+    (arguments
+     (substitute-keyword-arguments (package-arguments gsl)
+       ((#:make-flags flags #~'())
+        #~(append (list "CFLAGS=-march=x86-64-v4"
+                        "CXXFLAGS=-march=x86-64-v4")
+                  #$flags))
+       ((#:configure-flags flags #~'())
+        #~(append (list (string-append "--libdir=" #$output
+                                       "/lib/glibc-hwcaps/x86-64-v4"))
+                  #$flags))
+       ;; The building machine can't necessarily run the code produced.
+       ((#:tests? _ #t) #f)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'remove-extra-files
+              (lambda _
+                (delete-file-recursively (string-append #$output "/bin"))
+                (delete-file-recursively (string-append #$output "/include"))))))))
+    (supported-systems '("x86_64-linux"))
+    (properties `((hidden? . #t)
+                  (tunable? . #f)))))
+
+;; This copy of gsl will automatically use the libraries that target the
+;; x86_64 psABI which the hardware supports.
+(define-public gsl-hwcaps
+  (package/inherit gsl
+    (name "gsl-hwcaps")
+    (arguments
+     (substitute-keyword-arguments (package-arguments gsl)
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'install 'install-optimized-libraries
+              (lambda* (#:key inputs outputs #:allow-other-keys)
+                (let ((hwcaps "/lib/glibc-hwcaps"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "gsl-x86-64-v2")
+                                   hwcaps "/x86-64-v2")
+                    (string-append #$output hwcaps "/x86-64-v2"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "gsl-x86-64-v3")
+                                   hwcaps "/x86-64-v3")
+                    (string-append #$output hwcaps "/x86-64-v3"))
+                  (copy-recursively
+                    (string-append (assoc-ref inputs "gsl-x86-64-v4")
+                                   hwcaps "/x86-64-v4")
+                    (string-append #$output hwcaps "/x86-64-v4")))))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs gsl)
+                    (append gsl-x86-64-v2
+                            gsl-x86-64-v3
+                            gsl-x86-64-v4)))
+    (properties `((tunable? . #f)))))
