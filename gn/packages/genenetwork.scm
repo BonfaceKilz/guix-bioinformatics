@@ -475,11 +475,11 @@
        (method git-fetch)
        (uri (git-reference
 	     (url "https://github.com/genenetwork/gn-auth.git")
-	     (commit "51534a303c22f919ec5b237f7bcc948e66978fdc")))
+	     (commit "f4b9e51192a8dea3399ca83226a47a518b3ea5c5")))
        (hash
 	(content-hash
 	 (base32
-	  "0gp1lyx3r227s078hab079dckc8iambvnq1yd84qr03yi4ch8q19")))))
+	  "054i9va4850dcfiwzz79r4w4h2cinh3d6l1l4jc8s4sy7bjb50zp")))))
     (build-system python-build-system)
     (arguments
      (list
@@ -490,7 +490,7 @@
 	      (when tests?
 		(invoke "pytest" "-k" "unit_test")))))))
     (native-inputs
-     `(("python-mypy" ,python-mypy-0.981)
+     `(("python-mypy" ,python-mypy)
        ("python-pytest" ,python-pytest)
        ("python-pylint" ,python-pylint)
        ("python-hypothesis" ,python-hypothesis)
