@@ -1899,7 +1899,7 @@ vector graphics.")
          "14m9wan8sp5lzblfzbi1hln621p7ld3npajxrhq1a19zm5bcrz3y"))))
     (build-system minify-build-system)
     (arguments
-     `(#:javascript-files '("dist/htmx.min.js")))
+     `(#:javascript-files '("dist/htmx.js")))
     (home-page "https://htmx.org/")
     (synopsis "High Power Tools for HTML")
     (description
