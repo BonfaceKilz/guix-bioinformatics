@@ -153,6 +153,7 @@
 	 ;; python-pingouin << build failing
 	 ("python-pingouin-without-tests" ,python-pingouin-without-tests)
 	 ("python-plotly" ,python-plotly)
+	 ("python-pyld" ,python-pyld)
 	 ("python-scikit-learn" ,python-scikit-learn)
 	 ("python-pymonad" ,python-pymonad)
 	 ("python-redis" ,python-redis)
