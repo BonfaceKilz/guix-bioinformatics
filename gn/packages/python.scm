@@ -864,50 +864,6 @@ spreadsheets without the need for COM objects.")
     (description "Extensions to the standard Python datetime module")
     (license license:bsd-3)))
 
-(define-public python-arvados-python-client
-  (package
-    (name "python-arvados-python-client")
-    (version "2.5.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "arvados-python-client" version))
-        (sha256
-         (base32 "1j08aykj0v2z2bqwr5nfnbjgc1yzdnfdafcnxbf2jbwqh8kx7zc9"))
-        (modules '((guix build utils)))
-        (snippet
-         '(begin
-            (substitute* "setup.py"
-              ;; Don't set a maximum version of pycurl.
-              (("(pycurl >=([[:digit:]]+\\.?)+),.*" _ pycurl)
-               (string-append pycurl "',\n")))))))
-    (build-system python-build-system)
-    (arguments
-     `(#:tests? #f))    ; tests not included?
-    (propagated-inputs
-     (list python-ciso8601
-           python-future
-           python-google-api-client
-           python-google-api-core-1
-           python-google-auth-1
-           python-httplib2
-           python-protobuf
-           python-pycurl
-           python-pyparsing-2.4.7       ; < 3
-           python-ruamel.yaml
-           python-ws4py))
-    (native-inputs
-     (list python-mock
-           python-pbr-1.6.0
-           python-pyyaml))
-    (home-page "https://arvados.org")
-    (synopsis "Arvados client library")
-    (description "This package provides the arvados module, an API client for
-Arvados.  It also includes higher-level functions to help you write Crunch
-scripts, and command-line tools to store and retrieve data in the Keep storage
-server.")
-    (license license:asl2.0)))
-
 (define-public python-pyshex
   (package
     (name "python-pyshex")
