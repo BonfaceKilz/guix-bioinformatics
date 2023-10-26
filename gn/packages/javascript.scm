@@ -1891,15 +1891,23 @@ vector graphics.")
      (origin
        (method git-fetch)
        (uri (git-reference
-              (url "https://github.com/bigskysoftware/htmx")
-              (commit (string-append "v" version))))
+	     (url "https://github.com/bigskysoftware/htmx")
+	     (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32
-         "14m9wan8sp5lzblfzbi1hln621p7ld3npajxrhq1a19zm5bcrz3y"))))
-    (build-system minify-build-system)
+	(base32
+	 "14m9wan8sp5lzblfzbi1hln621p7ld3npajxrhq1a19zm5bcrz3y"))))
+    (build-system trivial-build-system)
     (arguments
-     `(#:javascript-files '("dist/htmx.js")))
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+	 (use-modules (guix build utils))
+	 (let* ((source (assoc-ref %build-inputs "source"))
+		(out (assoc-ref %outputs "out"))
+		(targetdir (string-append out "/share/genenetwork2/javascript")))
+	   (mkdir-p targetdir)
+	   (copy-file source (string-append targetdir "/htmx.min.js"))))))
     (home-page "https://htmx.org/")
     (synopsis "High Power Tools for HTML")
     (description
