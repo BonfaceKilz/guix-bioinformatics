@@ -1836,23 +1836,3 @@ complete wrapping of the HDF5 API, while the high-level component supports
 access to HDF5 files, datasets and groups using established Python and NumPy
 concepts.")
     (license license:bsd-3)))
-
-(define-public yoyo-migrations-8.2.0
-  (package
-    (inherit yoyo-migrations)
-    (name "yoyo-migrations")
-    (version "8.2.0")
-    (source
-     (origin
-       ;; We use the upstream repository, as the tests are not included in the
-       ;; PyPI releases.
-       (method hg-fetch)
-       (uri (hg-reference
-             (url "https://hg.sr.ht/~olly/yoyo")
-             (changeset (string-append "v" version "-release"))))
-       (file-name (string-append name "-" version "-checkout"))
-       (sha256
-        (base32 "1al030ix0w63hr4s3mqry6s0mlqdj8p242pdqks06br7c25nx3yj"))))
-    (propagated-inputs
-     (modify-inputs (package-propagated-inputs yoyo-migrations)
-		    (append python-importlib-metadata)))))

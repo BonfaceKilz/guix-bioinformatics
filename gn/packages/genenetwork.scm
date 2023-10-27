@@ -170,8 +170,7 @@
 	 ("r-wgcna" ,r-wgcna)
 	 ("r-ctl" ,r-ctl)
 	 ("rust-qtlreaper" ,rust-qtlreaper)
-	 ("diffutils" ,diffutils)
-	 ("yoyo-migrations" ,yoyo-migrations-8.2.0)))
+	 ("diffutils" ,diffutils)))
       (build-system python-build-system)
       (arguments
        (list #:phases
@@ -503,7 +502,7 @@
        ("python-redis" ,python-redis)
        ("python-authlib" ,python-authlib)
        ("python-pymonad" ,python-pymonad)
-       ("yoyo-migrations" ,yoyo-migrations-8.2.0)
+       ("yoyo-migrations" ,yoyo-migrations)
        ("python-bcrypt" ,python-bcrypt) ;; remove after removing all references
        ("python-mysqlclient" ,python-mysqlclient)
        ("python-argon2-cffi" ,python-argon2-cffi)
