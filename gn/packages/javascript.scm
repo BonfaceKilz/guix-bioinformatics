@@ -1914,3 +1914,35 @@ vector graphics.")
     (description
      "htmx allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes, so you can build modern user interfaces with the simplicity and power of hypertext")
     (license license:expat)))
+
+(define-public javascript-marked
+  (package
+   (name "javascript-marked")
+   (version "9.1.5")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdnjs.cloudflare.com/ajax/libs/marked/" version
+			 "/marked.min.js"))
+     (file-name "marked.min.js")
+     (sha256
+      (base32
+       "1f4hw8yjdm99hgw0bq62099d3kv23awsm8r7969m7lv84n2wid8y"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/marked"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/marked.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://marked.js.org/")
+   (synopsis "A markdown parser and compiler. Built for speed.")
+   (description
+    "A low-level markdown compiler for parsing markdown without caching or blocking for long periods of time.")
+   (license license:expat)))
