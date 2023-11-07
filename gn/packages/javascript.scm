@@ -1946,3 +1946,33 @@ vector graphics.")
    (description
     "A low-level markdown compiler for parsing markdown without caching or blocking for long periods of time.")
    (license license:expat)))
+
+(define-public javascript-marked-highlight
+  (package
+   (name "javascript-marked-highlight")
+   (version "2.0.6")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/marked-highlight@" version "/lib/index.umd.min.js"))
+     (sha256
+      (base32
+       "087qcy77fm3r7dl6w0mxsqygmdpimrmksw78r4wkkkjdx9x9dshf"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/marked"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/marked-highlight.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://github.com/markedjs/marked-highlight")
+   (synopsis "Highlight code blocks.")
+   (description
+    "Add code highlighting to marked.")
+   (license license:expat)))
