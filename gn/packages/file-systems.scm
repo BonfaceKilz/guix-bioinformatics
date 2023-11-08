@@ -28,7 +28,8 @@
         (file-name (git-file-name name version))
         (sha256
          (base32
-          "0zk73wmx82ari3m2mv0zx04x1ggsdmwcwn7k6bkl5c0jnxffc4ax"))))
+          "0zk73wmx82ari3m2mv0zx04x1ggsdmwcwn7k6bkl5c0jnxffc4ax"))
+        (patches (search-patches "lizardfs-issues-found-on-Fedora-34-using-GCC-11.patch"))))
     (build-system cmake-build-system)
     (arguments
      `(#:configure-flags
@@ -58,8 +59,7 @@
                (("etc/mfs") "/etc/lizardfs"))
              ;; Then adjust the install instructions.
              (substitute* "src/data/CMakeLists.txt"
-               (("^install.*") ""))
-             #t))
+               (("^install.*") ""))))
          (add-after 'unpack 'use-system-libraries
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((gtest  (assoc-ref inputs "googletest"))
@@ -99,9 +99,7 @@
                ;; fix FTBFS with glibc-2.28; for makedev
                ;; https://github.com/lizardfs/lizardfs/issues/655
                (substitute* "src/chunkserver/iostat.h"
-                 (("sys/stat.h>") "sys/stat.h>\n#include <sys/sysmacros.h>"))
-
-               #t)))
+                 (("sys/stat.h>") "sys/stat.h>\n#include <sys/sysmacros.h>")))))
          (add-after 'install 'install-extras
            ;; This got broken by changing the directories above.
            (lambda* (#:key outputs #:allow-other-keys)
@@ -120,16 +118,15 @@
                  (lambda (file)
                    (copy-file file
                               (string-append etc "/" (basename file) ".dist")))
-                 (find-files data "\\.cfg(\\.in)?$"))
-               #t)))))))
+                 (find-files data "\\.cfg(\\.in)?$")))))))))
     (inputs
-     `(("bdb" ,bdb)
-       ("boost" ,boost)
-       ("fuse" ,fuse)
-       ("linux-pam" ,linux-pam)
-       ("python" ,python-2)
-       ("spdlog" ,spdlog)
-       ("zlib" ,zlib)))
+     (list bdb
+           boost
+           fuse-2
+           linux-pam
+           python-2
+           spdlog
+           zlib))
     (native-inputs
      `(("asciidoc" ,asciidoc)
        ("googletest" ,(package-source googletest-1.7))
