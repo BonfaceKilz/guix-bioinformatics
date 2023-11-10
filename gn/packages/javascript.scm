@@ -1976,3 +1976,34 @@ vector graphics.")
    (description
     "Add code highlighting to marked.")
    (license license:expat)))
+
+(define-public javascript-ace
+  (package
+   (name "javascript-ace")
+   (version "1.31.1")
+   (source
+    (origin
+     (method git-fetch)
+     (uri (git-reference
+	   (url "https://github.com/ajaxorg/ace-builds.git")
+	   (commit (string-append "v" version))))
+     (file-name (git-file-name name version))
+     (sha256
+      (base32 "08rfyrjfjjgb42x4if5qqfyvv8ag2qmf6vsbs7qrcnzgrac66m35"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir (string-append out "/share/genenetwork2/javascript/ace"))
+	       (source (assoc-ref %build-inputs "source"))
+	       (dist (string-append source "/src-min-noconflict")))
+	  (copy-recursively dist targetdir)))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://github.com/ajaxorg/ace-builds")
+   (synopsis "Ace is a code editor written in JavaScript.")
+   (description
+    "Ace is a code editor written in JavaScript. ")
+   (license license:expat)))
