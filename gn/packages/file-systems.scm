@@ -13,37 +13,38 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages logging)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages pretty-print)
   #:use-module (gnu packages python))
 
+
 (define-public lizardfs
-  (package
-    (name "lizardfs")
-    (version "3.12.0")
-    (source
-      (origin
-        (method git-fetch)
-        (uri (git-reference
-               (url "https://github.com/lizardfs/lizardfs")
-               (commit (string-append "v" version))))
-        (file-name (git-file-name name version))
-        (sha256
-         (base32
-          "0zk73wmx82ari3m2mv0zx04x1ggsdmwcwn7k6bkl5c0jnxffc4ax"))
-        (patches (search-patches "lizardfs-issues-found-on-Fedora-34-using-GCC-11.patch"))))
-    (build-system cmake-build-system)
-    (arguments
-     `(#:configure-flags
-       (list "-DENABLE_CLIENT_LIB=YES"
-             "-DENABLE_TESTS=YES"
-             "-DENABLE_STATIC=NO"
-             "-DENABLE_VERBOSE_ASCIIDOC=YES"
-             "-DENABLE_TCMALLOC=NO"
-             ;"-DLIB_SUBDIR=lib" ; no 64 suffix
-             ;; Some directories need to be changed
-             ;"-DRUN_SUBDIR=/var/run/lizardfs"
-             ;"-DDATA_SUBDIR=/var/lib/lizardfs"
-             ;"-DETC_SUBDIR=/etc/lizardfs"
-             "-DENABLE_UTILS=YES")
+  (let ((commit "b1e97f974fc3a4046edaf9fdc3962264d4cd24fa"))
+    (package
+     (name "lizardfs")
+     (version (string-append "3.12.1-" (string-take commit 7)))
+     (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/lizardfs/lizardfs")
+                    (commit commit)))
+              (file-name (string-append name "-" version "-checkout"))
+              (sha256
+               (base32
+                "1jh5alwgaalsnnn53clp3zr5rhzqlbd6apiqvvm6gdxw6ja3f4s1"))))
+     (build-system cmake-build-system)
+     (arguments
+      `(#:configure-flags
+        (list "-DENABLE_CLIENT_LIB=YES"
+              "-DENABLE_TESTS=NO"
+              "-DENABLE_STATIC=NO"
+              "-DENABLE_VERBOSE_ASCIIDOC=YES"
+              "-DENABLE_TCMALLOC=NO"
+                                        ;"-DLIB_SUBDIR=lib" ; no 64 suffix
+              ;; Some directories need to be changed
+                                        ;"-DRUN_SUBDIR=/var/run/lizardfs"
+                                        ;"-DDATA_SUBDIR=/var/lib/lizardfs"
+                                        ;"-DETC_SUBDIR=/etc/lizardfs"
+              "-DENABLE_UTILS=YES")
        ;; Tests involve setting up a lizardfs instance and run as root.
        ;; We will make do with just building the tests.
        #:tests? #f
@@ -120,13 +121,14 @@
                               (string-append etc "/" (basename file) ".dist")))
                  (find-files data "\\.cfg(\\.in)?$")))))))))
     (inputs
-     (list bdb
-           boost
-           fuse-2
-           linux-pam
-           python-2
-           spdlog
-           zlib))
+     `(("bdb" ,bdb)
+       ("boost" ,boost)
+       ("fuse" ,fuse)
+       ("fmt" ,fmt)
+       ("linux-pam" ,linux-pam)
+       ("python" ,python-2)
+       ("spdlog" ,spdlog)
+       ("zlib" ,zlib)))
     (native-inputs
      `(("asciidoc" ,asciidoc)
        ("googletest" ,(package-source googletest-1.7))
@@ -144,7 +146,7 @@ any downtime.  The system will automatically move data across to the newly
 added servers, as it continuously takes care of balancing disk usage across all
 connected nodes.")
     (license (list license:asl2.0   ; external/crcutil
-                   license:gpl3))))
+                   license:gpl3)))))
 
 (define-public googletest-1.7
   ;; Source only package
