@@ -111,10 +111,11 @@
       ((#:tests? _ #f) #f)))))
 
 (define-public genenetwork3
-  (let ((commit "f52247c15f3694f3dd5fd0fd79c3e15376137e07"))
+  (let ((commit "093163ebd511700078f998fa754e786435a81d1b")
+        (revision "4"))
     (package
       (name "genenetwork3")
-      (version (git-version "0.1.0" "3" commit))
+      (version (git-version "0.1.0" revision commit))
       (source
        (origin
          (method git-fetch)
@@ -124,7 +125,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "0ac0dr8dny65x4xvm8gw6ap3g8g0j933ipy9116idcws31rk2adk"))))
+           "06vfrfw1p60scrnxwfd2daxr8hdd6bjd27pdppwxs7k65nvync4s"))))
       (inputs
        (list python-click))
       (native-inputs
@@ -688,3 +689,5 @@
 ;  (directory-union
 ;    "genenetwork2"
 ;    (list genenetwork2 genenetwork-graph dag-svg-file)))
+
+genenetwork3
