@@ -5983,13 +5983,17 @@ Simple gem that adds various color methods to String class, and can be used as f
              (base32
               "0yzlf56ynj545ln5dxl422rpi8r6h11cr6rag5hk2qpbkzs6l9c2"))))
    (build-system ruby-build-system)
+   (inputs
+    (list lmdb))
    (native-inputs
     `(("ruby-rake" ,ruby-rake)
        ("ruby-rake-compiler" ,ruby-rake-compiler)
-       ("ruby-rspec" ,ruby-rspec)      ("ruby-rspec" ,ruby-rspec)))
+       ("ruby-rspec" ,ruby-rspec)
+       ("ruby-ruby-memcheck" ,ruby-ruby-memcheck)
+       ))
    (arguments
-    `(#:tests? #f ; There are no tests.
-   ))   (synopsis "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
+    `(#:tests? #f))
+   (synopsis "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
    (description "lmdb is a Ruby binding to OpenLDAP Lightning MDB.")
    (home-page "https://github.com/doriantaylor/rb-lmdb")
    (license license:expat)))
