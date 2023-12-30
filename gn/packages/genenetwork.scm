@@ -341,7 +341,7 @@
                        (gemmacmd (string-append (assoc-ref inputs "gemma") "/bin/gemma"))
                        )
 
-                  (substitute* '("etc/default_settings.py")
+                  (substitute* '("gn2/default_settings.py")
                     ; (("^GENENETWORK_FILES +=.*") (string-append "GENENETWORK_FILES = \"" datafiles "\"\n" ))
                     ; (("^PYLMM_COMMAND =.*") (string-append "PYLMM_COMMAND = \"" pylmmcmd "\"\n" ))
                     (("^PLINK_COMMAND =.*") (string-append "PLINK_COMMAND = \"" plink2cmd "\"\n" ))
