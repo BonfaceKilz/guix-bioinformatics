@@ -305,6 +305,19 @@
              #:phases
              #~(modify-phases %standard-phases
                  (delete 'reset-gzip-timestamps)
+                 (add-after 'install 'install-bundled-fonts
+                   (lambda _
+                     ;; Install bundled fonts.
+                     (for-each (lambda (font-file)
+                                 (install-file font-file (string-append #$output "/share/fonts/")))
+                               (find-files "gn2/wqflask/static/fonts"
+                                           "\\.ttf$"))))
+                 (add-after 'unpack 'fix-font-paths
+                   (lambda _
+                     ;; Set absolute store paths to installed bundled fonts.
+                     (substitute* "gn2/wqflask/marker_regression/display_mapping_results.py"
+                       (("\\./gn2/wqflask/static/fonts")
+                        (string-append #$output "/gn2/wqflask/static/fonts")))))
                  (add-after 'unpack 'fix-paths-scripts
                    (lambda _
                      (substitute* "bin/genenetwork2"
