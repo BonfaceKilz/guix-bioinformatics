@@ -202,270 +202,135 @@
       (native-inputs
        (list graphviz))
       (propagated-inputs
-       `(("genenetwork3" ,genenetwork3)
-         ("parallel" ,parallel) ;; GNU parallel
-         ("coreutils" ,coreutils)
-         ("git" ,git)
-         ("which" ,which)
-         ("grep" ,grep)
-         ("r" ,r)
-         ("r-ctl" ,r-ctl)
-         ("r-qtl" ,r-qtl)
-         ("r-wgcna" ,r-wgcna)
-         ("redis" ,redis)
-         ("mariadb" ,mariadb)
-         ("gemma" ,gemma-gn2)
-         ("gemma-wrapper" ,gemma-wrapper)
-         ("plink-ng-gn" ,plink-ng-gn)
-         ("rust-qtlreaper" ,rust-qtlreaper)
-	 ("gn-rust-correlation" ,gn-rust-correlation)
-         ("glibc-utf8-locales" ,glibc-utf8-locales)
-         ("nginx" ,nginx)
-         ("python" ,python-wrapper)
-         ("python-pillow" ,python-pillow)
-         ("python-coverage" ,python-coverage)
-         ("python-configparser" ,python-configparser) ;; maintenance/scripts
-         ("python-flask" ,python-flask)
-         ("gunicorn" ,gunicorn)
-         ("python-autopep8" ,python-autopep8)
-         ("python-cssselect" ,python-cssselect)
-         ("python-flask-debugtoolbar" ,python-flask-debugtoolbar)
-         ("python-htmlgen" ,python-htmlgen)
-         ("python-ijson" ,python-ijson)
-         ("python-jinja2" ,python-jinja2)
-         ("python-pytest" ,python-pytest)
-         ("python-pytest-mock" ,python-pytest-mock)
-         ("python-sqlalchemy" ,python-sqlalchemy)
-         ("python-setuptools" ,python-setuptools)
-         ("python-scipy" ,python-scipy)
-         ("python-lxml" ,python-lxml)
-         ("python-mysqlclient" ,python-mysqlclient)
-         ("python-mypy" ,python-mypy)
-         ("python-numpy" ,python-numpy)
-         ("python-pandas" ,python-pandas)
-         ("python-pylint" ,python-pylint)
-         ("python-pymonad" ,python-pymonad)
-         ("python-redis" ,python-redis)
-         ("python-requests" ,python-requests)
-         ("python-simplejson" ,python-simplejson)
-         ("python-markdown" ,python-markdown)
-         ("python-rdflib" ,python-rdflib)
-	 ("python-authlib" ,python-authlib)
-	 ("python-flask-session" ,python-flask-session)
-         ;; TODO: Get rid of Python R bindings
-         ("python-rpy2" ,python-rpy2)
-         ("python-beautifulsoup4" ,python-beautifulsoup4)
-         ;; Disable for now. Build fails on Penguin2
-         ;; ("python-flask-socketio" ,python-flask-socketio)
-         ("python-xlsxwriter" ,python-xlsxwriter)
-         ;; All the external js dependencies
-         ("javascript-twitter-post-fetcher" ,javascript-twitter-post-fetcher)
-         ("javascript-cytoscape" ,javascript-cytoscape)
-         ("javascript-panzoom" ,javascript-cytoscape-panzoom)
-         ("javascript-qtip" ,javascript-cytoscape-qtip)
-         ("javascript-chroma" ,javascript-chroma)
-         ("javascript-d3-tip" ,javascript-d3-tip)
-         ("javascript-jscolor" ,javascript-jscolor)
-         ("javascript-colorbox" ,javascript-colorbox)
-         ("javascript-jszip" ,javascript-jszip)
-         ("js-jstat" ,js-jstat)
-         ("js-md5" ,js-md5)
-         ("js-parsley" ,js-parsley)
-         ("javascript-plotly" ,javascript-plotly)
-         ("javascript-typeahead" ,javascript-typeahead)
-         ("js-underscore" ,js-underscore)
-         ("js-smart-time-ago" ,js-smart-time-ago)
-         ("javascript-nouislider" ,javascript-nouislider)
-         ("javascript-purescript-genome-browser" ,javascript-purescript-genome-browser)
-         ("javascript-ckeditor" ,javascript-ckeditor)
-         ("javascript-datatables" ,javascript-datatables)
-         ("javascript-datatables-scroller" ,javascript-datatables-scroller)
-         ("javascript-datatables-buttons" ,javascript-datatables-buttons)
-         ("javascript-datatables-buttons-bootstrap" ,javascript-datatables-buttons-bootstrap)
-         ("javascript-datatables-plugins" ,javascript-datatables-plugins)
-         ("javascript-datatables-col-reorder" ,javascript-datatables-col-reorder)
-         ("javascript-datatables-col-resize" ,javascript-datatables-col-resize)
-         ("javascript-datatables-buttons-styles" ,javascript-datatables-buttons-styles)
-         ("javascript-shapiro-wilk" ,javascript-shapiro-wilk)
-         ("javascript-underscore-string" ,javascript-underscore-string)
-	 ("javascript-htmx" ,javascript-htmx)
-         ("javascript-qtip2" ,javascript-qtip2)
-         ("javascript-d3js" ,javascript-d3js)
-         ("javascript-nvd3" ,javascript-nvd3)
-         ("javascript-bootstrap" ,javascript-bootstrap)
-         ("javascript-jquery" ,javascript-jquery)
-         ("javascript-zxcvbn" ,javascript-zxcvbn)
-         ("javascript-jquery-ui" ,javascript-jquery-ui)
-         ("javascript-jquery-cookie" ,javascript-jquery-cookie)
-         ("javascript-xterm" ,javascript-xterm)
-         ("javascript-xterm-style" ,javascript-xterm-style)
-         ("javascript-xterm-addon-fit",javascript-xterm-addon-fit)
-         ("javascript-font-awesome" ,javascript-font-awesome)))
+       (list genenetwork3
+             parallel
+             coreutils
+             git
+             which
+             grep
+             r
+             r-ctl
+             r-qtl
+             r-wgcna
+             redis
+             mariadb
+             gemma
+             gemma-wrapper
+             plink-ng-gn
+             rust-qtlreaper
+             gn-rust-correlation
+             glibc-utf8-locales
+             nginx
+             python-wrapper
+             python-pillow
+             python-coverage
+             python-configparser
+             python-flask
+             gunicorn
+             python-autopep8
+             python-cssselect
+             python-flask-debugtoolbar
+             python-htmlgen
+             python-ijson
+             python-jinja2
+             python-pytest
+             python-pytest-mock
+             python-sqlalchemy
+             python-setuptools
+             python-scipy
+             python-lxml
+             python-mysqlclient
+             python-mypy
+             python-numpy
+             python-pandas
+             python-pylint
+             python-pymonad
+             python-redis
+             python-requests
+             python-simplejson
+             python-markdown
+             python-rdflib
+             python-authlib
+             python-flask-session
+             python-rpy2
+             python-beautifulsoup4
+             python-xlsxwriter
+             javascript-twitter-post-fetcher
+             javascript-cytoscape
+             javascript-cytoscape-panzoom
+             javascript-cytoscape-qtip
+             javascript-chroma
+             javascript-d3-tip
+             javascript-jscolor
+             javascript-colorbox
+             javascript-jszip
+             js-jstat
+             js-md5
+             js-parsley
+             javascript-plotly
+             javascript-typeahead
+             js-underscore
+             js-smart-time-ago
+             javascript-nouislider
+             javascript-purescript-genome-browser
+             javascript-ckeditor
+             javascript-datatables
+             javascript-datatables-scroller
+             javascript-datatables-buttons
+             javascript-datatables-buttons-bootstrap
+             javascript-datatables-plugins
+             javascript-datatables-col-reorder
+             javascript-datatables-col-resize
+             javascript-datatables-buttons-styles
+             javascript-shapiro-wilk
+             javascript-underscore-string
+	     javascript-htmx
+             javascript-qtip2
+             javascript-d3js
+             javascript-nvd3
+             javascript-bootstrap
+             javascript-jquery
+             javascript-zxcvbn
+             javascript-jquery-ui
+             javascript-jquery-cookie
+             javascript-xterm
+             javascript-xterm-style
+             javascript-xterm-addon-fit
+             javascript-font-awesome))
       (inputs
-       `(("javascript-colorbox" ,(package-source javascript-colorbox))))
+       (list javascript-colorbox))
       (build-system python-build-system)
       (arguments
-       `(#:tests? #f        ; no 'setup.py test'
-         #:phases
-         (modify-phases %standard-phases
-            (delete 'reset-gzip-timestamps)
-            (add-after 'unpack 'fix-paths-scripts
-              (lambda _
-                (substitute* "bin/genenetwork2"
-                  (("/usr/bin/env") (which "env"))
-                  (("python ") (string-append (which "python3") " "))
-                  (("readlink") (which "readlink"))
-                  (("dirname") (which "dirname"))
-                  (("basename") (which "basename"))
-                  (("cat") (which "cat"))
-                  (("echo") (which "echo"))
-                  (("redis-server") (which "redis-server"))
-                  (("git") (which "git"))
-                  (("grep") (which "grep"))
-                  (("rm") (which "rm"))
-                  (("which") (which "which")))
-                #t))
-            ; (add-after 'unpack 'patch-javascript
-            ;  (lambda* (#:key inputs #:allow-other-keys)
-            ;    (let ((colorbox (assoc-ref inputs "javascript-colorbox"))
-            ;          (gn2 "/share/genenetwork2/javascript/"))
-            ;      (delete-file-recursively "wqflask/wqflask/static/packages/colorbox")
-            ;      (copy-recursively colorbox "wqflask/wqflask/static/packages/colorbox")
-            ;      #t)))
-            (add-before 'install 'fix-paths
-              (lambda* (#:key inputs #:allow-other-keys)
-                (let* (
-                       ; (datafiles (string-append (assoc-ref inputs "genenetwork2-files-small") "/share/genenetwork2"))
-                       ; (pylmmcmd (string-append (assoc-ref inputs "pylmm-gn2") "/bin/pylmm_redis"))
-                       (plink2cmd (string-append (assoc-ref inputs "plink-ng-gn") "/bin/plink2"))
-                       (gemmacmd (string-append (assoc-ref inputs "gemma") "/bin/gemma"))
-                       )
-
-                  (substitute* '("gn2/default_settings.py")
-                    ; (("^GENENETWORK_FILES +=.*") (string-append "GENENETWORK_FILES = \"" datafiles "\"\n" ))
-                    ; (("^PYLMM_COMMAND =.*") (string-append "PYLMM_COMMAND = \"" pylmmcmd "\"\n" ))
-                    (("^PLINK_COMMAND =.*") (string-append "PLINK_COMMAND = \"" plink2cmd "\"\n" ))
-                    (("^GEMMA_COMMAND =.*") (string-append "GEMMA_COMMAND = \"" gemmacmd "\"\n" ))
-                    )
-                  )))
-            ; (add-after 'install 'generate-graph
-            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
-            ;    (call-with-output-file
-            ;        (string-append
-            ;         (assoc-ref outputs "out")
-            ;         "/lib/python"
-            ;         (python-version (assoc-ref inputs "python"))
-            ;         "/site-packages"
-            ;         "/wqflask/dependency-graph.html")
-            ;      (lambda (port)
-            ;        (format
-            ;         port "~a"
-            ;         ,(call-with-output-string
-            ;            (lambda (p)
-            ;              (with-output-to-port p
-            ;                (lambda ()
-            ;                  (run-with-store
-            ;                      (open-connection)
-            ;                    (export-graph
-            ;                     (list this-package)
-            ;                     p
-            ;                     #:node-type %package-node-type
-            ;                     #:backend %d3js-backend)))))))))))
-            ;(add-after 'install 'generate-dag-svg-file
-            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
-            ;    (let* ((output-dir
-            ;            (string-append
-            ;             (assoc-ref outputs "out")
-            ;             "/lib/python"
-            ;             (python-version (assoc-ref inputs "python"))
-            ;             "/site-packages/wqflask/"))
-            ;           (dot-file
-            ;            (string-append
-            ;             output-dir
-            ;             "dependency-graph.dot"))
-            ;           (svg-file
-            ;            (string-append
-            ;             output-dir
-            ;             "dependency-graph.svg")))
-            ;      (begin
-            ;        (call-with-output-file
-            ;            dot-file
-            ;          (lambda (port)
-            ;            (format
-            ;             port "~a"
-            ;             ,(call-with-output-string
-            ;                (lambda (p)
-            ;                  (with-output-to-port p
-            ;                    (lambda ()
-            ;                      (run-with-store
-            ;                          (open-connection)
-            ;                        (export-graph
-            ;                         (list this-package)
-            ;                         p
-            ;                         #:node-type %package-node-type
-            ;                         #:backend %graphviz-backend)))))))))
-            ;        (invoke "dot" "-Tsvg" "-o" svg-file dot-file)))))
-
-            ;; TODO: Use this to replace the two previous phases.
-            ;(add-after 'install 'install-generated-files
-            ;  (lambda* (#:key inputs outputs #:allow-other-keys)
-            ;    (let ((output-dir
-            ;           (string-append
-            ;            (assoc-ref outputs "out")
-            ;            "/lib/python"
-            ;            (python-version (assoc-ref inputs "python"))
-            ;            "/site-packages/wqflask/")))
-            ;      (install-file (string-append %dag-svg-file "/dependency-graph.dot") output-dir)
-            ;      (install-file (string-append %dag-svg-file "/dependency-graph.svg") output-dir)
-            ;      (install-file (string-append %genenetwork-graph "/dependency-graph.html") output-dir)
-            ;      #t)))
-
-            #!
-            (add-after 'install 'generate-dependency-file
-              (lambda* (#:key inputs outputs #:allow-other-keys)
-                (call-with-output-file
-                    (string-append
-                     (assoc-ref outputs "out")
-                     "/lib/python"
-                     (python-version (assoc-ref inputs "python"))
-                     "/site-packages"
-                     "/wqflask/DEPENDENCIES.md"
-                     )
-                  (lambda (port)
-                    (format
-                     port "
-#### System Inputs (generated from ~a package defined in ~a)
-|Name | Description |
-|-----|-------------|
-~a
-"
-                     ,(package-name this-package)
-                     (string-append
-                      "[genenetwork.scm]"
-                      "(http://git.genenetwork.org/"
-                      "guix-bioinformatics/guix-bioinformatics"
-                      "/src/branch/master/gn/packages/"
-                      "genenetwork.scm)")
-                     ,(apply
-                       string-append
-                       (map
-                        (lambda (input)
-                          (let* ((pkg (cadr input))
-                                 (name (package-name pkg))
-                                 (version (package-version pkg))
-                                 (home-page (package-home-page pkg))
-                                 (description (package-synopsis pkg)))
-                            (string-append
-                             "| **[" name "](" home-page ")** v"
-                             version"| "
-                             description " |\n")))
-                        (package-propagated-inputs this-package))))))))
-                        !# 
-                        )))
-      (home-page "http://genenetwork.org/")
-      (synopsis "Full genenetwork services")
-      (description "Genenetwork installation sumo.")
-      (license license:agpl3+))))
+       (list #:tests? #f
+             #:phases
+             #~(modify-phases %standard-phases
+                 (delete 'reset-gzip-timestamps)
+                 (add-after 'unpack 'fix-paths-scripts
+                   (lambda _
+                     (substitute* "bin/genenetwork2"
+                       (("/usr/bin/env") (which "env"))
+                       (("python ") (string-append (which "python3") " "))
+                       (("readlink") (which "readlink"))
+                       (("dirname") (which "dirname"))
+                       (("basename") (which "basename"))
+                       (("cat") (which "cat"))
+                       (("echo") (which "echo"))
+                       (("redis-server") (which "redis-server"))
+                       (("git") (which "git"))
+                       (("grep") (which "grep"))
+                       (("rm") (which "rm"))
+                       (("which") (which "which")))))
+                 (add-before 'install 'fix-paths
+                   (lambda* (#:key inputs #:allow-other-keys)
+                     (let* ((plink2cmd (string-append (assoc-ref inputs "plink-ng-gn") "/bin/plink2"))
+                            (gemmacmd (string-append (assoc-ref inputs "gemma") "/bin/gemma")))
+                       (substitute* '("gn2/default_settings.py")
+                              (("^PLINK_COMMAND =.*") (string-append "PLINK_COMMAND = \"" plink2cmd "\"\n" ))
+                              (("^GEMMA_COMMAND =.*") (string-append "GEMMA_COMMAND = \"" gemmacmd "\"\n" )))))))))
+       (home-page "http://genenetwork.org/")
+       (synopsis "Full genenetwork services")
+       (description "Genenetwork installation sumo.")
+       (license license:agpl3+))))
 
 (define-public gnqc-py
   (package
