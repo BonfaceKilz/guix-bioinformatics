@@ -317,7 +317,7 @@
                      ;; Set absolute store paths to installed bundled fonts.
                      (substitute* "gn2/wqflask/marker_regression/display_mapping_results.py"
                        (("\\./gn2/wqflask/static/fonts")
-                        (string-append #$output "/gn2/wqflask/static/fonts")))))
+                        (string-append #$output "/share/fonts")))))
                  (add-after 'unpack 'fix-paths-scripts
                    (lambda _
                      (substitute* "bin/genenetwork2"
