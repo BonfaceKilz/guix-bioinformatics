@@ -731,5 +731,3 @@
 ;  (directory-union
 ;    "genenetwork2"
 ;    (list genenetwork2 genenetwork-graph dag-svg-file)))
-
-genenetwork3
