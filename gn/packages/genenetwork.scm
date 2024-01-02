@@ -467,6 +467,48 @@
       (description "Genenetwork installation sumo.")
       (license license:agpl3+))))
 
+(define-public gnqc-py
+  (package
+    (name "gnqc-py")
+    (version "0.0.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+	     (url "https://gitlab.com/fredmanglis/gnqc_py.git")
+	     (commit "c81a3d948b3bc0db20a530fa1aa428b35b5d6145")))
+       (hash
+	(content-hash
+	 (base32
+	  "1101pql7zpijn36i9phcakfx1r5dcvdf6ix0v4ndjzmzx3d0xyi2")))))
+    (build-system python-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+	  (replace 'check
+	    (lambda* (#:key tests? #:allow-other-keys)
+	      (when tests?
+		(invoke "pytest" "-k" "unit_test")))))))
+    (native-inputs
+     `(("python-mypy" ,python-mypy
+	"python-pylint" ,python-pylint
+	"python-pytest" ,python-pytest
+	"python-hypothesis" ,python-hypothesis)))
+    (propagated-inputs
+     `(("gunicorn" ,gunicorn
+	"python-redis" ,python-redis
+	"python-flask" ,python-flask
+	"python-pyyaml" ,python-pyyaml
+	"python-jsonpickle" ,python-jsonpickle
+	"python-mysqlclient" ,python-mysqlclient)))
+    (synopsis "GeneNetwork Quality Control Application")
+    (description
+     "GeneNetwork qc is a quality control application for the data files that
+ eventually are used to add to the data in the GeneNetwork project.")
+    (home-page "https://gitlab.com/fredmanglis/gnqc_py")
+    (license license:agpl3+)))
+
 (define-public gn-auth
   (package
     (name "gn-auth")
