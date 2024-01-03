@@ -186,10 +186,11 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "ff679636d3ee9ae2388fab3fe5d091ef2f00a8e3"))
+  (let ((commit "c1d377ec86b902f76e47fc4506a9ff260d788082")
+        (revision "4"))
     (package
       (name "genenetwork2")
-      (version (git-version "3.11" "3" commit))
+      (version (git-version "3.11" revision commit))
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
@@ -198,7 +199,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "0ap7q7v42c5sg4kjy76zdn6h6w5a3f534i5644rya5a1akmss7hg"))))
+                  "03l01nr0pg52pdnc6sajnsvylw61j68x6zz6mi5ygkimbj4093sa"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
@@ -305,19 +306,17 @@
              #:phases
              #~(modify-phases %standard-phases
                  (delete 'reset-gzip-timestamps)
-                 (add-after 'install 'install-bundled-fonts
-                   (lambda _
-                     ;; Install bundled fonts.
-                     (for-each (lambda (font-file)
-                                 (install-file font-file (string-append #$output "/share/fonts/")))
-                               (find-files "gn2/wqflask/static/fonts"
-                                           "\\.ttf$"))))
-                 (add-after 'unpack 'fix-font-paths
-                   (lambda _
-                     ;; Set absolute store paths to installed bundled fonts.
+                 (add-after 'unpack 'fix-paths-to-static-files
+                   (lambda* (#:key inputs outputs #:allow-other-keys)
+                     ;; Set absolute store paths to installed static files.
                      (substitute* "gn2/wqflask/marker_regression/display_mapping_results.py"
                        (("\\./gn2/wqflask/static/fonts")
-                        (string-append #$output "/share/fonts")))))
+                        (string-append (site-packages inputs outputs)
+                                       "/gn2/wqflask/static/fonts")))
+                     (substitute* "gn2/wqflask/views.py"
+                       (("\\./gn2/wqflask/static/gif/error")
+                        (string-append (site-packages inputs outputs)
+                                       "/gn2/wqflask/static/gif/error")))))
                  (add-after 'unpack 'fix-paths-scripts
                    (lambda _
                      (substitute* "bin/genenetwork2"
