@@ -368,17 +368,17 @@
 	      (when tests?
 		(invoke "pytest" "-k" "unit_test")))))))
     (native-inputs
-     `(("python-mypy" ,python-mypy
-	"python-pylint" ,python-pylint
-	"python-pytest" ,python-pytest
-	"python-hypothesis" ,python-hypothesis)))
+     `(("python-mypy" ,python-mypy)
+       ("python-pylint" ,python-pylint)
+       ("python-pytest" ,python-pytest)
+       ("python-hypothesis" ,python-hypothesis)))
     (propagated-inputs
-     `(("gunicorn" ,gunicorn
-	"python-redis" ,python-redis
-	"python-flask" ,python-flask
-	"python-pyyaml" ,python-pyyaml
-	"python-jsonpickle" ,python-jsonpickle
-	"python-mysqlclient" ,python-mysqlclient)))
+     `(("gunicorn" ,gunicorn)
+       ("python-redis" ,python-redis)
+       ("python-flask" ,python-flask)
+       ("python-pyyaml" ,python-pyyaml)
+       ("python-jsonpickle" ,python-jsonpickle)
+       ("python-mysqlclient" ,python-mysqlclient)))
     (synopsis "GeneNetwork Quality Control Application")
     (description
      "GeneNetwork qc is a quality control application for the data files that
