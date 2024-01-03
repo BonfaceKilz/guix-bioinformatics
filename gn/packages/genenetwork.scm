@@ -111,8 +111,8 @@
       ((#:tests? _ #f) #f)))))
 
 (define-public genenetwork3
-  (let ((commit "093163ebd511700078f998fa754e786435a81d1b")
-        (revision "4"))
+  (let ((commit "6bb4a5f05c1a2c96b7da1780ae4a1d70c7cc4afb")
+        (revision "5"))
     (package
       (name "genenetwork3")
       (version (git-version "0.1.0" revision commit))
@@ -125,7 +125,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "06vfrfw1p60scrnxwfd2daxr8hdd6bjd27pdppwxs7k65nvync4s"))))
+           "13nvi2gwwb0shra0d9rsfhppa9ky4bhgh1zgb34790ax0g9lwa97"))))
       (inputs
        (list python-click))
       (native-inputs
