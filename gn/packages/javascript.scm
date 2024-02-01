@@ -1319,32 +1319,37 @@ a sample function, allowing for more complex calculations.")
     (arguments `(#:javascript-files '("dist/jstat.js")))
     (build-system minify-build-system)))
 
-(define-public javascript-ckeditor ; version 4
+(define-public javascript-ckeditor	; version 4
   (package
     (name "javascript-ckeditor")
-    (version "4.13.0") ; Sept. 26, 2019
+    (version "4.13.0")			; Sept. 26, 2019
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "https://cdn.ckeditor.com/" version
-                           "/standard/ckeditor.js"))
-       (file-name (string-append "ckeditor-" version ".js"))
+       (uri (string-append "http://download.cksource.com/CKEditor/CKEditor/CKEditor%20" version
+			   "/ckeditor_4.13.0_standard.zip"))
        (sha256
-        (base32
-         "0cvf1qdva5h2dh8y10c9v7dxrd82siswxx7h6cq0mf46ssjdygd0"))))
+	(base32
+	 "1n2xynmbr2v4wm2g2vqcqd16n93phsbq4sqrnljzb7wzjq9svl36"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
        #:builder
        (begin
-         (use-modules (guix build utils))
-         (let* ((out (assoc-ref %outputs "out"))
-                (targetdir
-                  (string-append out "/share/genenetwork2/javascript/ckeditor"))
-                (source (assoc-ref %build-inputs "source")))
-           (mkdir-p targetdir)
-           (copy-file source (string-append targetdir "/ckeditor.js"))))))
-    (native-inputs `(("source" ,source)))
+	 (use-modules (guix build utils))
+	 (let* ((out (assoc-ref %outputs "out"))
+		(name "ckeditor")
+		(unzip (string-append (assoc-ref %build-inputs "unzip")
+				      "/bin/unzip"))
+		(targetdir
+		 (string-append (string-append out "/share/genenetwork2/javascript/" name)))
+		(source (assoc-ref %build-inputs "source")))
+	   (mkdir-p targetdir)
+	   (invoke unzip source)
+	   (copy-recursively "ckeditor" targetdir)))))
+    (native-inputs
+     `(("source" ,source)
+       ("unzip" ,unzip)))
     (home-page "https://ckeditor.com/")
     (synopsis "Smart WYSIWYG HTML editor")
     (description
@@ -1358,8 +1363,8 @@ browser compatibility, including legacy browsers.
 @item Long-term support (LTS) until 2023.
 @end enumerate")
     (license (list license:gpl2+
-                   license:lgpl2.1+
-                   license:mpl1.1)))) ; Any of these three
+		   license:lgpl2.1+
+		   license:mpl1.1)))) ; Any of these three
 
 (define-public javascript-parsley
   (package
