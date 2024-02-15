@@ -1854,7 +1854,7 @@ Popper will automatically put the tooltip in the right place near the button.")
 (define-public javascript-font-awesome
   (package
     (name "javascript-font-awesome")
-    (version "5.15.2")
+    (version "v4.7.0")
     (source
      (origin
        (method git-fetch)
@@ -1863,7 +1863,7 @@ Popper will automatically put the tooltip in the right place near the button.")
              (commit version)))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1jin0qlf5lv4l9gj8qc1pp34mxyvyj6gma4qnjqiah1bzcfn635l"))))
+        (base32 "0w30y26jp8nvxa3iiw7ayl6rkza1rz62msl9xw3srvxya1c77grc"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -1873,13 +1873,11 @@ Popper will automatically put the tooltip in the right place near the button.")
          (let* ((out (assoc-ref %outputs "out"))
                 (targetdir (string-append out "/share/genenetwork2/javascript/fontawesome"))
                 (source (assoc-ref %build-inputs "source"))
-		(js-dir (string-append source "/js"))
                 (css-dir (string-append source "/css"))
-                (fonts-dir (string-append source "/webfonts")))
+                (fonts-dir (string-append source "/fonts")))
            (copy-recursively css-dir (string-append targetdir "/css"))
-	   (copy-recursively js-dir (string-append targetdir "/js"))
            (copy-recursively fonts-dir
-                             (string-append targetdir "/webfonts"))))))
+                             (string-append targetdir "/fonts"))))))
     (native-inputs `(("source" ,source)))
     (home-page "https://fontawesome.com/")
     (synopsis "Font that contains a rich iconset")
