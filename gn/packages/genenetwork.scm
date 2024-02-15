@@ -271,6 +271,7 @@
              javascript-plotly
              javascript-typeahead
              js-underscore
+	     javascript-uikit
              js-smart-time-ago
              javascript-nouislider
              javascript-purescript-genome-browser

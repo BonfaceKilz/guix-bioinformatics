@@ -2012,3 +2012,37 @@ vector graphics.")
    (description
     "Ace is a code editor written in JavaScript. ")
    (license license:expat)))
+
+(define-public javascript-uikit
+  (package
+   (name "javascript-uikit")
+   (version "3.7.4")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://github.com/uikit/uikit/releases/download/v"
+			 version "/uikit" "-" version ".zip"))
+     (sha256
+      (base32 "1qhhz3iki1nbyffg6qa7x2937708hjr9gf6mkn4v4cdl9j0mgyv0"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (unzip (string-append (assoc-ref %build-inputs "unzip")
+				     "/bin/unzip"))
+	       (targetdir (string-append out "/share/genenetwork2/javascript/uikit"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (invoke unzip source)
+	  (copy-recursively "." targetdir)))))
+   (native-inputs
+    `(("source" ,source)
+      ("unzip" ,unzip)))
+   (home-page "https://getuikit.com/")
+   (synopsis "UIkit is a lightweight and modular front-end framework
+for developing fast and powerful web interfaces.")
+   (description "UIkit is a lightweight and modular front-end framework
+for developing fast and powerful web interfaces.")
+   (license license:bsd-3)))
