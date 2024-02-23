@@ -4485,3 +4485,68 @@ and writing using 8, 16, 24 or 32 bits per probability, using Layout =
 ploidy 2.  Any other format specification may crash unexpectedly
 without a properly defined error.")
     (license license:gpl3)))
+
+(define-public seqlib
+  (package
+    (name "seqlib")
+    (version "0.1.4")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/Zilong-Li/SeqLib")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1hczg1swghnxm6af74l09crdgf7l282jabmyck9mi5bk6vg9s1pn"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:phases
+           #~(modify-phases %standard-phases
+               ;; Patch build scripts to unbundle htslib and build a
+               ;; seqlib shared library using libtool.
+               (add-after 'unpack 'patch-build-scripts
+                 (lambda _
+                   ;; Initialize libtool.
+                   (substitute* "configure.ac"
+                     (("AM_INIT_AUTOMAKE\\(foreign\\)\n" all)
+                      (string-append all "LT_INIT\n")))
+                   (substitute* "Makefile.am"
+                     ;; Install headers
+                     (("^SUBDIRS" all)
+                      (string-append "nobase_include_HEADERS = "
+                                     (string-join (find-files "SeqLib"))
+                                     "\n" all))
+                     ;; Do not recurse into htslib submodule.
+                     (("htslib") "")
+                     ;; Remove install target override.
+                     (("^install:") "")
+                     (("^\tmkdir -p lib && cp src/libseqlib.a /libhts.a lib") ""))
+                   (substitute* "src/Makefile.am"
+                     ;; Build libtool library.
+                     (("noinst_LIBRARIES = libseqlib\\.a")
+                      "lib_LTLIBRARIES = libseqlib.la\nlibseqlib_la_LIBADD = -ljsoncpp")
+                     (("libseqlib\\.a") "libseqlib.la")
+                     (("libseqlib_a") "libseqlib_la"))
+                   (substitute* (list "SeqLib/BamHeader.h"
+                                      "SeqLib/BamRecord.h"
+                                      "SeqLib/RefGenome.h"
+                                      "src/ReadFilter.cpp")
+                     ;; Patch path to htslib headers.
+                     (("\"htslib/htslib/([^\"]*)\"" all header)
+                      (string-append "<htslib/" header ">"))))))))
+    (inputs
+     (list zlib))
+    (native-inputs
+     (list autoconf automake libtool))
+    ;; seqlib headers include headers from htslib and jsoncpp. So,
+    ;; they are propagated inputs.
+    (propagated-inputs
+     (list htslib jsoncpp))
+    (home-page "https://github.com/Zilong-Li/SeqLib")
+    (synopsis "C++ htslib interface for manipulating sequence data and VCF")
+    (description "@code{seqlib} is a C++ htslib interface for manipulating sequence data
+and VCF files.")
+    (license (list license:expat       ; SeqLib/IntervalTree.h, SeqLib/aho_corasick.hpp,
+                                       ; json/json-forwards.h, json/json.h, src/jsoncpp.cpp, src/ssw.c,
+                   license:asl2.0))))  ; main license
