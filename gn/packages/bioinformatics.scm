@@ -16,6 +16,7 @@
   #:use-module (guix build-system meson)
   #:use-module (guix build-system ocaml)
   #:use-module (guix build-system python)
+  #:use-module (guix build-system r)
   #:use-module (guix build-system trivial)
   #:use-module (guix build-system waf)
   #:use-module (gnu packages)
