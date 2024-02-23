@@ -4460,3 +4460,28 @@ automatically vectorize for different architectures without adapting the code.")
      (substitute-keyword-arguments (package-arguments wfa2-lib)
        ((#:make-flags flags ''())
         #~(cons "CC_FLAGS+=-static" #$flags))))))
+
+(define-public r-rrbgen
+  (package
+    (name "r-stitch")
+    (version "0.0.6")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://github.com/rwdavies/rrbgen/releases/download/"
+			   version "/rrbgen_" version ".tar.gz"))
+       (sha256
+        (base32
+         "1vhqy8licl2pkzar4aag0q5fhnb3fdch8acyjh9445ia42z01z9c"))))
+    (build-system r-build-system)
+    (propagated-inputs
+     (list r-rcpp
+	   r-rcpparmadillo))
+    (home-page "https://github.com/rwdavies/rrbgen")
+    (synopsis "Lightweight limited functionality R bgen read/write library")
+    (description "@code{r-rrbgen} supports v1.3 of the bgen format.  It supports reading
+and writing using 8, 16, 24 or 32 bits per probability, using Layout =
+2 and CompressedSNPBlocks = 1, for bi-allelic SNPs with samples of
+ploidy 2.  Any other format specification may crash unexpectedly
+without a properly defined error.")
+    (license license:gpl3)))
