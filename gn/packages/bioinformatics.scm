@@ -4571,3 +4571,51 @@ and VCF files.")
 interface to the basic htslib.  It can be easily included in a C++
 program for scripting high-performance genomic analyses.")
     (license license:asl2.0)))
+
+(define-public r-stitch
+  (package
+    (name "r-stitch")
+    (version "1.6.10")
+    (source
+     ;; The release tarball bundles dependencies. So, use git-fetch.
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/rwdavies/STITCH")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0iy5fq2l5a35xdxqaf9ypj56da57qmwppwqmh9nflbvmbc7kgbkf"))))
+    (build-system r-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'unpack 'chdir
+            (lambda _
+              (chdir "STITCH")))
+          (add-after 'chdir 'patch-build-system
+            (lambda _
+              (substitute* "src/Makevars"
+                (("\\$\\(SEQLIB_ROOT\\)/src/libseqlib.a") "-lseqlib")
+                (("\\$\\(SEQLIB_ROOT\\)/htslib/libhts.a") "-lhts")
+                ((": SeqLib") ":")))))))
+    (inputs
+     (list curl htslib seqlib zlib))
+    (native-inputs
+     (list autoconf automake vcfpp))
+    (propagated-inputs
+     (list r-data-table r-rrbgen
+           ;; FIXME: These should be inputs that are substituted into
+           ;; the source. But, for some reason, the reference scanner
+           ;; does not pick them up that way.
+           coreutils findutils htslib rsync))
+    (home-page "https://github.com/rwdavies/STITCH")
+    (synopsis "Sequencing to imputation through constructing haplotypes")
+    (description "@code{r-stitch} is an R program for reference panel free,
+read aware, low coverage sequencing genotype imputation.  STITCH runs
+on a set of samples with sequencing reads in BAM format, as well as a
+list of positions to genotype, and outputs imputed genotypes in VCF
+format.")
+    (license license:gpl3)))
