@@ -4550,3 +4550,24 @@ and VCF files.")
     (license (list license:expat       ; SeqLib/IntervalTree.h, SeqLib/aho_corasick.hpp,
                                        ; json/json-forwards.h, json/json.h, src/jsoncpp.cpp, src/ssw.c,
                    license:asl2.0))))  ; main license
+
+(define-public vcfpp
+  (package
+    (name "vcfpp")
+    (version "0.3.3")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/Zilong-Li/vcfpp/releases/download/v"
+                                  version "/vcfpp.h"))
+              (sha256
+               (base32
+                "1wq76wz81y09ic37z30vljqnczhwx2qijav0nfvg6xi8wd2c75n3"))))
+    (build-system copy-build-system)
+    (arguments
+     (list #:install-plan #~'(("vcfpp.h" "include/vcfpp/vcfpp.h"))))
+    (home-page "https://github.com/Zilong-Li/vcfpp")
+    (synopsis "C++ API of htslib")
+    (description "@code{vcfpp} is a single C++ file as
+interface to the basic htslib.  It can be easily included in a C++
+program for scripting high-performance genomic analyses.")
+    (license license:asl2.0)))
