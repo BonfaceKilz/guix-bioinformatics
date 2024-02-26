@@ -411,23 +411,23 @@
 	      (when tests?
 		(invoke "pytest" "-k" "unit_test")))))))
     (native-inputs
-     `(("python-mypy" ,python-mypy)
-       ("python-pytest" ,python-pytest)
-       ("python-pylint" ,python-pylint)
-       ("python-hypothesis" ,python-hypothesis)
-       ("python-pytest-mock" ,python-pytest-mock)
-       ("python-mypy-extensions" ,python-mypy-extensions)))
+     (list python-hypothesis
+           python-mypy
+           python-mypy-extensions
+           python-pylint
+           python-pytest
+           python-pytest-mock))
     (propagated-inputs
-     `(("gunicorn" ,gunicorn)
-       ("python-flask" ,python-flask)
-       ("python-redis" ,python-redis)
-       ("python-authlib" ,python-authlib)
-       ("python-pymonad" ,python-pymonad)
-       ("yoyo-migrations" ,yoyo-migrations)
-       ("python-flask-cors" ,python-flask-cors)
-       ("python-mysqlclient" ,python-mysqlclient)
-       ("python-argon2-cffi" ,python-argon2-cffi)
-       ("python-email-validator" ,python-email-validator)))
+     (list gunicorn
+           python-argon2-cffi
+           python-authlib
+           python-email-validator
+           python-flask
+           python-flask-cors
+           python-mysqlclient
+           python-pymonad
+           python-redis
+           yoyo-migrations))
     (home-page "https://github.com/genenetwork/gn-auth")
     (synopsis "Authentication and Authorisation server for GeneNetwork services")
     (description "Authentication and Authorisation server for GeneNetwork services.")
