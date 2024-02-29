@@ -71,6 +71,6 @@ options and arguments match your type annotations.")
            python-typing-extensions))
     (home-page "https://docs.globus.org/cli")
     (synopsis "Globus CLI")
-    (description "@code{python-globus-sdk} provides a command-line interface to
+    (description "@code{globus-cli} provides a command-line interface to
 Globus APIs.")
     (license license:asl2.0)))
