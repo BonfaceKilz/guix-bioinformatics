@@ -7,6 +7,7 @@
   #:use-module (guix build-system cargo)
   #:use-module (gnu packages crates-graphics)
   #:use-module (gnu packages crates-io)
+  #:use-module (gnu packages crates-windows)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages python))
 
