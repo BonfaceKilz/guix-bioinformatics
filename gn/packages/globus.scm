@@ -1,4 +1,5 @@
 (define-module (gn packages globus)
+  #:use-module (gnu packages check)
   #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-web)
@@ -27,3 +28,22 @@
     (description "@code{python-globus-sdk} provides a convenient Pythonic interface to
 Globus APIs.")
     (license license:asl2.0)))
+
+(define-public python-click-type-test
+  (package
+    (name "python-click-type-test")
+    (version "0.0.7")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "click-type-test" version))
+              (sha256
+               (base32
+                "1i3z7akiz7s8jy6x0vzrak88m55ac1spq88vziwryzr7355y3hgq"))))
+    (build-system pyproject-build-system)
+    (native-inputs (list python-pytest))
+    (propagated-inputs (list python-click))
+    (home-page "https://github.com/sirosen/click-type-test")
+    (synopsis "Test that type annotations match click parameter types")
+    (description "@code{python-click-type-test} allows you to test that your click
+options and arguments match your type annotations.")
+    (license license:expat)))
