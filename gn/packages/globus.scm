@@ -47,3 +47,30 @@ Globus APIs.")
     (description "@code{python-click-type-test} allows you to test that your click
 options and arguments match your type annotations.")
     (license license:expat)))
+
+(define-public globus-cli
+  (package
+    (name "globus-cli")
+    (version "3.25.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "globus-cli" version))
+              (sha256
+               (base32
+                "05div2psajmqdy9md804q4x6ha4yfp4w6yrxz0ynsq3i62a6cl5v"))))
+    (build-system pyproject-build-system)
+    (arguments
+     (list #:tests? #f))
+    (propagated-inputs
+     (list python-click
+           python-cryptography
+           python-globus-sdk
+           python-jmespath
+           python-packaging
+           python-requests
+           python-typing-extensions))
+    (home-page "https://docs.globus.org/cli")
+    (synopsis "Globus CLI")
+    (description "@code{python-globus-sdk} provides a command-line interface to
+Globus APIs.")
+    (license license:asl2.0)))
