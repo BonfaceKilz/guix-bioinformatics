@@ -396,11 +396,11 @@
        (method git-fetch)
        (uri (git-reference
 	     (url "https://github.com/genenetwork/gn-auth.git")
-	     (commit "10ec3b1f851897c2cce89356b4404c18f9f11a2f")))
+	     (commit "8a20071dc8009b5b9439d10e17a2a57883b7b363")))
        (hash
 	(content-hash
 	 (base32
-	  "1p7mcimg1fhdxjmhi6p6snpq73h5h8h6ya2lx9c9kr8r3zn67pb5")))))
+	  "1p8vcdpj9wlkfaxzmg3b6372zad9m2byrz7rzg6fdl26v95wd4qm")))))
     (build-system python-build-system)
     (arguments
      (list
