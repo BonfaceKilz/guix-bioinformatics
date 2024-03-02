@@ -390,17 +390,17 @@
 (define-public gn-auth
   (package
     (name "gn-auth")
-    (version "1.0.0")
+    (version "1.0.1")
     (source
      (origin
        (method git-fetch)
        (uri (git-reference
 	     (url "https://github.com/genenetwork/gn-auth.git")
-	     (commit "8a20071dc8009b5b9439d10e17a2a57883b7b363")))
+	     (commit "cd6eebd85d32feb289ccecd1aee45fb40b03d77f")))
        (hash
 	(content-hash
 	 (base32
-	  "1p8vcdpj9wlkfaxzmg3b6372zad9m2byrz7rzg6fdl26v95wd4qm")))))
+	  "06slj3z110mbc46qncdvyi29y85zkqxl76n89dxjp5wjfqxw0nsl")))))
     (build-system python-build-system)
     (arguments
      (list
