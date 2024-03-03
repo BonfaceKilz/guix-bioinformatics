@@ -295,9 +295,9 @@
              javascript-zxcvbn
              javascript-jquery-ui
              javascript-jquery-cookie
-             javascript-xterm
-             javascript-xterm-style
-             javascript-xterm-addon-fit
+             ; javascript-xterm -- disabled until we know what to do with it, not working on production
+             ; javascript-xterm-style
+             ; javascript-xterm-addon-fit
              javascript-font-awesome))
       (inputs
        (list javascript-colorbox))
