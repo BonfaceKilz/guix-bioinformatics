@@ -350,7 +350,7 @@
 	(version "0.0.1"))
     (package
       (name "gn-uploader")
-      (version (string-append version (string-take commit 8)))
+      (version (string-append version "-" (string-take commit 8)))
       (source
        (origin
 	 (method git-fetch)
@@ -371,17 +371,17 @@
 		(when tests?
 		  (invoke "pytest" "-m" "unit_test")))))))
       (native-inputs
-       `(("python-mypy" ,python-mypy)
-	 ("python-pylint" ,python-pylint)
-	 ("python-pytest" ,python-pytest)
-	 ("python-hypothesis" ,python-hypothesis)))
+       (list python-mypy
+	     python-pylint
+	     python-pytest
+	     python-hypothesis))
       (propagated-inputs
-       `(("gunicorn" ,gunicorn)
-	 ("python-redis" ,python-redis)
-	 ("python-flask" ,python-flask)
-	 ("python-pyyaml" ,python-pyyaml)
-	 ("python-jsonpickle" ,python-jsonpickle)
-	 ("python-mysqlclient" ,python-mysqlclient)))
+       (list gunicorn
+	     python-redis
+	     python-flask
+	     python-pyyaml
+	     python-jsonpickle
+	     python-mysqlclient))
       (synopsis "GeneNetwork Quality Control Application")
       (description
        "gn-uploader is a service allowing upload of new data into GeneNetwork,
