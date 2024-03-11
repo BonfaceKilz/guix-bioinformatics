@@ -36,6 +36,7 @@
   #:use-module (guix hg-download)
   #:use-module (guix gexp)
   #:use-module (guix utils)
+  #:use-module (guix build-system pyproject)
   #:use-module (guix build-system python)
   #:use-module (srfi srfi-1))
 
@@ -1871,3 +1872,20 @@ concepts.")
               (sha256
                (base32
                 "1jxkj4pni8pdyrn79sq441lsp40xzw363n0qvfc6zfcgkv4dgaxh"))))))
+
+(define-public python-addict
+  (package
+    (name "python-addict")
+    (version "2.4.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "addict" version))
+              (sha256
+               (base32
+                "1574sicy5ydx9pvva3lbx8qp56z9jbdwbj26aqgjhyh61q723cmk"))))
+    (build-system pyproject-build-system)
+    (home-page "https://github.com/mewwts/addict")
+    (synopsis "Python dictionary with attribute accessible values")
+    (description "@code{python-addict} provides dictionaries whose items can
+be get and set using both attribute and item syntax.")
+    (license license:expat)))
