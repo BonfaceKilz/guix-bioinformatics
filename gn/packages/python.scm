@@ -1889,3 +1889,25 @@ concepts.")
     (description "@code{python-addict} provides dictionaries whose items can
 be get and set using both attribute and item syntax.")
     (license license:expat)))
+
+(define-public python-enlighten
+  (package
+    (name "python-enlighten")
+    (version "1.12.4")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "enlighten" version))
+              (sha256
+               (base32
+                "0psvglhi0c7d7pdk9rfb8scnv3xbq2fz78619x2mxvz094mxkwvm"))))
+    (build-system pyproject-build-system)
+    (propagated-inputs
+     (list python-blessed python-prefixed))
+    (home-page "https://github.com/Rockhopper-Technologies/enlighten")
+    (synopsis "Console progress bar library")
+    (description "@code{python-enlighten} is a console progress bar library
+for Python.  The main advantage of Enlighten is that it allows writing to
+stdout and stderr without any redirection or additional code---just print or
+log as you normally would.  Enlighten also includes experimental support for
+Jupyter Notebooks.")
+    (license license:mpl2.0)))
