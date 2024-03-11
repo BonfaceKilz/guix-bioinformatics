@@ -1860,3 +1860,14 @@ complete wrapping of the HDF5 API, while the high-level component supports
 access to HDF5 files, datasets and groups using established Python and NumPy
 concepts.")
     (license license:bsd-3)))
+
+(define-public python-typing-extensions-4.10
+  (package
+    (inherit python-typing-extensions)
+    (version "4.10.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "typing_extensions" version))
+              (sha256
+               (base32
+                "1jxkj4pni8pdyrn79sq441lsp40xzw363n0qvfc6zfcgkv4dgaxh"))))))
