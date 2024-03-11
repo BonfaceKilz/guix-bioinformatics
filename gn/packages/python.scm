@@ -1937,3 +1937,21 @@ of a given topic, all inside the same process.  The package also supports a
 variety of advanced features that facilitate debugging and maintaining topics
 and messages in larger desktop or server-based applications.")
     (license license:bsd-2)))
+
+(define-public python-prefixed
+  (package
+    (name "python-prefixed")
+    (version "0.7.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "prefixed" version))
+              (sha256
+               (base32
+                "1sdvxwy4kvcxvnq1nx70j1ccx5ga6wdb478vqd5azf1fc1gd2m0b"))))
+    (build-system pyproject-build-system)
+    (home-page "https://github.com/Rockhopper-Technologies/prefixed")
+    (synopsis "Prefixed alternative numeric library")
+    (description "@code{python-prefixed} provides an alternative
+implementation of the built-in float which supports formatted output with
+SI (decimal) and IEC (binary) prefixes.")
+    (license license:mpl2.0)))
