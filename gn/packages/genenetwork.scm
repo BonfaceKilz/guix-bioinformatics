@@ -5,6 +5,7 @@
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (guix download)
+  #:use-module (guix git)
   #:use-module (guix git-download)
   #:use-module (guix build-system cargo)
   #:use-module (guix build-system gnu)
@@ -345,50 +346,62 @@
        (description "Genenetwork installation sumo.")
        (license license:agpl3+))))
 
+(define-public genenetwork2-stable
+  (let ((commit "2c122f99098cf84d4b67953f2a3ef05dab762c9c")
+        (revision "1"))
+    (package
+     (inherit genenetwork2)
+     (name "genenetwork2-stable")
+     (version (string-append "stable-" (git-version "3.11" revision commit)))
+     (source
+      (git-checkout
+       (url "https://github.com/genenetwork/genenetwork2")
+       (branch "prod"))))))
+
 (define-public gn-uploader
   (let ((commit "6ced7085193affa636f229e72dc19175a3a06cfe")
 	(version "0.0.1"))
     (package
-      (name "gn-uploader")
-      (version (string-append version "-" (string-take commit 8)))
-      (source
-       (origin
-	 (method git-fetch)
-	 (uri (git-reference
-	       (url "https://git.genenetwork.org/gn-uploader")
-	       (commit commit)))
-	 (hash
-	  (content-hash
-	   (base32
-	    "09sy7kxdrf44m2yr4cqn0nx070mdnqb76888ghrwpqzgd2phfhjp")))))
-      (build-system python-build-system)
-      (arguments
-       (list
-	#:phases
-	#~(modify-phases %standard-phases
-	    (replace 'check
-	      (lambda* (#:key tests? #:allow-other-keys)
-		(when tests?
-		  (invoke "pytest" "-m" "unit_test")))))))
-      (native-inputs
-       (list python-mypy
-	     python-pylint
-	     python-pytest
-	     python-hypothesis))
-      (propagated-inputs
-       (list gunicorn
-	     python-redis
-	     python-flask
-	     python-pyyaml
-	     python-jsonpickle
-	     python-mysqlclient))
-      (synopsis "GeneNetwork Quality Control Application")
-      (description
-       "gn-uploader is a service allowing upload of new data into GeneNetwork,
+     (name "gn-uploader")
+     (version (string-append version "-" (string-take commit 8)))
+     (source
+      (origin
+       (method git-fetch)
+       (uri (git-reference
+	     (url "https://git.genenetwork.org/gn-uploader")
+	     (commit commit)))
+       (hash
+	(content-hash
+	 (base32
+	  "09sy7kxdrf44m2yr4cqn0nx070mdnqb76888ghrwpqzgd2phfhjp")))))
+     (build-system python-build-system)
+     (arguments
+      (list
+       #:phases
+       #~(modify-phases %standard-phases
+	                (replace 'check
+	                         (lambda* (#:key tests? #:allow-other-keys)
+		                          (when tests?
+		                            (invoke "pytest" "-m" "unit_test")))))))
+     (native-inputs
+      (list python-mypy
+	    python-pylint
+	    python-pytest
+	    python-hypothesis))
+     (propagated-inputs
+      (list gunicorn
+	    python-redis
+	    python-flask
+	    python-pyyaml
+	    python-jsonpickle
+	    python-mysqlclient))
+     (synopsis "GeneNetwork Quality Control Application")
+     (description
+      "gn-uploader is a service allowing upload of new data into GeneNetwork,
  that does quality control for the data files that is being uploaded to ensure
  it fulfils all conditions before it can be accepted.")
-      (home-page "https://git.genenetwork.org/gn-uploader")
-      (license license:agpl3+))))
+     (home-page "https://git.genenetwork.org/gn-uploader")
+     (license license:agpl3+))))
 
 (define-public gn-auth
   (package
