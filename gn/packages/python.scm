@@ -1911,3 +1911,29 @@ stdout and stderr without any redirection or additional code---just print or
 log as you normally would.  Enlighten also includes experimental support for
 Jupyter Notebooks.")
     (license license:mpl2.0)))
+
+(define-public python-pypubsub
+  (package
+    (name "python-pypubsub")
+    (version "4.0.3")
+    ;; There is no source tarball on PyPI.
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/schollii/pypubsub")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "02j74w28wzmdvxkk8i561ywjgizjifq3hgcl080yj0rvkd3wivlb"))))
+    (build-system python-build-system)
+    (home-page "https://github.com/schollii/pypubsub")
+    (synopsis "Python publish-subscribe library")
+    (description "@code{python-pypubsub} provides a pure Python
+publish-subscribe API to facilitate event-based or message-based architecture
+in a single-process application.  It is centered on the notion of a topic;
+senders publish messages of a given topic, and listeners subscribe to messages
+of a given topic, all inside the same process.  The package also supports a
+variety of advanced features that facilitate debugging and maintaining topics
+and messages in larger desktop or server-based applications.")
+    (license license:bsd-2)))
