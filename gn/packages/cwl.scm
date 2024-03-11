@@ -4,7 +4,8 @@
   #:use-module (guix packages)
   #:use-module (guix build-system python)
   #:use-module (gnu packages)
-  #:use-module (gnu packages bioinformatics))
+  #:use-module (gnu packages bioinformatics)
+  #:use-module (gnu packages node)
 
 
 (define-public cwl-runner
@@ -28,3 +29,15 @@
      "Common workflow language alternate entry point to allow cwl-runner 
 script as an implementation-agnostic script interpreter.") 
      (license license:asl2.0)))
+
+;; python-toil tightly integrates with cwltool using it as a library. So,
+;; create a library version of cwltool where inputs become propagated inputs.
+(define-public python-cwltool
+  (package
+    (inherit cwltool)
+    (name "python-cwltool")
+    (inputs
+     (list node))
+    (propagated-inputs
+     (modify-inputs (package-inputs cwltool)
+       (delete "node")))))
