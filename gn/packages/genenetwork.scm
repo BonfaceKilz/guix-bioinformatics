@@ -359,7 +359,7 @@
        (branch "prod"))))))
 
 (define-public gn-uploader
-  (let ((commit "6ced7085193affa636f229e72dc19175a3a06cfe")
+  (let ((commit "13bc6684cc2f90b1fdac306a2ce9a8849911b43f")
 	(version "0.0.1"))
     (package
      (name "gn-uploader")
@@ -373,7 +373,7 @@
        (hash
 	(content-hash
 	 (base32
-	  "09sy7kxdrf44m2yr4cqn0nx070mdnqb76888ghrwpqzgd2phfhjp")))))
+	  "1ckbp9hy1yi779iism7hw2bgc8bmw7fkjnyx6xalv4zh6cz4zzn0")))))
      (build-system python-build-system)
      (arguments
       (list
