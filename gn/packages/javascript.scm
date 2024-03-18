@@ -2044,3 +2044,61 @@ for developing fast and powerful web interfaces.")
    (description "UIkit is a lightweight and modular front-end framework
 for developing fast and powerful web interfaces.")
    (license license:bsd-3)))
+
+(define-public javascript-linkify
+  (package
+   (name "javascript-linkify")
+   (version "4.1.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/linkifyjs@" version "/dist/linkify.min.js"))
+     (sha256
+      (base32
+       "1cy1z4gin0qx3a04fw2biszz1sgns0zc1zbr6sbkr2dicgqxjpf3"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/linkify"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/linkify.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://linkify.js.org")
+   (synopsis "Find URLs and email addresses in plain text")
+   (description
+    "JavaScript plugin for finding links in plain-text and converting them to HTML <a> tags")
+   (license license:expat)))
+
+(define-public javascript-linkify-html
+  (package
+   (inherit javascript-linkify)
+   (name "javascript-linkify-html")
+   (version "4.1.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/linkify-html@" version "/dist/linkify-html.min.js"))
+     (sha256
+      (base32
+       "1s3l4wnyws9c9qjgp9ivl88inhyy28cjrhqjayb6hm1hzkasgj2j"))))
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/linkify"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/linkify-html.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (description
+    "JavaScript plugin for finding links in plain-text and highlightinging links within strings that contain HTML markup.")
+   (license license:expat)))
