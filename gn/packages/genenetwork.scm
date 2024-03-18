@@ -296,6 +296,8 @@
              javascript-zxcvbn
              javascript-jquery-ui
              javascript-jquery-cookie
+	      javascript-linkify
+	      javascript-linkify-html
              ; javascript-xterm -- disabled until we know what to do with it, not working on production
              ; javascript-xterm-style
              ; javascript-xterm-addon-fit
