@@ -165,6 +165,7 @@
 	 ("python-sparqlwrapper" ,python-sparqlwrapper)
 	 ("python-email-validator" ,python-email-validator)
 	 ("python-xapian-bindings" ,python-xapian-bindings)
+	 ("python-biopython" ,python-biopython)
 	 ("r-optparse" ,r-optparse)
 	 ("r-qtl" ,r-qtl)
 	 ("r-rjson" ,r-rjson)
