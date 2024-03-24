@@ -350,7 +350,7 @@
        (license license:agpl3+))))
 
 (define-public genenetwork2-stable
-  (let ((commit "2c122f99098cf84d4b67953f2a3ef05dab762c9c")
+  (let ((commit "42b37bba21530aab104bd2fbbddb27ce7cd7de7c")
         (revision "1"))
     (package
      (inherit genenetwork2)
