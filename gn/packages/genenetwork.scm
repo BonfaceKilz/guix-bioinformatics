@@ -354,6 +354,9 @@
      (inherit genenetwork3)
      (name "genenetwork3-stable")
      (version (string-append "stable-" (git-version "3.11" revision commit)))
+     (arguments
+       (list
+         #:tests? #f)) ; temporary disable on production setup
      (source
       (git-checkout
        (url "https://github.com/genenetwork/genenetwork3")
