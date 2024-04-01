@@ -140,9 +140,13 @@
        (list gemma-wrapper
              python-wrapper
              csvdiff
+             diffutils
              gn-rust-correlation
-             python-bcrypt ;; Replace use of bcrypt with argon below
+             python-authlib
              python-argon2-cffi
+             python-bcrypt ;; Replace use of bcrypt with argon
+             python-biopython
+             python-email-validator
              python-flask
              python-flask-cors
              python-lmdb
@@ -152,24 +156,21 @@
              python-pingouin-without-tests
              python-plotly
              python-pyld
-             python-scikit-learn
              python-pymonad
              python-redis
              python-requests
+             python-scikit-learn
              python-scipy
-             python-authlib
              python-sparqlwrapper
-             python-email-validator
              python-xapian-bindings
-             python-biopython
+             r
+             r-ctl
              r-optparse
              r-qtl
              r-rjson
              r-stringi
              r-wgcna
-             r-ctl
-             rust-qtlreaper
-             diffutils))
+             rust-qtlreaper))
       (build-system python-build-system)
       (arguments
        (list #:phases
