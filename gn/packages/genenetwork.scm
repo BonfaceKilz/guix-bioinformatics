@@ -130,50 +130,46 @@
       (inputs
        (list python-click))
       (native-inputs
-       `(("python-hypothesis" ,python-hypothesis)
-	 ("python-mypy" ,python-mypy)
-	 ("python-mypy-extensions" ,python-mypy-extensions)
-         ("python-pylint" ,python-pylint)
-         ("python-pytest" ,python-pytest)
-         ("python-pytest-mock" ,python-pytest-mock)))
+       (list python-hypothesis
+             python-mypy
+             python-mypy-extensions
+             python-pylint
+             python-pytest
+             python-pytest-mock))
       (propagated-inputs
-       `(("gemma-wrapper" ,gemma-wrapper)
-	 ("python-wrapper" ,python-wrapper)
-	 ("csvdiff" ,csvdiff)
-	 ("gn-rust-correlation" ,gn-rust-correlation)
-	 ;; Replace use of bcrypt with argon below
-	 ("python-bcrypt" ,python-bcrypt)
-	 ("python-argon2-cffi" ,python-argon2-cffi)
-	 ("python-flask" ,python-flask)
-	 ("python-flask-cors" ,python-flask-cors)
-	 ;; Not working in Python > 3.8
-	 ;; python-ipfshttpclient
-	 ("python-lmdb" ,python-lmdb)
-	 ("python-mysqlclient" ,python-mysqlclient)
-	 ("python-numpy" ,python-numpy)
-	 ("python-pandas" ,python-pandas)
-	 ;; python-pingouin << build failing
-	 ("python-pingouin-without-tests" ,python-pingouin-without-tests)
-	 ("python-plotly" ,python-plotly)
-	 ("python-pyld" ,python-pyld)
-	 ("python-scikit-learn" ,python-scikit-learn)
-	 ("python-pymonad" ,python-pymonad)
-	 ("python-redis" ,python-redis)
-	 ("python-requests" ,python-requests)
-	 ("python-scipy" ,python-scipy)
-	 ("python-authlib" ,python-authlib)
-	 ("python-sparqlwrapper" ,python-sparqlwrapper)
-	 ("python-email-validator" ,python-email-validator)
-	 ("python-xapian-bindings" ,python-xapian-bindings)
-	 ("python-biopython" ,python-biopython)
-	 ("r-optparse" ,r-optparse)
-	 ("r-qtl" ,r-qtl)
-	 ("r-rjson" ,r-rjson)
-	 ("r-stringi" ,r-stringi)
-	 ("r-wgcna" ,r-wgcna)
-	 ("r-ctl" ,r-ctl)
-	 ("rust-qtlreaper" ,rust-qtlreaper)
-	 ("diffutils" ,diffutils)))
+       (list gemma-wrapper
+             python-wrapper
+             csvdiff
+             gn-rust-correlation
+             python-bcrypt ;; Replace use of bcrypt with argon below
+             python-argon2-cffi
+             python-flask
+             python-flask-cors
+             python-lmdb
+             python-mysqlclient
+             python-numpy
+             python-pandas
+             python-pingouin-without-tests
+             python-plotly
+             python-pyld
+             python-scikit-learn
+             python-pymonad
+             python-redis
+             python-requests
+             python-scipy
+             python-authlib
+             python-sparqlwrapper
+             python-email-validator
+             python-xapian-bindings
+             python-biopython
+             r-optparse
+             r-qtl
+             r-rjson
+             r-stringi
+             r-wgcna
+             r-ctl
+             rust-qtlreaper
+             diffutils))
       (build-system python-build-system)
       (arguments
        (list #:phases
@@ -273,7 +269,7 @@
              javascript-plotly
              javascript-typeahead
              js-underscore
-	     javascript-uikit
+             javascript-uikit
              js-smart-time-ago
              javascript-nouislider
              javascript-purescript-genome-browser
@@ -288,7 +284,7 @@
              javascript-datatables-buttons-styles
              javascript-shapiro-wilk
              javascript-underscore-string
-	     javascript-htmx
+            javascript-htmx
              javascript-qtip2
              javascript-d3js
              javascript-nvd3
@@ -297,8 +293,8 @@
              javascript-zxcvbn
              javascript-jquery-ui
              javascript-jquery-cookie
-	      javascript-linkify
-	      javascript-linkify-html
+             javascript-linkify
+             javascript-linkify-html
              ; javascript-xterm -- disabled until we know what to do with it, not working on production
              ; javascript-xterm-style
              ; javascript-xterm-addon-fit
@@ -363,7 +359,7 @@
 
 (define-public gn-uploader
   (let ((commit "a4ed5d821921e43b73ecaf2ef802fab2b74d0b63")
-	(version "0.0.1"))
+       (version "0.0.1"))
     (package
      (name "gn-uploader")
      (version (string-append version "-" (string-take commit 8)))
@@ -371,33 +367,33 @@
       (origin
        (method git-fetch)
        (uri (git-reference
-	     (url "https://git.genenetwork.org/gn-uploader")
-	     (commit commit)))
+            (url "https://git.genenetwork.org/gn-uploader")
+            (commit commit)))
        (hash
-	(content-hash
-	 (base32
-	  "01rlgdvmhxhibdw27rcjmjy0s39mv9y9nmxgn0l5p13vbib03iw5")))))
+       (content-hash
+        (base32
+         "01rlgdvmhxhibdw27rcjmjy0s39mv9y9nmxgn0l5p13vbib03iw5")))))
      (build-system python-build-system)
      (arguments
       (list
        #:phases
        #~(modify-phases %standard-phases
-	                (replace 'check
-	                         (lambda* (#:key tests? #:allow-other-keys)
-		                          (when tests?
-		                            (invoke "pytest" "-m" "unit_test")))))))
+                       (replace 'check
+                                (lambda* (#:key tests? #:allow-other-keys)
+                                        (when tests?
+                                          (invoke "pytest" "-m" "unit_test")))))))
      (native-inputs
       (list python-mypy
-	    python-pylint
-	    python-pytest
-	    python-hypothesis))
+           python-pylint
+           python-pytest
+           python-hypothesis))
      (propagated-inputs
       (list gunicorn
-	    python-redis
-	    python-flask
-	    python-pyyaml
-	    python-jsonpickle
-	    python-mysqlclient))
+           python-redis
+           python-flask
+           python-pyyaml
+           python-jsonpickle
+           python-mysqlclient))
      (synopsis "GeneNetwork Quality Control Application")
      (description
       "gn-uploader is a service allowing upload of new data into GeneNetwork,
@@ -414,21 +410,21 @@
      (origin
        (method git-fetch)
        (uri (git-reference
-	     (url "https://github.com/genenetwork/gn-auth.git")
-	     (commit "cd6eebd85d32feb289ccecd1aee45fb40b03d77f")))
+            (url "https://github.com/genenetwork/gn-auth.git")
+            (commit "cd6eebd85d32feb289ccecd1aee45fb40b03d77f")))
        (hash
-	(content-hash
-	 (base32
-	  "06slj3z110mbc46qncdvyi29y85zkqxl76n89dxjp5wjfqxw0nsl")))))
+       (content-hash
+        (base32
+         "06slj3z110mbc46qncdvyi29y85zkqxl76n89dxjp5wjfqxw0nsl")))))
     (build-system python-build-system)
     (arguments
      (list
       #:phases
       #~(modify-phases %standard-phases
-	  (replace 'check
-	    (lambda* (#:key tests? #:allow-other-keys)
-	      (when tests?
-		(invoke "pytest" "-k" "unit_test")))))))
+         (replace 'check
+           (lambda* (#:key tests? #:allow-other-keys)
+             (when tests?
+              (invoke "pytest" "-k" "unit_test")))))))
     (native-inputs
      (list python-hypothesis
            python-mypy
