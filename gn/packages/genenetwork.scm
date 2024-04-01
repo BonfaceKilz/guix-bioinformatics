@@ -133,17 +133,14 @@
        (list python-hypothesis
              python-mypy
              python-mypy-extensions
-             python-pylint
-             python-pytest
-             python-pytest-mock))
+             python-pylint))
       (propagated-inputs
-       (list gemma-wrapper
-             python-wrapper
-             csvdiff
+       (list csvdiff
              diffutils
+             gemma-wrapper
              gn-rust-correlation
-             python-authlib
              python-argon2-cffi
+             python-authlib
              python-bcrypt ;; Replace use of bcrypt with argon
              python-biopython
              python-email-validator
@@ -157,11 +154,14 @@
              python-plotly
              python-pyld
              python-pymonad
+             python-pytest
+             python-pytest-mock
              python-redis
              python-requests
              python-scikit-learn
              python-scipy
              python-sparqlwrapper
+             python-wrapper
              python-xapian-bindings
              r
              r-ctl
@@ -203,103 +203,104 @@
        (list graphviz))
       (propagated-inputs
        (list genenetwork3
-             parallel
              coreutils
+             gemma
+             gemma-wrapper
              git
-             which
+             glibc-utf8-locales
+             gn-rust-correlation
              grep
+             gunicorn
+             javascript-bootstrap
+             javascript-chroma
+             javascript-ckeditor
+             javascript-colorbox
+             javascript-cytoscape
+             javascript-cytoscape-panzoom
+             javascript-cytoscape-qtip
+             javascript-d3-tip
+             javascript-d3js
+             javascript-datatables
+             javascript-datatables-buttons
+             javascript-datatables-buttons-bootstrap
+             javascript-datatables-buttons-styles
+             javascript-datatables-col-reorder
+             javascript-datatables-col-resize
+             javascript-datatables-plugins
+             javascript-datatables-scroller
+             javascript-font-awesome
+             javascript-htmx
+             javascript-jquery
+             javascript-jquery-cookie
+             javascript-jquery-ui
+             javascript-jscolor
+             javascript-jszip
+             javascript-linkify
+             javascript-linkify-html
+             javascript-nouislider
+             javascript-nvd3
+             javascript-plotly
+             javascript-purescript-genome-browser
+             javascript-qtip2
+             javascript-shapiro-wilk
+             javascript-twitter-post-fetcher
+             javascript-typeahead
+             javascript-uikit
+             javascript-underscore-string
+             javascript-zxcvbn
+             js-jstat
+             js-md5
+             js-parsley
+             js-smart-time-ago
+             js-underscore
+             mariadb
+             nginx
+             parallel
+             plink-ng-gn
+             python-authlib
+             python-autopep8
+             python-beautifulsoup4
+             python-configparser
+             python-coverage
+             python-cssselect
+             python-flask
+             python-flask-debugtoolbar
+             python-flask-session
+             python-htmlgen
+             python-ijson
+             python-jinja2
+             python-lxml
+             python-markdown
+             python-mypy
+             python-mysqlclient
+             python-numpy
+             python-pandas
+             python-pillow
+             python-pylint
+             python-pymonad
+             python-pytest
+             python-pytest-mock
+             python-rdflib
+             python-redis
+             python-requests
+             python-rpy2
+             python-scipy
+             python-setuptools
+             python-simplejson
+             python-sqlalchemy
+             python-wrapper
+             python-xlsxwriter
              r
              r-ctl
              r-qtl
              r-wgcna
              redis
-             mariadb
-             gemma
-             gemma-wrapper
-             plink-ng-gn
              rust-qtlreaper
-             gn-rust-correlation
-             glibc-utf8-locales
-             nginx
-             python-wrapper
-             python-pillow
-             python-coverage
-             python-configparser
-             python-flask
-             gunicorn
-             python-autopep8
-             python-cssselect
-             python-flask-debugtoolbar
-             python-htmlgen
-             python-ijson
-             python-jinja2
-             python-pytest
-             python-pytest-mock
-             python-sqlalchemy
-             python-setuptools
-             python-scipy
-             python-lxml
-             python-mysqlclient
-             python-mypy
-             python-numpy
-             python-pandas
-             python-pylint
-             python-pymonad
-             python-redis
-             python-requests
-             python-simplejson
-             python-markdown
-             python-rdflib
-             python-authlib
-             python-flask-session
-             python-rpy2
-             python-beautifulsoup4
-             python-xlsxwriter
-             javascript-twitter-post-fetcher
-             javascript-cytoscape
-             javascript-cytoscape-panzoom
-             javascript-cytoscape-qtip
-             javascript-chroma
-             javascript-d3-tip
-             javascript-jscolor
-             javascript-colorbox
-             javascript-jszip
-             js-jstat
-             js-md5
-             js-parsley
-             javascript-plotly
-             javascript-typeahead
-             js-underscore
-             javascript-uikit
-             js-smart-time-ago
-             javascript-nouislider
-             javascript-purescript-genome-browser
-             javascript-ckeditor
-             javascript-datatables
-             javascript-datatables-scroller
-             javascript-datatables-buttons
-             javascript-datatables-buttons-bootstrap
-             javascript-datatables-plugins
-             javascript-datatables-col-reorder
-             javascript-datatables-col-resize
-             javascript-datatables-buttons-styles
-             javascript-shapiro-wilk
-             javascript-underscore-string
-            javascript-htmx
-             javascript-qtip2
-             javascript-d3js
-             javascript-nvd3
-             javascript-bootstrap
-             javascript-jquery
-             javascript-zxcvbn
-             javascript-jquery-ui
-             javascript-jquery-cookie
-             javascript-linkify
-             javascript-linkify-html
+             which
              ; javascript-xterm -- disabled until we know what to do with it, not working on production
              ; javascript-xterm-style
              ; javascript-xterm-addon-fit
-             javascript-font-awesome))
+             ))
       (inputs
        (list javascript-colorbox))
       (build-system python-build-system)
