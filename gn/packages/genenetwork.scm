@@ -346,6 +346,18 @@
        (description "Genenetwork installation sumo.")
        (license license:agpl3+))))
 
+(define-public genenetwork3-stable
+  (let ((commit "25d3f3d7a13a9d94b561b1d824ba0b428a3fc006")
+        (revision "1"))
+    (package
+     (inherit genenetwork3)
+     (name "genenetwork3-stable")
+     (version (string-append "stable-" (git-version "3.11" revision commit)))
+     (source
+      (git-checkout
+       (url "https://github.com/genenetwork/genenetwork3")
+       (branch "prod"))))))
+
 (define-public genenetwork2-stable
   (let ((commit "42b37bba21530aab104bd2fbbddb27ce7cd7de7c")
         (revision "1"))
