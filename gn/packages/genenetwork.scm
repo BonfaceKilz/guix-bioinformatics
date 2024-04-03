@@ -362,8 +362,8 @@
              (add-before 'build 'update-paths
                (lambda _
                   (substitute* "gn3/api/rqtl.py"
-                     (("scripts/rqtl_wrapper.R)")
-                      (string-append #$output "/scripts/rqtl_wrapper.R")))))
+                     (("scripts/")
+                      (string-append #$output "/scripts/")))))
              (add-before 'install 'install-scripts
                (lambda _
                  (begin
