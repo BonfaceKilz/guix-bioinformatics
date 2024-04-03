@@ -348,7 +348,7 @@
        (license license:agpl3+))))
 
 (define-public genenetwork3-stable
-  (let ((commit "d8203aaa523895fd8b1ff6cc124f2e8a53932a07")
+  (let ((commit "e5569c3bb1c0d59ff7142273c5f51fe19f06cfe8")
         (revision "1"))
     (package
      (inherit genenetwork3)
