@@ -353,7 +353,7 @@
     (package
      (inherit genenetwork3)
      (name "genenetwork3-stable")
-     (version (string-append "stable-" (git-version "3.11" revision commit)))
+     (version (string-append (git-version "3.11" revision commit)))
      (arguments
        (list
          #:phases
@@ -361,7 +361,7 @@
              (add-before 'build 'update-paths
                (lambda _
                   (substitute* "gn3/api/rqtl.py"
-                     (("scripts/rqtl_wrapper.R)"
+                     (("scripts/rqtl_wrapper.R)")
                       (string-append #$output "/scripts/rqtl_wrapper.R"))))))))
      (source
       (git-checkout
