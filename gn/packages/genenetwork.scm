@@ -348,7 +348,7 @@
        (license license:agpl3+))))
 
 (define-public genenetwork3-stable
-  (let ((commit "8414f1d74f6b09205d3cfd09240c787323474626")
+  (let ((commit "d8203aaa523895fd8b1ff6cc124f2e8a53932a07")
         (revision "1"))
     (package
      (inherit genenetwork3)
@@ -361,9 +361,14 @@
            #~(modify-phases %standard-phases
              (add-before 'build 'update-paths
                (lambda _
-                  (substitute* "gn3/api/rqtl.py"
+               (for-each (lambda (fn)
+                  (substitute* (string-append "gn3/" fn)
                      (("scripts/")
-                      (string-append #$output "/scripts/")))))
+                      (string-append #$output "/scripts/"))))
+                      '("api/rqtl.py"
+                        "computations/wgcna.py"
+                        "computations/ctl.py"
+                        "api/general.py"))))
              (add-before 'install 'install-scripts
                (lambda _
                  (begin
