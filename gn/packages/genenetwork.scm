@@ -356,13 +356,21 @@
      (version (string-append (git-version "3.11" revision commit)))
      (arguments
        (list
+         #:tests? #f
          #:phases
            #~(modify-phases %standard-phases
              (add-before 'build 'update-paths
                (lambda _
                   (substitute* "gn3/api/rqtl.py"
                      (("scripts/rqtl_wrapper.R)")
-                      (string-append #$output "/scripts/rqtl_wrapper.R"))))))))
+                      (string-append #$output "/scripts/rqtl_wrapper.R")))))
+             (add-before 'install 'install-scripts
+               (lambda _
+                 (begin
+                  (mkdir (string-append #$output "scripts"))
+                  (install-file "scripts/rqtl_wrapper.R"
+                    (string-append #$output "/scripts"))))))))
+
      (source
       (git-checkout
        (url "https://github.com/genenetwork/genenetwork3")
