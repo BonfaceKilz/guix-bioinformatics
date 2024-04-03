@@ -368,8 +368,13 @@
                (lambda _
                  (begin
                   (mkdir (string-append #$output "scripts"))
-                  (install-file "scripts/rqtl_wrapper.R"
-                    (string-append #$output "/scripts"))))))))
+                  (for-each (lambda (fn) 
+                    (install-file fn
+                      (string-append #$output "/scripts")))
+                      '("scripts/rqtl_wrapper.R"
+                        "scripts/ctl_analysis.R"
+                        "scripts/wgcna_analysis.R"
+                        ))))))))
 
      (source
       (git-checkout
