@@ -348,7 +348,7 @@
        (license license:agpl3+))))
 
 (define-public genenetwork3-stable
-  (let ((commit "c094d2db352a39cc001b21ad4195fc32de24c863")
+  (let ((commit "8414f1d74f6b09205d3cfd09240c787323474626")
         (revision "1"))
     (package
      (inherit genenetwork3)
@@ -356,7 +356,13 @@
      (version (string-append "stable-" (git-version "3.11" revision commit)))
      (arguments
        (list
-         #:tests? #f)) ; temporary disable on production setup
+         #:phases
+           #~(modify-phases %standard-phases
+             (add-before 'build 'update-paths
+               (lambda _
+                  (substitute* "gn3/api/rqtl.py"
+                     (("scripts/rqtl_wrapper.R)"
+                      (string-append #$output "/scripts/rqtl_wrapper.R"))))))))
      (source
       (git-checkout
        (url "https://github.com/genenetwork/genenetwork3")
