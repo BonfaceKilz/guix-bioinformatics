@@ -894,6 +894,46 @@ visualization components and a data-driven approach to DOM manipulation.")
            (install-file "d3.min.js" targetdir)
            (install-file "LICENSE" (string-append out "/share/doc/d3js-" ,version))))))))
 
+(define-public javascript-d3js-7
+  (package
+    (name "javascript-d3js-7")
+    (version "7.9.0")
+    (source
+      (origin
+       (method url-fetch)
+       ;; note that D3 no longer provides a prebuilt JS file - except through CDS
+       (uri (string-append "https://files.genenetwork.org/software/d3.v" version ".min.js.gz"))
+       (sha256
+        (base32 "0k7g40zb65s12z1zchvimj5xibkrqff5sylbrhcwmwpcplpigid7"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (module-name "d3js-7")
+                (gzip (string-append (assoc-ref %build-inputs "gzip")
+                                      "/bin/gzip"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/" module-name))
+                (jsname (string-append "d3.v" "7.9.0" ".min.js"))
+                (gzname (string-append jsname ".gz"))
+                (source (assoc-ref %build-inputs "source")))
+           (mkdir-p targetdir)
+           (copy-file (pk source) (pk (string-append targetdir "/" gzname)))
+           (invoke gzip "-fd" (string-append targetdir "/" gzname))))))
+    (native-inputs
+     `(("source" ,source)
+       ("gzip" ,gzip)))
+    (home-page "https://d3js.org/")
+    (synopsis "JavaScript library for visualizing data")
+    (description "D3.js is a JavaScript library for manipulating documents based
+on data.  D3 helps you bring data to life using HTML, SVG, and CSS.  D3's
+emphasis on web standards gives you the full capabilities of modern browsers
+without tying yourself to a proprietary framework, combining powerful
+visualization components and a data-driven approach to DOM manipulation.")
+    (license license:bsd-3)))
+
 (define-public javascript-d3js-multi
   (package
     (name "javascript-d3js-multi")

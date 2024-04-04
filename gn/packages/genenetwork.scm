@@ -219,7 +219,8 @@
              javascript-cytoscape-panzoom
              javascript-cytoscape-qtip
              javascript-d3-tip
-             javascript-d3js
+             javascript-d3js ;; very old
+             javascript-d3js-7
              javascript-d3panels
              javascript-datatables
              javascript-datatables-buttons
