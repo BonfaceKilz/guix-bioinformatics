@@ -433,6 +433,7 @@ tables with minimal effort.")
     (description "Scroller is a virtual rendering plug-in for DataTables which allows large datasets to be drawn on screen very quickly. Virtual rendering means is that only the visible portion of the table is drawn, while the scrolling container gives the visual impression that the whole table is visible, allowing excellent browser performance.")
     (license license:expat)))
 
+
 (define-public javascript-xterm
   (package
     (name "javascript-xterm")
@@ -804,6 +805,41 @@ emphasis on web standards gives you the full capabilities of modern browsers
 without tying yourself to a proprietary framework, combining powerful
 visualization components and a data-driven approach to DOM manipulation.")
     (license license:bsd-3)))
+
+(define-public javascript-d3panels
+  (package
+    (name "javascript-d3panels")
+    (version "1.8.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/kbroman/d3panels.git")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1pmv24x4k0iy2mbibwwk8f85c6mljyqj2qwn03sq3pg93r16a0b5"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/d3panels"))
+                (source (assoc-ref %build-inputs "source")))
+           (install-file (string-append source "/d3panels.js") targetdir)
+           (install-file (string-append source "/d3panels.min.js") targetdir)
+           (install-file (string-append source "/d3panels.css") targetdir)
+           (install-file (string-append source "/d3panels.min.css") targetdir)
+           (install-file (string-append source "/README.md") targetdir)
+           (install-file (string-append source "/NEWS.md") targetdir)
+           (install-file (string-append source "/LICENSE.md") targetdir)
+           ))))
+    (home-page "https://kbroman.org/d3panels")
+    (synopsis "d3panels for QTL mapping")
+    (description "This is a set of D3-based graphic panels, to be combined into larger multi-panel charts. They were developed for the R/qtlcharts package.")
+    (license license:expat)))
 
 (define-public javascript-jquery
   (package

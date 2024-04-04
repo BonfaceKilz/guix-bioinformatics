@@ -220,6 +220,7 @@
              javascript-cytoscape-qtip
              javascript-d3-tip
              javascript-d3js
+             javascript-d3panels
              javascript-datatables
              javascript-datatables-buttons
              javascript-datatables-buttons-bootstrap
@@ -373,7 +374,7 @@
                (lambda _
                  (begin
                   (mkdir (string-append #$output "scripts"))
-                  (for-each (lambda (fn) 
+                  (for-each (lambda (fn)
                     (install-file fn
                       (string-append #$output "/scripts")))
                       '("scripts/rqtl_wrapper.R"
@@ -387,16 +388,30 @@
        (branch "prod"))))))
 
 (define-public genenetwork2-stable
-  (let ((commit "42b37bba21530aab104bd2fbbddb27ce7cd7de7c")
+  (let ((commit "fd3de3dd7e0fac465bde193bd78085bd3434e885")
         (revision "1"))
     (package
      (inherit genenetwork2)
      (name "genenetwork2-stable")
-     (version (string-append "stable-" (git-version "3.11" revision commit)))
+     (version (string-append "stable-" (git-version "3.12" revision commit)))
      (source
       (git-checkout
        (url "https://github.com/genenetwork/genenetwork2")
-       (branch "prod"))))))
+       (branch "prod")))
+     (arguments
+       (list
+         #:tests? #f
+         #:phases
+           #~(modify-phases %standard-phases
+               (add-before 'build 'update-font-paths
+                 (lambda* (#:key inputs outputs #:allow-other-keys)
+                   (for-each (lambda (fn)
+                       (substitute* (string-append "gn2/" fn)
+                                    (("\\./gn2/wqflask/static/fonts/")
+                                     (string-append (site-packages inputs outputs) "/gn2/wqflask/static/fonts/"))))
+                     '("utility/Plot.py"
+                       "wqflask/marker_regression/display_mapping_results.py"))))
+     ))))))
 
 (define-public gn-uploader
   (let ((commit "60fde66e02dba842b20fa126ff3b2ed9ec2638e6")
