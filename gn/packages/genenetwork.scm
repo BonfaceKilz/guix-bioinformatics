@@ -389,7 +389,7 @@
        (branch "prod"))))))
 
 (define-public genenetwork2-stable
-  (let ((commit "fd3de3dd7e0fac465bde193bd78085bd3434e885")
+  (let ((commit "95e634ca90d52922812b93df162686b348288651")
         (revision "1"))
     (package
      (inherit genenetwork2)
