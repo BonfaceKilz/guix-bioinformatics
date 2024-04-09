@@ -446,7 +446,7 @@ tables with minimal effort.")
        (file-name (string-append "xterm.min" version ".js"))
        (sha256
         (base32
-         "18smra546ws5fhnfdhj9m6yhvfjqdwx44jyb19q3az780ifwj2lz"))))
+         "1ipk8l837pinl9151qcb39hfrjy5d7zzyf19nsfhv4wgavy8fcar"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -459,7 +459,7 @@ tables with minimal effort.")
                 (source (assoc-ref %build-inputs "source")))
            (mkdir-p targetdir)
            (copy-file source (string-append targetdir "/xterm.min.js"))))))
-    (native-inputs `(("source" ,source)))
+    (propagated-inputs `(("source" ,source)))
     (home-page "https://xtermjs.org/")
     (synopsis "Javascript library that allows apps to bring fully-featured terminals in browsers.")
     (description
