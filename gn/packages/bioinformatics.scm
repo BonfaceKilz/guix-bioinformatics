@@ -4620,3 +4620,41 @@ on a set of samples with sequencing reads in BAM format, as well as a
 list of positions to genotype, and outputs imputed genotypes in VCF
 format.")
     (license license:gpl3)))
+
+(define-public hifiasm
+  (package
+    (name "hifiasm")
+    (version "0.19.8")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/chhylp123/hifiasm")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "1g6m2qdc0224vjaic87669g7y9ky1yps07qbjkmbh1vakz4zmgvr"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:tests? #f
+           #:phases
+           #~(modify-phases %standard-phases
+               (delete 'configure)
+               (replace 'install
+                 (lambda _
+                   (install-file "hifiasm" (string-append #$output "/bin"))
+                   (install-file "hifiasm.1" (string-append #$output "/share/man/man1")))))))
+    (inputs
+     (list zlib))
+    (home-page "https://github.com/chhylp123/hifiasm")
+    (synopsis "haplotype-resolved assembler for accurate Hifi reads")
+    (description "Hifiasm is a fast haplotype-resolved de-novo assembler originally
+designed for PacBio HiFi reads.  Its latest release supports the
+telomere-to-telomere assembly by utilizing ultralong Oxford Nanopore
+reads.  Hifiasm produces arguably the best single-sample
+telomere-to-telomere assemblies combing HiFi, ultralong and Hi-C
+reads, and it is one of the best haplotype-resolved assemblers for the
+trio-binning assembly given parental short reads.  For a human genome,
+hifiasm can produce the telomere-to-telomere assembly in one day.")
+    (license license:expat)))
