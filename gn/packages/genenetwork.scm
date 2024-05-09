@@ -321,6 +321,10 @@
                      (substitute* "gn2/wqflask/views.py"
                        (("\\./gn2/wqflask/static/gif/error")
                         (string-append (site-packages inputs outputs)
+                                       "/gn2/wqflask/static/gif/error")))
+		     (substitute* "gn2/wqflask/app_errors.py"
+                       (("\\./gn2/wqflask/static/gif/error")
+                        (string-append (site-packages inputs outputs)
                                        "/gn2/wqflask/static/gif/error")))))
                  (add-after 'unpack 'fix-paths-scripts
                    (lambda _
