@@ -445,16 +445,16 @@
                                           (invoke "pytest" "-m" "unit_test")))))))
      (native-inputs
       (list python-mypy
-           python-pylint
-           python-pytest
-           python-hypothesis))
+            python-pylint
+            python-pytest
+            python-hypothesis))
      (propagated-inputs
       (list gunicorn
-           python-redis
-           python-flask
-           python-pyyaml
-           python-jsonpickle
-           python-mysqlclient))
+            python-redis
+            python-flask
+            python-pyyaml
+            python-jsonpickle
+            python-mysqlclient))
      (synopsis "GeneNetwork Quality Control Application")
      (description
       "gn-uploader is a service allowing upload of new data into GeneNetwork,
