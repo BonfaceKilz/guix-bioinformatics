@@ -454,7 +454,8 @@
             python-flask
             python-pyyaml
             python-jsonpickle
-            python-mysqlclient))
+            python-mysqlclient
+            javascript-bootstrap))
      (synopsis "GeneNetwork Quality Control Application")
      (description
       "gn-uploader is a service allowing upload of new data into GeneNetwork,
