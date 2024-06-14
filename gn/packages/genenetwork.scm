@@ -455,6 +455,7 @@
             python-pyyaml
             python-jsonpickle
             python-mysqlclient
+            javascript-jquery
             javascript-bootstrap))
      (synopsis "GeneNetwork Quality Control Application")
      (description
