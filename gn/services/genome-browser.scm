@@ -23,7 +23,7 @@
                    ;"db.host=localhost\n"
                    ;"db.user=readonly\n"
                    ;"db.password=access\n"
-                   "db.host=penguin2\n"
+                   "db.host=tux02\n"
                    "db.user=webqtlout\n"
                    "db.password=webqtlout\n"
                    "db.trackDb=trackDb\n"
@@ -40,12 +40,12 @@
                    ;"central.socket=/run/mysqld/mysqld.sock\n"   ; default for mysql service
                    ;"central.user=readwrite\n"
                    ;"central.password=update\n"
-                   "central.host=penguin2\n"
+                   "central.host=tux02\n"
                    "central.user=webqtlout\n"
                    "central.password=webqtlout\n"
                    "central.domain=\n"
                    "backupcentral.db=hgcentral\n"
-                   "backupcentral.host=penguin2\n"
+                   "backupcentral.host=tux02\n"
                    "backupcentral.user=webqtlout\n"
                    "backupcentral.password=webqtlout\n"
                    "backupcentral.domain=\n"
@@ -94,7 +94,7 @@
 ;;  create 'daily clean' mcron scripts. Only needed in /var/cache/genome grows too large.
 ;;  use rsync to make sure mouse genome data is kept up-to-date.
 
-(define ucsc-genome-browser-port 4322)
+(define ucsc-genome-browser-port 4323)
 
 (operating-system
   (host-name "genome-browser")
@@ -112,7 +112,7 @@
   (services
     (list ;(service mysql-service-type
           ;         (mysql-configuration
-          ;           (port 13306))) ; don't overlap with penguin2's mariadb
+          ;           (port 13306))) ; don't overlap with tux02's mariadb
           (service special-files-service-type
                    `(;("/root/create_hgcentral" ,%startup-script)
                      ("/var/lib/genome/hg.conf" ,%hg.conf)))
