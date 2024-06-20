@@ -17,6 +17,7 @@
   #:use-module (gnu packages python-xyz)
   #:use-module (gn packages javascript)
   #:use-module (gn packages machine-learning)
+  #:use-module (gn packages python)
   #:use-module (gn packages web))
 
 (define-public ratspub
@@ -148,6 +149,13 @@ Association Studies}} catalog are also included in the search.  These
 gene-keyword relationships are presented as an interactive graph and a table.")
     (license license:expat)))
 
+(define use-corrected-inputs
+  (package-input-rewriting/spec
+    ;; Tensorflow-native provides much improved speeds. python-h5py@2 provides
+    ;; compatibility with our version of tensorflow.
+    `(("tensorflow" . ,(const tensorflow-native))
+      ("python-h5py" . ,(const python-h5py-2)))))
+
 (define-public ratspub-with-tensorflow-native
   (package
     (inherit
@@ -262,7 +270,7 @@ if __name__ == '__main__':
 (define-public genecup
   (package
     (name "genecup")
-    (version "1.6")
+    (version "1.8")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -270,7 +278,7 @@ if __name__ == '__main__':
                      (commit (string-append "v" version))))
               (file-name (git-file-name name version))
               (sha256
-               (base32 "050yg4hvjs9rghw41q35xdd2c2rzh9sl4sfwkk3am150mgf2p0nh"))))
+               (base32 "0clnlnj6cl816yj3nalh1h6hsvnh3sjq2g84x1kmj1zkqkw184ri"))))
     (build-system python-build-system)
     (arguments
      `(#:tests? #f  ; no test suite
@@ -399,11 +407,11 @@ concepts and a list of keywords for each concept.")
 (define-public genecup-with-tensorflow-native
   (package
     (inherit
-      (tensowflow-native-instead-of-tensorflow genecup))
+      (use-corrected-inputs genecup))
     (name "genecup-with-tensorflow-native")))
 
 (define-public genecup-latest-with-tensorflow-native
   (package
     (inherit
-      (tensowflow-native-instead-of-tensorflow genecup-master))
+      (use-corrected-inputs genecup-master))
     (name "genecup-latest-with-tensorflow-native")))

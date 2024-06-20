@@ -130,7 +130,7 @@
                            (program (file-append ucsc-genome-browser "/bin/gfServer"))
                            (arguments
                              '("gfServer" "dynserver" "/gbdb")))))))
-          (syslog-service)  ; needed by inetd
+          (service syslog-service-type)  ; needed by inetd
           (service httpd-service-type
                    (httpd-configuration
                      (config

@@ -59,8 +59,7 @@
           (file-name (git-file-name name commit))))
       (build-system asdf-build-system/sbcl)
       (arguments
-        `(#:tests? #f ; Need to fix tests.
-          #:asd-files '("qc.asd")))
+        `(#:tests? #f)) ; Need to fix tests.
       (native-inputs
         (list sbcl-1am))
       (inputs

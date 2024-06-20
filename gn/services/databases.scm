@@ -33,6 +33,8 @@
              (default "localhost"))
   (server-port virtuoso-configuration-server-port
                (default 1111))
+  (dirs-allowed virtuoso-dirs-allowed
+                (default "/var/genenetwork/virtuoso-data"))
   (number-of-buffers virtuoso-configuration-number-of-buffers
                      (default #f))
   (maximum-dirty-buffers virtuoso-configuration-maximum-dirty-buffers
@@ -84,6 +86,9 @@
                               (format port "ServerPort = ~a:~a~%"
                                       #$(virtuoso-configuration-server-ip config)
                                       #$(virtuoso-configuration-server-port config)))
+                            (when #$(virtuoso-dirs-allowed config)
+                                  (format port "DirsAllowed = ~a~%"
+                                          #$(virtuoso-dirs-allowed config)))
                             (when #$(virtuoso-configuration-number-of-buffers config)
                                   (format port "NumberOfBuffers = ~a~%"
                                           #$(virtuoso-configuration-number-of-buffers config)))

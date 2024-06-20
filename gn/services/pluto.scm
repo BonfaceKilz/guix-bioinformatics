@@ -44,16 +44,20 @@
                (modules '((gnu build shepherd)
                           (gnu system file-systems)))
                (start #~(make-forkexec-constructor/container
-                          (list #$(file-append package "/runpluto.sh") #$port)
+                          ;(list #$(file-append package "/runpluto.sh") #$port)
+                          (list #$(file-append package "/runpluto"))
                           #:log-file "/var/log/pluto.log"
                           #:user "julia"
                           #:group "julia"
-                          ;; This needs to exist. Unclear why.
+                          ;; This prevents the service from using /root as $HOME.
                           #:environment-variables '()
                           #:mappings (list (file-system-mapping
                                              (source "/home/jovyan")
                                              (target source)
-                                             (writable? #t)))))
+                                             (writable? #t))
+                                           (file-system-mapping
+                                             (source "/etc/ssl")
+                                             (target source)))))
                (stop  #~(make-kill-destructor))))))))
 
 (define pluto-service-type
@@ -86,6 +90,10 @@
   ;; No firmware for VMs.
   (firmware '())
   (packages (list nss-certs))
+  ;; For testing
+  ;(packages (cons* nss-certs %base-packages))
+
+  (setuid-programs '())
 
   (services (list (service pluto-service-type
                            (pluto-configuration

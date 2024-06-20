@@ -27,7 +27,7 @@
 (define-public gemma-gn2 ; guix candidate - currently uses generic
                          ; openblas version and genenetwork github repo
 
-  (let ((commit "71553f5e5626e1d791b5be24c84ea6b17ae81cc7"))
+  (let ((commit "8cd4cdb23ecae8387c942ae5c203c5d61e137376"))
   (package
     (name "gemma-gn2")
     (version (string-append "0.98.5-" (string-take commit 7)))
@@ -39,8 +39,9 @@
              (file-name (string-append name "-" version "-checkout"))
              (sha256
               (base32
-               "11farc7smvkrrkvkbvh26i3sycdzwxrbgj536s3478v8j6iiwijp"))))
+            "06csrh8rgcjcl52ljyynizb15gy84gcd6glzl0gfkawmxy6am9n4"))))
     (inputs `(
+              ("catch" ,catch2)
               ("gsl" ,gsl)
               ("shunit2-old" ,shunit2-old)
               ("openblas" ,openblas)

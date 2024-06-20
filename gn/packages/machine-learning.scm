@@ -11,18 +11,6 @@
     (arguments
      (substitute-keyword-arguments (package-arguments tensorflow)
        ((#:substitutable? _ #f) #f)
-       ;((#:phases phases)
-       ; `(modify-phases ,phases
-       ;    (add-after 'unpack 'hardcode-multicore-usage
-       ;      (lambda _
-       ;        (substitute* "tensorflow/core/protobuf/config.proto"
-       ;          ;(("num_threads = 1") "num_threads = 28") ; 56/2 for penguin2
-       ;          ;(("intra_op_parallelism_threads = 2")
-       ;          ; "intra_op_parallelism_threads = 0")
-       ;          ;(("inter_op_parallelism_threads = 5")
-       ;          ; "inter_op_parallelism_threads = 0")
-       ;          )
-       ;        #t))))
        ((#:configure-flags flags)
         `(cons
            "-Dtensorflow_OPTIMIZE_FOR_NATIVE_ARCH=ON"

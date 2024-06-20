@@ -1,5 +1,7 @@
 * guix-bioinformatics
 
+IMPORTANT: this repository has moved to https://git.genenetwork.org/guix-bioinformatics/!
+
 Bioinformatics packages for GNU Guix that are used in
 https://genenetwork.org/ and some other places.  See [[https://gitlab.com/pjotrp/guix-notes/blob/master/HACKING.org][Guix notes]] for
 installing and hacking GNU Guix. Other channels of bioinformatics
@@ -143,6 +145,13 @@ and then run:
 
 : guix package --install-from-file=that-file.scm
 
+* Substitute server
+
+We run our own substitution server. Add the key to your machine as
+root with
+
+: guix archive --authorize < tux02-guix-substitutions-public-key.txt
+: guix build -L ~/guix-bioinformatics/ -L ~/guix-past/modules/ genenetwork2 --substitute-urls="https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://guix.genenetwork.org" --dry-run
 
 * LICENSE
 

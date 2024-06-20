@@ -1,23 +1,12 @@
-;; Bioinformatics module
+;; Pangenome module
 
 (define-module (gn packages pangenome)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
-  #:use-module (guix utils)
   #:use-module (guix download)
-  #:use-module (guix git-download)
   #:use-module (guix build-system cargo)
-  #:use-module (guix build-system gnu)
-  #:use-module (guix graph)
-  #:use-module (guix scripts graph)
-  #:use-module (guix store)
-  #:use-module (guix gexp)
-  #:use-module (gnu packages)
-  #:use-module (gnu packages base)
   #:use-module (gnu packages crates-io)
-  #:use-module (gnu packages rust)
-  #:use-module (gnu packages version-control)
-  #:use-module (srfi srfi-1))
+  #:use-module (gn packages crates-io))
 
 
 (define-public gfautil

@@ -27,8 +27,10 @@
   #:use-module (gnu packages golang)
   #:use-module (gnu packages graph)
   #:use-module (gnu packages graphviz)
+  #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-check)
   #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-science)
@@ -41,9 +43,7 @@
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages textutils)
   #:use-module (gnu packages version-control)
-  ; #:use-module (gnu packages vim)
   #:use-module (gnu packages web)
-  ; #:use-module (gnu packages wget)
   #:use-module (gnu packages xml)
   #:use-module (gn packages bioinformatics)
   #:use-module (gn packages crates-io)
@@ -51,8 +51,8 @@
   #:use-module (gn packages javascript)
   #:use-module (gn packages python)
   #:use-module (gn packages statistics)
-  #:use-module (gn packages twint)
   #:use-module (gn packages web)
+  #:use-module (gn packages python-web)
   #:use-module (srfi srfi-1))
 
 
@@ -100,11 +100,20 @@
       (description "Reimplementation of genenetwork/QTLReaper in Rust")
       (license #f))))
 
+; Tests on the upstream python-pengouin package are broken. So, we
+; create this temporary workaround.
+(define python-pingouin-without-tests
+ (package
+   (inherit python-pingouin)
+   (arguments
+    (substitute-keyword-arguments (package-arguments python-pingouin)
+      ((#:tests? _ #f) #f)))))
+
 (define-public genenetwork3
-  (let ((commit "fe1b8be86b65346724f8f78ab9e5d897e0c480b0"))
+  (let ((commit "f52247c15f3694f3dd5fd0fd79c3e15376137e07"))
     (package
       (name "genenetwork3")
-      (version (git-version "0.1.0" "2" commit))
+      (version (git-version "0.1.0" "3" commit))
       (source
        (origin
          (method git-fetch)
@@ -114,7 +123,9 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1i7g2c3irp5rr2b8vb7xm9v1hjb5vssc92s2lq910qszd53pdzgn"))))
+           "0ac0dr8dny65x4xvm8gw6ap3g8g0j933ipy9116idcws31rk2adk"))))
+      (inputs
+       (list python-click))
       (native-inputs
        (list python-hypothesis
              python-mypy
@@ -127,7 +138,8 @@
              python-wrapper
              csvdiff
              gn-rust-correlation
-             python-bcrypt
+             python-bcrypt ;; Replace use of bcrypt with argon below
+	     python-argon2-cffi
              python-flask
              python-flask-cors
              ;; Not working in Python > 3.8
@@ -136,12 +148,18 @@
              python-mysqlclient
              python-numpy
              python-pandas
-             python-pingouin
+             ;; python-pingouin << build failing
+             python-pingouin-without-tests
              python-plotly
+             python-scikit-learn
+             python-pymonad
              python-redis
              python-requests
              python-scipy
+	     python-authlib
              python-sparqlwrapper
+	     python-email-validator
+             python-xapian-bindings
              r-optparse
              r-qtl
              r-rjson
@@ -149,15 +167,23 @@
              r-wgcna
              r-ctl
              rust-qtlreaper
-	     diffutils))
+	     diffutils
+	     yoyo-migrations))
       (build-system python-build-system)
+      (arguments
+       (list #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'check
+                   (lambda* (#:key tests? #:allow-other-keys)
+                     (when tests?
+                       (invoke "pytest" "-k" "unit_test")))))))
       (home-page "https://github.com/genenetwork/genenetwork3")
       (synopsis "GeneNetwork3 API for data science and machine learning.")
       (description "GeneNetwork3 API for data science and machine learning.")
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "13289325fb22c4bc10b52414fb9755e7911795f3"))
+  (let ((commit "bfe557dc1e537dc78a82a30817ecf2ca3004d978"))
     (package
       (name "genenetwork2")
       (version (git-version "3.11" "2" commit))
@@ -169,7 +195,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "1ny0ix9h7r52lb2qhf2hpfqijckhkw4jr1wp53qfzrd84lf4pii4"))))
+                  "1bn0j0fpk4hcicgfird62x5wq2n6lj4rs1ggw69dcxyf4qdxbk5d"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
@@ -221,13 +247,13 @@
          ("python-simplejson" ,python-simplejson)
          ("python-markdown" ,python-markdown)
          ("python-rdflib" ,python-rdflib)
-         ("python-twint" ,python-twint)
+	 ("python-authlib" ,python-authlib)
+	 ("python-flask-session" ,python-flask-session)
          ;; TODO: Get rid of Python R bindings
          ("python-rpy2" ,python-rpy2)
          ("python-beautifulsoup4" ,python-beautifulsoup4)
          ;; Disable for now. Build fails on Penguin2
          ;; ("python-flask-socketio" ,python-flask-socketio)
-         ("python-xapian-bindings" ,python-xapian-bindings)
          ("python-xlsxwriter" ,python-xlsxwriter)
          ;; All the external js dependencies
          ("javascript-twitter-post-fetcher" ,javascript-twitter-post-fetcher)

@@ -44,7 +44,6 @@
   #:use-module (past packages python)
   #:use-module (past packages web)
   #:use-module (gn packages bioinformatics)
-  #:use-module (gn packages twint)
   #:use-module (gn packages databases)
   #:use-module (gn packages elixir)
   #:use-module (gn packages gemma)
@@ -110,15 +109,22 @@ location of a putative QTL.")
        `(#:python ,python-2.4
          #:phases
          (modify-phases %standard-phases
+           (replace 'add-install-to-pythonpath
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (setenv "PYTHONPATH"
+                       (string-append (site-packages inputs outputs) ":"
+                                      (getenv "PYTHONPATH")))))
+           (delete 'sanity-check)       ; Not applicable to python-2.4
            (add-after 'unpack 'make-max-markername-size-larger
              (lambda _
                (substitute* "Src/dataset.c"
-                 (("512") "2048"))
-               #t))
+                 (("512") "2048"))))
            (replace 'check
-             (lambda* (#:key inputs outputs #:allow-other-keys)
-               (add-installed-pythonpath inputs outputs)
-               (invoke "python" "test/runtest.py"))))))
+             (lambda* (#:key tests? inputs outputs #:allow-other-keys)
+               (when tests?
+                 (setenv "PYTHONPATH" (string-append (site-packages inputs outputs) ":"
+                                                     (getenv "PYTHONPATH")))
+                 (invoke "python" "test/runtest.py")))))))
       (native-inputs
        `(("python24-setuptools" ,python24-setuptools)))
       (home-page "http://qtlreaper.sourceforge.net/")

@@ -23,7 +23,6 @@
   #:use-module (gn packages java)
   #:use-module (gn packages ocaml)
   #:use-module (gn packages python)
-  #:use-module (gn packages twint)
   #:use-module (gnu packages algebra)
   #:use-module (gnu packages assembly)
   #:use-module (gnu packages autotools)
@@ -33,6 +32,7 @@
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages boost)
   #:use-module (gnu packages bootstrap)
+  #:use-module (gnu packages c)
   #:use-module (gnu packages check)
   #:use-module (gnu packages cmake)
   #:use-module (gnu packages compression)
@@ -54,6 +54,7 @@
   #:use-module (gnu packages java)
   #:use-module (gnu packages jemalloc)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages llvm)
   #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages mpi)
@@ -460,7 +461,7 @@ reads.")
     (description "Variant detection in massively parallel sequencing data.")
     ;; Free for non-commercial use by academic, government, and
     ;; non-profit/not-for-profit institutions
-    (license license:non-copyleft)))
+    (license (license:non-copyleft "file:///LICENSE"))))
 
 (define-public edirect-gn
   (deprecated-package "edirect-gn" edirect))
@@ -487,7 +488,7 @@ reads.")
     (arguments
      `(#:install-source? #f
        #:cargo-inputs
-       (("rust-clap" ,rust-clap-3.1)
+       (("rust-clap" ,rust-clap-3)
         ("rust-rustc-hash" ,rust-rustc-hash-1)
         ("rust-regex" ,rust-regex-1)
         ("rust-handlegraph" ,rust-handlegraph-0.7)
@@ -509,6 +510,305 @@ reads.")
      "GFAffix identifies walk-preserving shared affixes in variation graphs and
 collapses them into a non-redundant graph structure.")
     (license license:expat)))
+
+(define-public gafpack
+  (let ((commit "ad31875b6914d964c6fd72d1bf334f0843538fb6")     ; November 10, 2022
+        (revision "1"))
+    (package
+      (name "gafpack")
+      (version (git-version "0.0.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/ekg/gafpack")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "0di2psh0ls7jlbnqs7k71p55f73pn23a09k1h3ril7gwjcrzr3rk"))))
+      (build-system cargo-build-system)
+      (arguments
+       `(#:install-source? #f
+         #:cargo-inputs
+         (("rust-clap" ,rust-clap-4)
+          ("rust-gfa" ,rust-gfa-0.10))))
+      (home-page "https://github.com/ekg/gafpack")
+      (synopsis "Convert variation graph alignments to coverage maps over nodes")
+      (description
+       "Gafpack converts alignments to pangenome variation graphs to coverage
+maps useful in haplotype-based genotyping.")
+      (license license:expat))))
+
+(define-public agc-for-pgr-tk
+  (let ((commit "453c0afdc54b4aa00fa8e97a63f196931fdb81c4") ; April 26, 2022
+        (revision "1"))
+    (package
+      (name "agc")
+      (version (git-version "2.0" revision commit))
+      (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                 (url "https://github.com/cschin/agc")
+                 (commit commit)))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "1v5s79rl38dcyy5h1lykbp6clcbqq9winn533j54y49q1jp8chix"))
+          (snippet
+           #~(begin
+               (use-modules (guix build utils))
+               ;; Copy the two radul files we can't find a replacement for:
+               ;; https://github.com/refresh-bio/RADULS
+               (mkdir "keep-libs")
+               (rename-file "libs/raduls.h" "keep-libs/raduls.h")
+               (rename-file "libs/libraduls.a" "keep-libs/libraduls.a")
+               (delete-file-recursively "libs")
+               (rename-file "keep-libs" "libs")
+
+               (delete-file-recursively "py_agc_api/pybind11-2.8.1")
+               (substitute* '("makefile" "makefile.release")
+                 (("-mavx") "")
+                 (("-m64") "")
+                 (("\\$\\(AGC_LIBS_DIR)\\/mimalloc/\\$\\(LIB_ALLOC\\)")
+                  "$(pkg-config --cflags --libs mimalloc) /usr/lib/libmimalloc.so")
+                 (("\\$\\(AGC_LIBS_DIR)\\/\\$\\(LIB_ZLIB\\)")
+                  "$(pkg-config --cflags --libs zlib) /usr/lib/libz.so")
+                 (("\\$\\(AGC_LIBS_DIR)\\/\\$\\(LIB_ZSTD\\)")
+                  "$(pkg-config --cflags --libs libzstd) /usr/lib/libzstd.so")
+                 (("^PYBIND11_LIB = .*") "PYBIND11_LIB = /usr/include/pybind11")
+                 (("\\$\\(PYBIND11_LIB\\)/include") "$(PYBIND11_LIB)"))
+               (substitute* (find-files "src" "\\.(h|cpp)$")
+                 (("../../libs/ketopt.h") "ketopt.h")
+                 (("../../libs/zlib.h") "zlib.h")
+                 (("../../libs/zstd.h") "zstd.h"))))))
+      (build-system gnu-build-system)
+      (arguments
+       `(#:tests? #f                    ; No tests.
+         #:phases
+         (modify-phases %standard-phases
+           (delete 'configure)          ; No configure script.
+           (add-after 'unpack 'adjust-sources
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((mimalloc (assoc-ref inputs "mimalloc")))
+                 (substitute* '("makefile" "makefile.release")
+                   (("/usr/include/pybind11")
+                    (search-input-directory inputs "/include/pybind11"))
+                   (("/usr/lib/libmimalloc.so")
+                    (search-input-file inputs "/lib/libmimalloc.so"))
+                   (("/usr/lib/libz.so")
+                    (search-input-file inputs "/lib/libz.so"))
+                   (("/usr/lib/libzstd.so")
+                    (search-input-file inputs "/lib/libzstd.so"))
+                   (("pkg-config") ,(pkg-config-for-target))))))
+           (replace 'install
+             (lambda* (#:key outputs #:allow-other-keys)
+               (let* ((out (assoc-ref outputs "out"))
+                      (include (string-append out "/include/")))
+                 (install-file "agc" (string-append out "/bin"))
+                 (install-file "libagc.so" (string-append out "/lib"))
+                 (mkdir-p (string-append include "app"))
+                 (mkdir-p (string-append include "core"))
+                 (mkdir-p (string-append include "lib-cxx"))
+                 (with-directory-excursion "src"
+                   (for-each
+                     (lambda (file)
+                       (copy-file file (string-append include file)))
+                     (find-files "." "\\.h$")))))))))
+      (native-inputs
+       (list minimap2                   ; for ketopt.h
+             pkg-config))
+      (inputs
+       (list mimalloc
+             python
+             pybind11
+             zlib
+             (list zstd "lib")))
+      (home-page "https://github.com/cschin/agc")
+      (synopsis "Assembled Genomes Compressor")
+      (description
+       "@acronym{Assembled Genomes Compressor, AGC} is a tool designed to
+compress collections of de-novo assembled genomes.  It can be used for various
+types of datasets: short genomes (viruses) as well as long (humans).")
+      (license license:expat))))
+
+(define-public pgr-tk
+  (package
+    (name "pgr-tk")
+    (version "0.3.6")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/Sema4-Research/pgr-tk")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0vm1k63v91zd0pfbg2zmwskajylz8xg83m63qxwaiwny5f4y6f1j"))
+        (snippet
+         #~(begin
+             (use-modules (guix build utils))
+             (substitute* (find-files "." "Cargo.toml")
+               ;; Only use the major+minor version to decrease the number of
+               ;; special version crates.
+               (("(.*= \")([[:digit:]]+\\.[[:digit:]]+)\\.[[:digit:]]+(\".*)"
+                 _ name version tail)
+                (string-append name version tail))
+               ;; Then fix the version string for the actual package.
+               (("^version = \".*")
+                (string-append "version = \"" #$version "\"\n")))))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:install-source? #f
+       #:cargo-test-flags
+       (list "--release" "--"
+             "--skip=get_aln_segements"
+             "--skip=get_shmmr_dots"
+             "--skip=AGCFile"
+             "--skip=SeqIndexDB")
+       #:cargo-inputs
+       (("rust-bindgen" ,rust-bindgen-0.58)
+        ("rust-bgzip" ,rust-bgzip-0.2)
+        ("rust-byteorder" ,rust-byteorder-1)
+        ("rust-clap" ,rust-clap-3)
+        ("rust-cuckoofilter" ,rust-cuckoofilter-0.5)
+        ("rust-flate2" ,rust-flate2-1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-petgraph" ,rust-petgraph-0.6)
+        ("rust-pyo3" ,rust-pyo3-0.14)
+        ("rust-rayon" ,rust-rayon-1)
+        ("rust-regex" ,rust-regex-1)
+        ("rust-rustc-hash" ,rust-rustc-hash-1)
+        ("rust-serde" ,rust-serde-1)
+        ("rust-serde-json" ,rust-serde-json-1)
+        ("rust-simple-logger" ,rust-simple-logger-1))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'insert-wfa-source
+           (lambda* (#:key inputs #:allow-other-keys)
+             (copy-recursively (assoc-ref inputs "wfa-src")
+                               "rs-wfa/WFA")))
+         (add-after 'unpack 'adjust-source
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* '("pgr-bin/build.rs"
+                            "pgr-db/build.rs"
+                            "pgr-tk/build.rs")
+               (("git") "ls")
+               (("bioconda") "Guix"))
+             ;; Build with zlib, not zlib-ng
+             (substitute* '("pgr-bin/Cargo.toml"
+                            "pgr-db/Cargo.toml")
+               (("zlib-ng-compat") "zlib"))
+             ;; Don't look for agc to be bundled.
+             (substitute* "pgr-db/wrapper.h"
+               (("../agc/src/lib-cxx/agc-api.h") "lib-cxx/agc-api.h"))
+             (substitute* "pgr-db/build.rs"
+               ((".*panic!\\(\"Error.*") ""))
+             (mkdir-p "target/release")
+             (symlink (search-input-file inputs "/bin/agc")
+                      "target/release/agc")
+             (symlink (search-input-file inputs "/lib/libagc.so")
+                      "target/release/libagc")))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (with-directory-excursion "target/release"
+                 (install-file "libpgrtk.so" (string-append out "/lib"))
+                 (for-each
+                   (lambda (file)
+                     (install-file file (string-append out "/bin")))
+                   (list "pgr-filter"
+                         "pgr-mdb"
+                         "pgr-multifilter"
+                         "pgr-probe-match"
+                         "pgr-shmmr-pair-count")))))))))
+    (inputs
+     (list agc-for-pgr-tk
+           clang
+           python
+           zlib
+           (list zstd "lib")))
+    (native-inputs
+     `(("pkg-config" ,pkg-config)
+       ("wfa-src"
+        ,(origin
+           (method git-fetch)
+           (uri (git-reference
+                  ;; forPYO3 branch, 14-03-2021
+                  (url "https://github.com/cschin/WFA")
+                  (commit "1f8c8d2905ed482cd2d306a1676d60c2a45cb098")))
+           (file-name "wfa-for-pgr-tk")
+           (sha256
+            (base32 "19h1cjp2bdlcfq5c6rsbk8bc0f8zn64b471dhj4xlfxd1prv2dpk"))))))
+    (home-page "https://github.com/Sema4-Research/pgr-tk")
+    (synopsis "Pangenome Research Tool Kit")
+    (description
+     "PGR-TK provides pangenome assembly management, query and
+@acronym{Minimizer Anchored Pangenome, MAP} Graph Generation.  It is a project
+to provide Python and Rust libraries to facilitate pangenomics analysis.
+Several algorithms and data structures used for the Peregrine Genome Assembler
+are useful for Pangenomics analysis as well.  This repo takes those algorithms
+and data structure, combining other handy 3rd party tools to expose them as a
+library in Python (with Rust code for those computing parts that need
+performance.)")
+    (license (license:non-copyleft
+               "file:///LICENSE"
+               "CC-BY-NC-SA 4.0"))))
+
+(define-public graph-genotyper
+  (let ((commit "e7cc6b43a5b1f389d76bf9aac7f2ee02f92caeaf") ; October 17, 2022
+        (revision "13"))
+    (package
+      (name "graph-genotyper")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/davidebolo1993/graph_genotyper")
+               (commit commit)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1l8yjpkqamiqr1q5i7vr5z04aba7skpbcwyc9dx5fiklvljjfhcx"))))
+      (build-system copy-build-system)
+      (arguments
+       `(#:install-plan
+         '(("genotype.py" "bin/")
+           ("genotype.sh" "bin/"))
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'install 'wrap-genotype
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (wrap-script (string-append out "/bin/genotype.sh")
+                  `("GUIX_PYTHONPATH" ":" prefix (,(getenv "GUIX_PYTHONPATH")))
+                  `("PATH" ":" prefix
+                    ,(map (lambda (file-name)
+                            (string-append (assoc-ref inputs file-name) "/bin"))
+                          (list "gafpack"
+                                "odgi"
+                                "python"
+                                "samtools"
+                                "vg"))))))))))
+      (inputs
+       (list gafpack
+             guile-3.0
+             odgi
+             python
+             python-numpy
+             python-pandas
+             python-scipy
+             samtools
+             vg))
+      (home-page "https://bitbucket.org/jana_ebler")
+      (synopsis "Genotyping based on k-mers and pangenome graphs")
+      (description
+       "This package provides a genotyper for various types of genetic variants
+(such as SNPs, indels and structural variants).  Genotypes are computed based on
+read k-mer counts and a panel of known haplotypes.  A description of the method
+can be found @url{https://www.biorxiv.org/content/10.1101/2020.11.11.378133v1,
+here}.")
+      (license (license:non-copyleft
+                 "No license listed")))))
 
 (define-public pangenie
   (let ((commit "e779076827022d1416ab9fabf99a03d8f4725956") ; September 2, 2021 from phasing-tests branch
@@ -1490,20 +1790,9 @@ reads, also called read-based phasing or haplotype assembly.  It is especially
 suitable for long reads, but works also well with short reads.")
     (license license:expat)))
 
-(define-public python-pytest-runner-2
-  (package
-    (inherit python-pytest-runner)
-    (version "2.12.2")
-    (source (origin
-              (method url-fetch)
-              (uri (pypi-uri "pytest-runner" version))
-              (sha256
-               (base32
-                "11ivjj9hfphkv4yfb2g74av4yy86y8gcbf7gbif0p1hcdfnxg3w6"))))))
-
 (define-public bh20-seq-resource
-  (let ((commit "ae4cb3c2cf7103bbc84f52618bb755d7ce25775b")
-        (revision "3"))
+  (let ((commit "2ae71911cd87ce4f2eabdff21e538267b3270d45")
+        (revision "4"))
     (package
       (name "bh20-seq-resource")
       (version (git-version "1.0" revision commit))
@@ -1514,36 +1803,45 @@ suitable for long reads, but works also well with short reads.")
                        (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32 "1k0gsz4yc8l5znanzd094g2jp40ksbpa9667zr31ayrjx6labz02"))
+                 (base32 "1k6cc88hrcm77jwpdk2084q0zirv2vlbz3c07nmpbhk1lhqk5x0n"))
                 (modules '((guix build utils)))
                 (snippet
                  '(begin
-                    (substitute* "setup.py"
-                      (("py-dateutil") "python-dateutil"))
-                    #t))))
+                    (delete-file "gittaggers.py")))))
       (build-system python-build-system)
+      (arguments
+       (list
+         #:tests? #f    ; Tests can't find pytest
+         #:phases
+         #~(modify-phases %standard-phases
+             (add-after 'unpack 'patch-program-calls
+               (lambda* (#:key inputs #:allow-other-keys)
+                 (substitute* "bh20sequploader/qc_fasta.py"
+                   (("\"minimap2\"")
+                    (string-append "\"" (search-input-file
+                                          inputs "/bin/minimap2")
+                                   "\""))))))))
       (propagated-inputs
-       `(("python-arvados-python-client" ,python-arvados-python-client)
-         ("python-dateutil" ,python-dateutil)
-         ("python-flask" ,python-flask)
-         ("python-magic" ,python-magic)
-         ("python-pyyaml" ,python-pyyaml)
-         ("python-pycurl" ,python-pycurl)
-         ("python-pyshex" ,python-pyshex)
-         ("python-redis" ,python-redis)
-         ("python-ruaml.yaml" ,python38-ruaml.yaml-0.15.76)
-         ("clustalw" ,clustalw)
-         ("python-schema-salad" ,python-schema-salad)
-         ("python-twint" ,python-twint)
-         ;; and for the service
-         ("python" ,python)
-         ("gunicorn" ,gunicorn)))
+       (list python-arvados-python-client
+             python-schema-salad
+             python-magic
+             python-pyshex
+             python-pyshexc-0.7
+             python-py-dateutil
+
+             ;; for the web
+             python-flask
+             python-pyyaml
+             python-redis
+
+             ;; and for the service
+             python
+             gunicorn))
+      (inputs
+       (list minimap2))
       (native-inputs
-       `(("git" ,(@ (gnu packages version-control) git))
-         ("python-oauth2client" ,python-oauth2client)
-         ("python-pytest" ,python-pytest-4)
-         ("python-pytest-runner" ,python-pytest-runner-2)
-         ("python-uritemplate" ,python-uritemplate)))
+       (list python-pytest-4                ; < 6
+             python-pytest-runner-4))       ; < 5
       (home-page "https://github.com/pubseq/bh20-seq-resource")
       (synopsis
        "Tool to upload SARS-CoV-19 sequences and service to kick off analysis")
@@ -1552,6 +1850,18 @@ COVID-19 Virtual Biohackathon's Public Sequence Resource project.  You can use
 it to upload the genomes of SARS-CoV-2 samples to make them publicly and freely
 available to other researchers.")
       (license license:asl2.0))))
+
+;; This version has no profile collisions.
+(define-public bh20-seq-resource-for-service
+  (package
+    ;(inherit (fix-profile-collisions-for-bh20 bh20-seq-resource))
+    (inherit
+      ((package-input-rewriting/spec
+        `(("python-google-api-core" . ,(const python-google-api-core-1))
+          ("python-google-auth" . ,(const python-google-auth-1))
+          ("python-pyparsing" . ,(const python-pyparsing-2.4.7))))
+       bh20-seq-resource))
+    (properties `((hidden? . #t)))))
 
 (define-public python-scanpy-git
   (let ((commit "590d42309f9ed6550d7b887039990edfc1ac7648") ; April 22, 2020
@@ -1592,6 +1902,56 @@ available to other researchers.")
                  (delete-file "scanpy/tests/test_neighbors_key_added.py")
                  (delete-file "scanpy/tests/test_pca.py")
                  #t)))))))))
+
+;; TODO: Unbundle everything
+(define-public odgi
+  (package
+    (name "odgi")
+    (version "0.8.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/pangenome/odgi/releases"
+                                  "/download/v" version
+                                  "/odgi-v" version ".tar.gz"))
+              (sha256
+               (base32 "175083pb9hp0vn9a00hbxlayyk5a5j8p52yq5qfmbnfvndisbmbv"))
+              (snippet
+               #~(begin
+                   (use-modules (guix build utils))
+                   (substitute* "CMakeLists.txt"
+                     (("-march=native") "")
+                     (("-msse4\\.2") ""))
+                   (delete-file-recursively "deps/pybind11")
+                   (delete-file-recursively "deps/sdsl-lite")))))
+    (build-system cmake-build-system)
+    (native-inputs
+     (list pkg-config))
+    (inputs
+     (list jemalloc
+           libdivsufsort
+           pybind11
+           python
+           sdsl-lite))
+    (home-page "https://github.com/vgteam/odgi")
+    (synopsis "Optimized Dynamic Genome/Graph Implementation")
+    (description "@acronym{Optimized Dynamic Genome/Graph Implementation, odgi}
+provides an efficient and succinct dynamic DNA sequence graph model, as well as
+a host of algorithms that allow the use of such graphs in bioinformatic
+analyses.
+
+Careful encoding of graph entities allows odgi to efficiently compute and
+transform pangenomes with minimal overheads.  @command{odgi} implements a
+dynamic data structure that leveraged multi-core CPUs and can be updated on the
+fly.
+
+The edges and path steps are recorded as deltas between the current node id and
+the target node id, where the node id corresponds to the rank in the global
+array of nodes.  Graphs built from biological data sets tend to have local
+partial order and, when sorted, the deltas be small.  This allows them to be
+compressed with a variable length integer representation, resulting in a small
+in-memory footprint at the cost of packing and unpacking.")
+    (properties '((tunable? . #t)))
+    (license license:expat)))
 
 (define-public vg
   (package
@@ -1826,7 +2186,7 @@ available to other researchers.")
     (inputs
      `(("boost" ,boost)
        ("cairo" ,cairo)
-       ("curl" ,curl-minimal)
+       ("curl" ,curl)
        ("elfutils" ,elfutils)
        ("fastahack" ,fastahack)
        ("htslib" ,htslib)
@@ -2055,7 +2415,7 @@ The Genome Browser itself does not draw conclusions; rather, it collates all
 relevant information in one location, leaving the exploration and interpretation
 to the user.")
     (license (list
-               license:bsd-0    ; kent/src/{utils,lib,inc,tabStorm,parasol,hg/ausoSql,hg/autoXml}
+               ;; license:bsd-0    ; kent/src/{utils,lib,inc,tabStorm,parasol,hg/ausoSql,hg/autoXml}
                license:bsd-3    ; these two for bundled htslib-1.3
                license:expat
                (license:non-copyleft
