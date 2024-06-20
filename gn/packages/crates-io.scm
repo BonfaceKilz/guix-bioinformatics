@@ -7,8 +7,34 @@
   #:use-module (guix build-system cargo)
   #:use-module (gnu packages crates-graphics)
   #:use-module (gnu packages crates-io)
+  #:use-module (gnu packages crates-windows)
   #:use-module (gnu packages maths)
   #:use-module (gnu packages python))
+
+(define-public rust-assert-cmd-0.12
+  (package
+    (name "rust-assert-cmd")
+    (version "0.12.2")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "assert-cmd" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1xfn2spazxk3ljj9q3250a24gndja9vwa0h0rnbccdrbd4ncyvwk"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-doc-comment" ,rust-doc-comment-0.3)
+        ("rust-escargot" ,rust-escargot-0.5)
+        ("rust-predicates" ,rust-predicates-1)
+        ("rust-predicates-core" ,rust-predicates-core-1)
+        ("rust-predicates-tree" ,rust-predicates-tree-1)
+        ("rust-wait-timeout" ,rust-wait-timeout-0.2))))
+    (home-page "https://github.com/assert-rs/assert_cmd")
+    (synopsis "Test CLI Applications.")
+    (description "Test CLI Applications.")
+    (license (list license:expat license:asl2.0))))
 
 (define-public rust-bgzip-0.2
   (package
@@ -65,25 +91,6 @@
 for massive key sets}.  It generates an @acronym{MPHF, minimal perfect hash
 functions} for a collection of hashable objects.")
     (license license:expat)))
-
-(define-public rust-clap-lex-0.3
-  (package
-    (name "rust-clap-lex")
-    (version "0.3.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap-lex" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1a4dzbnlxiamfsn0pnkhn7n9bdfjh66j9fxm6mmr7d227vvrhh8d"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs (("rust-os-str-bytes" ,rust-os-str-bytes-6))))
-    (home-page "https://github.com/clap-rs/clap/tree/master/clap_lex")
-    (synopsis "Minimal, flexible command line parser")
-    (description "Minimal, flexible command line parser")
-    (license (list license:expat license:asl2.0))))
 
 (define-public rust-cuckoofilter-0.5
   (package
@@ -144,7 +151,7 @@ functions} for a collection of hashable objects.")
      "Library for working with graphs in the GFA (Graphical Fragment Assembly) format")
     (license license:expat)))
 
-(define-public rust-handlegraph-0.7
+(define-public rust-handlegraph-0.7.0-alpha.9
   (package
     (name "rust-handlegraph")
     (version "0.7.0-alpha.9")
@@ -180,7 +187,7 @@ functions} for a collection of hashable objects.")
 
 (define-public rust-handlegraph-0.3
   (package
-    (inherit rust-handlegraph-0.7)
+    (inherit rust-handlegraph-0.7.0-alpha.9)
     (name "rust-handlegraph")
     (version "0.3.0")
     (source (origin
@@ -220,6 +227,64 @@ functions} for a collection of hashable objects.")
     (synopsis "String optimized for map keys")
     (description "Key String provides a Rust package optimized for map keys.")
     (license (list license:expat license:asl2.0))))
+
+(define-public rust-line-drawing-0.8
+  (package
+    (name "rust-line-drawing")
+    (version "0.8.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "line-drawing" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "18a940s3mv8w5prpb99sdxykzhrvzrnymw3hvd7wisnkgbr11jqm"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-inputs
+       (("rust-num-traits" ,rust-num-traits-0.2))
+       #:cargo-development-inputs
+       (("rust-bresenham" ,rust-bresenham-0.1)
+        ("rust-image" ,rust-image-0.23)
+        ("rust-rand" ,rust-rand-0.8))))
+    (home-page "https://github.com/expenses/line_drawing")
+    (synopsis
+     "A collection of line-drawing algorithms for use in graphics and video games.")
+    (description
+     "This package provides a collection of line-drawing algorithms for use in
+graphics and video games.")
+    (license license:expat)))
+
+(define-public rust-lodepng-3
+  (package
+    (name "rust-lodepng")
+    (version "3.8.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "lodepng" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1f5d9bva17sq7npw9qh7h6sh02k0ycrjx5hr147q0jv4m0qd2970"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:cargo-test-flags
+       (list "--release" "--"
+             ;; Not all files included.
+             "--skip=test::read_icc")
+       #:cargo-inputs
+       (("rust-crc32fast" ,rust-crc32fast-1)
+        ("rust-fallible-collections" ,rust-fallible-collections-0.4)
+        ("rust-flate2" ,rust-flate2-1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-rgb" ,rust-rgb-0.8))))
+    (home-page "https://lib.rs/crates/lodepng")
+    (synopsis
+     "Reading and writing PNG files without system dependencies. Pure Rust port of LodePNG.")
+    (description
+     "Reading and writing PNG files without system dependencies.  Pure Rust port of
+@code{LodePNG}.")
+    (license license:zlib)))
 
 (define-public rust-pyo3-0.14
   (package
@@ -475,76 +540,6 @@ or any combination.")
       (description "Rust CLI tools for manipulation of Jupyter Notebooks.")
       (license #f)))) ; There is no license.
 
-(define-public rust-clap-4
-  (package
-    (name "rust-clap")
-    (version "4.0.9")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1w0dxqzrh449s9l2k8g66pdsff02599bwi5mh0gny3227kcpsq1h"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:skip-build? #t     ; Not all inputs packaged.
-       #:cargo-inputs
-       (("rust-atty" ,rust-atty-0.2)
-        ("rust-backtrace" ,rust-backtrace-0.3)
-        ("rust-bitflags" ,rust-bitflags-1)
-        ("rust-clap-derive" ,rust-clap-derive-4)
-        ("rust-clap-lex" ,rust-clap-lex-0.3)
-        ("rust-once-cell" ,rust-once-cell-1)
-        ("rust-strsim" ,rust-strsim-0.10)
-        ("rust-termcolor" ,rust-termcolor-1)
-        ("rust-terminal-size" ,rust-terminal-size-0.1)
-        ("rust-unicase" ,rust-unicase-2)
-        ("rust-unicode-width" ,rust-unicode-width-0.1))
-       ;#:cargo-development-inputs
-       ;(("rust-humantime" ,rust-humantime-2)
-       ; ("rust-rustversion" ,rust-rustversion-1)
-       ; ("rust-shlex" ,rust-shlex-1)
-       ; ("rust-snapbox" ,rust-snapbox-0.4)
-       ; ("rust-static-assertions" ,rust-static-assertions-1)
-       ; ("rust-trybuild" ,rust-trybuild-1)
-       ; ("rust-trycmd" ,rust-trycmd-0.13)
-       ; ("rust-unic-emoji-char" ,rust-unic-emoji-char-0.9))
-       ))
-    (home-page "https://github.com/clap-rs/clap")
-    (synopsis
-      "A simple to use, efficient, and full-featured Command Line Argument Parser")
-    (description
-      "This package provides a simple to use, efficient, and full-featured Command Line
-      Argument Parser")
-    (license (list license:expat license:asl2.0))))
-
-(define-public rust-clap-derive-4
-  (package
-    (name "rust-clap-derive")
-    (version "4.0.9")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "clap-derive" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "02zhbbmyz3dpy9ml6xfp7i8p3ffj1djvkdnkg6gr6d0s5r4hg8x4"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:cargo-inputs
-       (("rust-heck" ,rust-heck-0.4)
-        ("rust-proc-macro-error" ,rust-proc-macro-error-1)
-        ("rust-proc-macro2" ,rust-proc-macro2-1)
-        ("rust-quote" ,rust-quote-1)
-        ("rust-syn" ,rust-syn-1))))
-    (home-page "https://github.com/clap-rs/clap/tree/master/clap_derive")
-    (synopsis
-      "Parse command line argument by defining a struct, derive crate.")
-    (description
-      "Parse command line argument by defining a struct, derive crate.")
-    (license (list license:expat license:asl2.0))))
-
 (define-public rust-trycmd-0.12
   (package
     (name "rust-trycmd")
@@ -618,6 +613,32 @@ or any combination.")
     (synopsis "Yet another format-preserving TOML parser.")
     (description "Yet another format-preserving TOML parser.")
     (license (list license:expat license:asl2.0))))
+
+(define-public rust-vcf-0.6
+  (package
+    (name "rust-vcf")
+    (version "0.6.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "vcf" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0dc0p00a19rpmhrqcshrn2qg5l716b5s1fy8vpd3p32bw77vpbs0"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:tests? #f      ; Not all files included
+       #:cargo-inputs
+       (("rust-nom" ,rust-nom-7)
+        ("rust-once-cell" ,rust-once-cell-1)
+        ("rust-thiserror" ,rust-thiserror-1))
+       #:cargo-development-inputs
+       (("rust-clap" ,rust-clap-2)
+        ("rust-flate2" ,rust-flate2-1))))
+    (home-page "https://github.com/informationsea/vcf-rs")
+    (synopsis "Rust implmentation of VCF parser")
+    (description "This package provides a rust implmentation of a VCF parser.")
+    (license license:asl2.0)))
 
 (define-public rust-gsl-sys
   (package

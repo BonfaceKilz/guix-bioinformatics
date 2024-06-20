@@ -179,6 +179,20 @@ gene-keyword relationships are presented as an interactive graph and a table.")
           `(modify-phases ,phases
              (delete 'check))))))))
 
+(define-public python-keras-no-tests
+  (hidden-package
+    (package
+      (inherit python-keras)
+      (source
+        (origin
+          (inherit (package-source python-keras))))
+      (arguments
+       (substitute-keyword-arguments (package-arguments python-keras)
+         ((#:phases phases)
+          `(modify-phases ,phases
+             (delete 'check))))))))
+
+
 (define-public hrdp-project
   (package
     (name "hrdp-project")
@@ -370,7 +384,7 @@ if __name__ == '__main__':
        ("inetutils" ,inetutils)
        ("python-bcrypt" ,python-bcrypt)
        ("python-flask-sqlalchemy" ,python-flask-sqlalchemy)
-       ("python-keras" ,python-keras-for-ratspub)
+       ("python-keras" ,python-keras-no-tests)
        ("python-nltk" ,python-nltk)
        ("python-pandas" ,python-pandas)
        ("python-regex" ,python-regex)

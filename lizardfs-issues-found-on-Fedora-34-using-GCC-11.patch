@@ -1,0 +1,111 @@
+From 1da538a07974b8b1afd2580af2828418cbdad42b Mon Sep 17 00:00:00 2001
+Message-ID: <1da538a07974b8b1afd2580af2828418cbdad42b.1699426938.git.efraim@flashner.co.il>
+From: Marcin Konarski <marcin.konarski@lizardfs.com>
+Date: Fri, 21 May 2021 12:36:56 +0200
+Subject: [PATCH] all: Fix build issues found on Fedora 34 using GCC 11.1.1
+
+Change-Id: I1c20e914d249d367d0a058de1102ae62dcaf6054
+---
+ src/common/ec_read_plan.h                 |  2 +-
+ src/common/flat_set_unittest.cc           |  4 ++--
+ src/common/vector_range.h                 |  1 +
+ src/data/CMakeLists.txt                   | 25 +++++++++++++++++++++++
+ src/master/goal_config_loader_unittest.cc |  4 ++--
+ 5 files changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/src/common/ec_read_plan.h b/src/common/ec_read_plan.h
+index c96413cb..bda10cb5 100644
+--- a/src/common/ec_read_plan.h
++++ b/src/common/ec_read_plan.h
+@@ -132,7 +132,7 @@ protected:
+ 			}
+ 		}
+ 
+-		for (const auto op : read_operations) {
++		for (auto const& op : read_operations) {
+ 			data_parts[op.first.getSlicePart()] = buffer + op.second.buffer_offset;
+ 		}
+ 
+diff --git a/src/common/flat_set_unittest.cc b/src/common/flat_set_unittest.cc
+index 9ad760c4..e50308eb 100644
+--- a/src/common/flat_set_unittest.cc
++++ b/src/common/flat_set_unittest.cc
+@@ -62,9 +62,9 @@ TEST(FlatSet, RedundantInsert) {
+ 	// const &
+ 	std::initializer_list<std::string> elems2 = {"0", "1", "2", "3", "4"};
+ 	flat_set<std::string> cs2(elems2);
+-	for (const std::string &i : {"2", "4"}) {
++	for (char const* s : {"2", "4"}) {
+ 		EXPECT_EQ(cs2.size(), elems2.size());
+-		cs2.insert(i);
++		cs2.insert(s);
+ 		EXPECT_EQ(cs2.size(), elems2.size());
+ 	}
+ }
+diff --git a/src/common/vector_range.h b/src/common/vector_range.h
+index f336e1ec..57bba8dd 100644
+--- a/src/common/vector_range.h
++++ b/src/common/vector_range.h
+@@ -22,6 +22,7 @@
+ 
+ #include <algorithm>
+ #include <cassert>
++#include <limits>
+ #include <stdexcept>
+ 
+ /*! \brief Class providing std::vector like interface to subrange of vector. */
+diff --git a/src/data/CMakeLists.txt b/src/data/CMakeLists.txt
+index 88c20d5d..bf69a5e2 100644
+--- a/src/data/CMakeLists.txt
++++ b/src/data/CMakeLists.txt
+@@ -16,3 +16,28 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mfschunkserver.cfg DESTINATION ${ETC_S
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mfsmetalogger.cfg DESTINATION ${ETC_SUBDIR} RENAME mfsmetalogger.cfg.dist)
+ 
+ install(FILES lizardfs.completion DESTINATION etc/bash_completion.d RENAME lizardfs)
++
++if(BUILD_TESTS)
++  # Create a mock include dir.
++  # We do this because we want to preserve the proper include directives in the example code
++  # and still build this example program in the build step before the needed headers are installed.
++  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs)
++  add_custom_command(
++    OUTPUT
++      ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_c_api.h
++      ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_error_codes.h
++    COMMAND ${CMAKE_COMMAND} -E create_symlink
++      ${CMAKE_SOURCE_DIR}/src/mount/client/lizardfs_c_api.h
++      ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_c_api.h
++    COMMAND ${CMAKE_COMMAND} -E create_symlink
++      ${CMAKE_SOURCE_DIR}/src/common/lizardfs_error_codes.h
++      ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_error_codes.h
++  )
++  add_executable(c-client-example
++    liblizardfs-client-example.c
++    ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_c_api.h
++    ${CMAKE_CURRENT_BINARY_DIR}/include/lizardfs/lizardfs_error_codes.h)
++  target_include_directories(c-client-example PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
++  target_link_libraries(c-client-example lizardfs-client stdc++)
++  install(TARGETS c-client-example RUNTIME DESTINATION ${BIN_SUBDIR})
++endif()
+diff --git a/src/master/goal_config_loader_unittest.cc b/src/master/goal_config_loader_unittest.cc
+index 050e8a52..a236dba9 100644
+--- a/src/master/goal_config_loader_unittest.cc
++++ b/src/master/goal_config_loader_unittest.cc
+@@ -41,8 +41,8 @@ Goal::Slice createSlice(int type,
+ 		std::vector<std::map<std::string, int>> part_list) {
+ 	Goal::Slice slice{Goal::Slice::Type(type)};
+ 	int part_index = 0;
+-	for (const auto &part : part_list) {
+-		for (const auto label : part) {
++	for (auto const& part : part_list) {
++		for (auto const& label : part) {
+ 			slice[part_index][MediaLabel(label.first)] += label.second;
+ 		}
+ 		++part_index;
+
+base-commit: 6f6fd530f8fa286fbfb6a050cacbba73e928bd26
+-- 
+Efraim Flashner   <efraim@flashner.co.il>   רנשלפ םירפא
+GPG key = A28B F40C 3E55 1372 662D  14F7 41AA E7DC CA3D 8351
+Confidentiality cannot be guaranteed on emails sent or received unencrypted
+

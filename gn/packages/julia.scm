@@ -17,6 +17,7 @@
   #:use-module (gnu packages julia-xyz)
   #:use-module (gnu packages python)
   #:use-module (gnu packages statistics)
+  #:use-module (gnu packages version-control)
   #:use-module (gnu packages video)
   #:use-module (ice-9 match))
 
@@ -24,7 +25,7 @@
 
 (define-public julia-visuals
   (let ((commit "e8e2b601f40a76c8f20f0ddfe80c56257dd9a294")
-        (revision "2"))
+        (revision "3"))
     (package
       (name "julia-visuals")
       (version (git-version "0.0.0" revision commit))
@@ -51,6 +52,7 @@
            (replace 'install
              (lambda* (#:key outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
+                 (mkdir-p (string-append out "/bin"))
                  ;; Copied from the Dockerfile.
                  (for-each
                   (lambda (file)
@@ -59,6 +61,7 @@
                         "environment.yml"
                         "setup.py"
                         "runpluto.sh"
+                        "runsliderserver.sh"
                         "notebooks"
                         "Project.toml")))))
            (add-after 'install 'wrap-program
@@ -68,11 +71,15 @@
                  (wrap-script (string-append out "/runpluto.sh")
                   `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
                                         ,(string-append (assoc-ref inputs "coreutils") "/bin")))
+                  `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH"))))
+                 (wrap-script (string-append out "/runsliderserver.sh")
+                  `("PATH" ":" prefix (,(string-append (assoc-ref inputs "julia") "/bin")
+                                        ,(string-append (assoc-ref inputs "coreutils") "/bin")))
                   `("JULIA_LOAD_PATH" ":" prefix (,(getenv "JULIA_LOAD_PATH")))))))
-           (add-after 'install 'create-run-program
+           (add-after 'install 'create-runpluto
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out")))
-                 (with-output-to-file (string-append out "/runpluto")
+                 (with-output-to-file (string-append out "/bin/runpluto")
                    (lambda ()
                      (format #t "#!~a --no-auto-compile
 !#
@@ -93,25 +100,64 @@
                              (getenv "JULIA_LOAD_PATH")
                              (dirname (search-input-file inputs "/bin/yes"))
                              (search-input-file inputs "/bin/julia"))))
-                   (chmod (string-append out "/runpluto") #o555))))
+                   (chmod (string-append out "/bin/runpluto") #o555))))
+           (add-after 'install 'create-runsliderserver
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let ((out (assoc-ref outputs "out")))
+                 (with-output-to-file (string-append out "/bin/runsliderserver")
+                   (lambda ()
+                     (format #t "#!~a --no-auto-compile
+!#
+(setenv \"JULIA_LOAD_PATH\" \"~a\")
+(setenv \"PATH\" \"~a\")
+;; First initialise or update the julia registry:
+(zero? (system* \"~a\"
+                \"--optimize=0\"
+                ;; Used by L1-penalty.jl:
+                ;; \"-e\" \"import Pkg; Pkg.add(\\\"PlotlyBase\\\")\"
+                \"-e\" \"import Pkg; Pkg.update()\"))
+(zero? (system* \"~a\"
+                \"--optimize=0\"
+                \"-e\" \"import PlutoSliderServer;
+                PlutoSliderServer.run_directory(
+                   \\\"~a/notebooks/\\\",
+                   SliderServer_port=4343,
+                   SliderServer_host=\\\"0.0.0.0\\\")\"))\n"
+                             (search-input-file inputs "/bin/guile")
+                             (getenv "JULIA_LOAD_PATH")
+                             (dirname (search-input-file inputs "/bin/yes"))
+                             (search-input-file inputs "/bin/julia")
+                             (search-input-file inputs "/bin/julia")
+                             out)))
+                   (chmod (string-append out "/bin/runsliderserver") #o555))))
            (replace 'precompile
              (lambda _
                (invoke "julia" "-e" "\"import Pkg; Pkg.instantiate(); Pkg.status(); Pkg.precompile()\""))))))
 
+      #;
       (propagated-inputs
+        ;; This doesn't seem to actually be used anywhere
        `(;; from setup.py
          ("python-jupyter-server-proxy"
           ,(@ (gn packages python) python-jupyter-server-proxy-1))))
 
       (inputs
-       (list julia-distributions
+       ;; Ideally we'd use more of these packages, but we end up downloading
+       ;; most of them anyway when the service starts, so we've commented them
+       ;; out for now.
+       (list ;julia-cairomakie           ; 0.8.13
+             ;julia-distributions        ; 0.25.76
              ;julia-interactiveutils    ; stdlib
-             julia-latexstrings
+             ;julia-latexstrings         ; 1.3.0
              ;julia-markdown            ; stdlib
-             julia-optim
-             julia-plots
-             julia-pluto
-             julia-plutoui
+             ;julia-optim                ; 1.7.2
+             ;julia-plots                ; 1.35.3
+             ;julia-pluto                ; 0.19.11
+             julia-plutosliderserver    ; *
+             ;julia-plutoui              ; 0.7.46
+             ;julia-prettytables         ; 2.1.0
+             ;julia-quadgk               ; 2.5.0
+             ;julia-roots                ; 2.0.3
              (@ (gnu packages guile) guile-3.0)))   ; for wrap-script
       (home-page "https://github.com/sens/visuals")
       (synopsis "Visualizations using Pluto.jl notebooks")
@@ -302,25 +348,35 @@ distributed computing.")
          (base32 "0nqlnkh8grxfm8d1mivi7dnrvb31bznj9s540a10d2v396ikfggn"))))
     (build-system julia-build-system)
     (arguments
-     `(#:tests? #f))        ; Some failed tests
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-tests
+           (lambda _
+             ;; Something about logpdf fails in both of these test sets.
+             (substitute* "test/multivariate/dirichlet.jl"
+               (("\\@testset \"_logpdf\" begin")
+                "@testset \"_logpdf\" begin return;"))
+             (substitute* "test/univariate/discrete/negativebinomial.jl"
+               ;; The negative numbers something something wrong in logpdf.
+               (("0, 10, 42, -1, -5, -13") "0, 10, 42")))))))
     (propagated-inputs
-     `(("julia-chainrulescore" ,julia-chainrulescore)
-       ("julia-densityinterface" ,julia-densityinterface)
-       ("julia-fillarrays" ,julia-fillarrays)
-       ("julia-pdmats" ,julia-pdmats)
-       ("julia-quadgk" ,julia-quadgk)
-       ("julia-specialfunctions" ,julia-specialfunctions)
-       ("julia-statsbase" ,julia-statsbase)
-       ("julia-statsfuns" ,julia-statsfuns)))
+     (list julia-chainrulescore     ; 1
+           julia-densityinterface   ; 0.4
+           julia-fillarrays         ; 0.9 .. 0.13
+           julia-pdmats             ; 0.10, 0.11
+           julia-quadgk             ; 2
+           julia-specialfunctions   ; 1.2, 2
+           julia-statsbase          ; 0.32, 0.33
+           julia-statsfuns))        ; 0.9.15, 1
     (native-inputs
-     `(("julia-calculus" ,julia-calculus)
-       ("julia-chainrulestestutils" ,julia-chainrulestestutils)
-       ("julia-finitedifferences" ,julia-finitedifferences)
-       ("julia-forwarddiff" ,julia-forwarddiff)
-       ("julia-json" ,julia-json)
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ("julia-stablerngs" ,julia-stablerngs)
-       ("julia-staticarrays" ,julia-staticarrays)))
+     (list julia-calculus
+           julia-chainrulestestutils
+           julia-finitedifferences
+           julia-forwarddiff
+           julia-json
+           julia-offsetarrays
+           julia-stablerngs
+           julia-staticarrays))
     (home-page "https://github.com/JuliaStats/Distributions.jl")
     (synopsis "Probability distributions and associated functions")
     (description "Julia package for probability distributions and associated
@@ -333,6 +389,302 @@ properties
 @item Sampling from population or from a distribution
 @item Maximum likelihood estimation
 @end enumerate")
+    (license license:expat)))
+
+(define-public julia-fromfile
+  (package
+    (name "julia-fromfile")
+    (version "0.1.5")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/Roger-luo/FromFile.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0jn394294d4s1fqsfiwpiy6dzlca4ciy54l2xviwyzhvixmlfrwn"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f))            ; Tests require network access
+    (propagated-inputs
+     (list julia-requires))
+    (home-page "https://github.com/Roger-luo/FromFile.jl")
+    (synopsis "Julia enhancement proposal for implicit per file module in Julia")
+    (description "This package exports a macro @code{@@from}, which can be used
+to import objects from files.")
+    (license license:expat)))
+
+(define-public julia-git
+  (package
+    (name "julia-git")
+    (version "1.2.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaVersionControl/Git.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0bznzg360cbvbzzpsdkin4dm2v980sb5pv58gy1bp3j9j8bj38h6"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'disable-network-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               (("testset.*Git.jl.*" all)
+                (string-append all " return\n"))))))))
+    (propagated-inputs
+     (list julia-git-jll))
+    (home-page "https://github.com/JuliaVersionControl/Git.jl")
+    (synopsis "Use command-line Git in your Julia packages")
+    (description "Git.jl allows you to use command-line Git in your Julia
+packages.  You do not need to have Git installed on your computer, and neither
+do the users of your packages!")
+    (license license:expat)))
+
+(define-public julia-git-jll
+  (package
+    (name "julia-git-jll")
+    (version "2.36.1+2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaBinaryWrappers/Git_jll.jl")
+               (commit (string-append "Git-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1n8k363q2mw5qfkagbbqpn4djx181qbn05l7brp3spspvf5aslgm"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f  ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'link-depot 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("generate_wrapper_header.*")
+                    (string-append
+                      "generate_wrapper_header(\"Git\", \""
+                      (assoc-ref inputs "git-minimal") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     (list git-minimal))
+    (propagated-inputs
+     (list julia-jllwrappers
+           julia-expat-jll
+           julia-openssl-jll
+           ;julia-libcurl-jll
+           julia-libiconv-jll
+           ;julia-pcre2-jll
+           julia-zlib-jll))
+    (home-page "https://github.com/JuliaBinaryWrappers/Git_jll.jl")
+    (synopsis "Git library wrappers")
+    (description "This package provides a wrapper for the git library.")
+    (license license:expat)))
+
+(define-public julia-glob
+  (package
+    (name "julia-glob")
+    (version "1.3.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/vtjnash/Glob.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "05yp7ba3y3pfibs0hy2sp61phb5b6x7aacsjc93i3lz6wmlpj0jx"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/vtjnash/Glob.jl")
+    (synopsis "Posix-compliant file name pattern matching")
+    (description "This implementation of Glob is based on the IEEE Std 1003.1,
+2004 Edition (Open Group Base Specifications Issue 6) for fnmatch and glob.")
+    (license license:expat)))
+
+(define-public julia-terminalloggers
+  (package
+    (name "julia-terminalloggers")
+    (version "0.1.7")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaLogging/TerminalLoggers.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "01l9qsjljwa9pkpvf1pafmbrncjddwdw3737pf44y9q5hrp4hbr7"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list julia-leftchildrightsiblingtrees
+           julia-progresslogging))
+    (home-page "https://github.com/JuliaLogging/TerminalLoggers.jl")
+    (synopsis "Logging sinks and utilites for interactive terminals")
+    (description "TerminalLoggers provides a logger type @code{TerminalLogger}
+which can format your log messages in a richer way than the default
+@code{ConsoleLogger} which comes with the julia standard @code{Logging}
+library.")
+    (license license:expat)))
+
+(define-public julia-roots
+  (package
+    (name "julia-roots")
+    (version "2.0.3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaMath/Roots.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "17d62r8pib3cp73az00iz8nbnd5j0y3dl1mrmcssnj4ln8043056"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'disable-expensive-tests
+           (lambda _
+             (substitute* "test/runtests.jl"
+               ((".*test_composable.*") "")))))))
+    (propagated-inputs
+     (list julia-commonsolve
+           julia-setfield))
+    (native-inputs
+     (list julia-benchmarktools
+           julia-forwarddiff
+           julia-json
+           julia-specialfunctions))
+    (home-page "http://juliamath.github.io/Roots.jl/")
+    (synopsis "Root finding functions for Julia")
+    (description "This package contains simple routines for finding roots, or
+zeros, of scalar functions of a single real variable using floating-point
+math.")
+    (license license:expat)))
+
+(define-public julia-commonsolve
+  (package
+    (name "julia-commonsolve")
+    (version "0.2.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/SciML/CommonSolve.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1w05fp02g5cmqzqp96hcpriwjpqx61sl481rj92gf4y4xpinmdf5"))))
+    (build-system julia-build-system)
+    (home-page "https://docs.sciml.ai/CommonSolve/stable")
+    (synopsis "Common solve function for scientific machine learning")
+    (description "This holds the common @code{solve}, @code{init},
+@code{step!}, and @code{solve!} commands.  By using the same definition, solver
+libraries from other completely different ecosystems can extend the functions
+and thus not clash with SciML if both ecosystems export the @code{solve}
+command.  The rules are that you must dispatch on one of your own types.")
+    (license license:expat)))
+
+(define-public julia-setfield
+  (package
+    (name "julia-setfield")
+    (version "1.1.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/jw3126/Setfield.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0vdn9s639f120560599m4lhqkk0nsx7qa87fv2mixs1faaihsf6l"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))        ; Skip tests, not all dependencies packaged.
+    (propagated-inputs
+     (list julia-constructionbase
+           julia-macrotools
+           julia-staticarrayscore))
+    (home-page "https://github.com/jw3126/Setfield.jl")
+    (synopsis "Update deeply nested immutable structs")
+    (description "Update deeply nested immutable structs.")
+    (license license:expat)))
+
+(define-public julia-staticarrayscore
+  (package
+    (name "julia-staticarrayscore")
+    (version "1.4.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaArrays/StaticArraysCore.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0m573mxvf0y9h7y8rxrk35haphhqisplx159r77g30qvw7zwpgar"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/JuliaArrays/StaticArraysCore.jl")
+    (synopsis "Interface package for StaticArrays.jl")
+    (description
+     "This package provides an interface package for @code{StaticArrays.jl}.")
+    (license license:expat)))
+
+(define-public julia-progresslogging
+  (package
+    (name "julia-progresslogging")
+    (version "0.1.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaLogging/ProgressLogging.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0ysixnl7wjdykaka892jrhsay2aivpch83h8dnfs43z2xynf9sqn"))))
+    (build-system julia-build-system)
+    (native-inputs
+     (list julia-offsetarrays))
+    (home-page "https://github.com/JuliaLogging/ProgressLogging.jl")
+    (synopsis "Define progress logs")
+    (description "ProgressLogging.jl is a package for defining progress logs.
+It can be used to report progress of a loop/loops with time-consuming body.")
+    (license license:expat)))
+
+(define-public julia-leftchildrightsiblingtrees
+  (package
+    (name "julia-leftchildrightsiblingtrees")
+    (version "0.2.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaCollections/LeftChildRightSiblingTrees.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1rijr0yqmbzhlk668v4rqw5xmxxzqvgziasyqrd6z837376mfyy6"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list julia-abstracttrees))
+    (home-page "https://github.com/JuliaCollections/LeftChildRightSiblingTrees.jl")
+    (synopsis "Representation of a tree with arbitrary number of children/node")
+    (description "A left child, right sibling tree (frequently abbreviated as
+\"LCRS\") is a rooted tree data structure that allows a parent node to have
+multiple child nodes.  Rather than maintain a list of children (which requires
+one array per node), instead it is represented as a binary tree, where the
+\"left\" branch is the first child, whose \"right\" branch points to its first
+sibling.")
     (license license:expat)))
 
 ;; ready to upstream
@@ -363,7 +715,7 @@ densities and objects associated with a density in Julia.")
 (define-public julia-plots
   (package
     (name "julia-plots")
-    (version "1.16.6")
+    (version "1.35.6")
     (source
       (origin
         (method git-fetch)
@@ -372,57 +724,610 @@ densities and objects associated with a density in Julia.")
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0ipv9408r4czsx1j01sv2f7ww52b329jc0v79npn4x2mf827nsik"))))
+         (base32 "005za8a8al822xr0cz4yi1rm23qj1lzy9iw93vvhwq76x3n8bfpy"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f  ; for now
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-tests
+           (lambda _
+             ;; Decrease the number of tests we're running.
+             (substitute* "test/runtests.jl"
+               ((".*VisualRegressionTests.*") "")
+               ((".*pgfplotsx.*") "")
+               ((".*plotlyjs.*") "")
+               ))))
        ))
     (propagated-inputs
-     `(
-       ;("julia-contour" ,julia-contour)
-       ("julia-ffmpeg" ,julia-ffmpeg)
-       ("julia-fixedpointnumbers" ,julia-fixedpointnumbers)
-       ("julia-gr" ,julia-gr)
-       ("julia-geometrybasics" ,julia-geometrybasics)
-       ("julia-json" ,julia-json)
-       ;("julia-latexify" ,julia-latexify)
-       ("julia-measures" ,julia-measures)
-       ("julia-nanmath" ,julia-nanmath)
-       ("julia-plotthemes" ,julia-plotthemes)
-       ("julia-plotutils" ,julia-plotutils)
-       ("julia-recipesbase" ,julia-recipesbase)
-       ("julia-recipespipeline" ,julia-recipespipeline)
-       ("julia-reexport" ,julia-reexport)
-       ("julia-requires" ,julia-requires)
-       ("julia-scratch" ,julia-scratch)
-       ("julia-showoff" ,julia-showoff)
-       ("julia-statsbase" ,julia-statsbase)
-       ))
+     (list julia-contour
+           julia-ffmpeg
+           julia-fixedpointnumbers
+           julia-gr
+           julia-geometrybasics
+           julia-jlfzf
+           julia-json
+           ;julia-latexify
+           julia-measures
+           julia-nanmath
+           julia-plotthemes
+           julia-plotutils
+           julia-recipesbase
+           julia-recipespipeline
+           julia-reexport
+           julia-relocatablefolders
+           julia-requires
+           julia-scratch
+           julia-showoff
+           julia-snoopprecompile
+           julia-statsbase
+           julia-unicodefun
+           julia-unzip))
     (native-inputs
-     `(
-       ;("julia-distributions" ,julia-distributions)
-       ("julia-fileio" ,julia-fileio)
-       ;("julia-gtk" ,julia-gtk)
-       ;("julia-hdf5" ,julia-hdf5)
-       ("julia-imagemagick" ,julia-imagemagick)
-       ;("julia-images" ,julia-images)
-       ("julia-offsetarrays" ,julia-offsetarrays)
-       ;("julia-pgfplotsx" ,julia-pgfplotsx)
-       ;("julia-plotlyjs" ,julia-plotlyjs)
-       ;("julia-rdatasets" ,julia-rdatasets)
-       ("julia-stablerngs" ,julia-stablerngs)
-       ("julia-staticarrays" ,julia-staticarrays)
-       ;("julia-statsplots" ,julia-statsplots)
-       ("julia-testimages" ,julia-testimages)
-       ;("julia-unicodeplots" ,julia-unicodeplots)
-       ;("julia-visualregressiontests" ,julia-visualregressiontests)
-       ))
+     (list julia-aqua
+           julia-colors
+           ;julia-conda
+           julia-distributions
+           julia-fileio
+           julia-filepathsbase
+           ;julia-gaston
+           julia-geometrybasics
+           ;julia-gtk
+           ;julia-hdf5
+           julia-imagemagick
+           ;julia-images
+           ;julia-inspectdr
+           julia-offsetarrays
+           ;julia-pgfplotsx
+           ;julia-plotlybase
+           ;julia-plotlyjs
+           ;julia-plotlykaleido
+           julia-pycall
+           julia-pyplot
+           ;julia-rdatasets
+           julia-sentinelarrays
+           julia-stablerngs
+           julia-staticarrays
+           ;julia-statsplots
+           julia-testimages
+           julia-unicodeplots
+           julia-unitful
+           ;julia-visualregressiontests
+           ))
     (home-page "http://docs.juliaplots.org/")
     (synopsis "Powerful convenience for Julia visualizations and data analysis")
     (description "Plots is a plotting API and toolset.")
     (license license:expat)))
 
+(define-public julia-contour
+  (package
+    (name "julia-contour")
+    (version "0.5.7")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGeometry/Contour.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0ai6lh5ap9qxhqm2k1pnkfbpm4b95d3v7izhyvrr9cxwbxfjv3vn"))))
+    (build-system julia-build-system)
+    (arguments `(#:tests? #f)) ;; FIX ME
+    (propagated-inputs
+     (list julia-staticarrays))
+    (native-inputs
+     (list julia-offsetarrays
+           julia-statsbase))
+    (home-page "https://github.com/JuliaGeometry/Contour.jl")
+    (synopsis "Calculating contour curves for 2D scalar fields in Julia")
+    (description "This package provides a generic implementation of the
+@url{https://en.wikipedia.org/wiki/Marching_squares, marching squares}
+algorithm for tracing contour curves on a scalar 2D field.")
+    (license license:expat)))
+
+(define-public julia-unicodeplots
+  (package
+    (name "julia-unicodeplots")
+    (version "2.12.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPlots/UnicodePlots.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0plkczznx1297m1lviczkm4873yl29anr5csgyhh9vnvyf1606y2"))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'adjust-tests
+             (lambda _
+               ;; It is unclear why these tests fail and why some
+               ;; have a suprise dependency on AstroIO (from FileIO)
+               (substitute* "test/runtests.jl"
+                 ((".*tst_world_age.*") "")
+                 ((".*tst_io.*") "")
+                 ((".*tst_densityplot.*") ""))
+               (substitute* "test/tst_canvas.jl"
+                 ((".*HeatmapCanvas, \"heatmap\".*") ""))
+               (substitute* "test/tst_histogram.jl"
+                 (("testset.*keyword.*" all)
+                  (string-append all " return;\n"))
+                 (("testset.*vertical\".*" all)
+                  (string-append all " return;\n")))
+               (substitute* "test/tst_barplot.jl"
+                 (("testset.*maximum.*" all)
+                  (string-append all " return;\n")))
+               (substitute* "test/tst_spy.jl"
+                 (("testset.*parameters.*" all)
+                  (string-append all " return;\n")))
+               (substitute* "test/tst_boxplot.jl"
+                 (("testset.*default.*" all)
+                  (string-append all " return;\n"))
+                 (("testset.*scaling.*" all)
+                  (string-append all " return;\n")))
+               (substitute* "test/tst_volume.jl"
+                 (("testset.*cube.*" all)
+                  (string-append all " return;\n"))))))))
+    (propagated-inputs
+     (list julia-colortypes
+           julia-contour
+           julia-crayons
+           julia-fileio
+           julia-freetypeabstraction
+           julia-lazymodules
+           julia-marchingcubes
+           julia-nanmath
+           julia-staticarrays
+           julia-statsbase
+           julia-unitful))
+    (native-inputs
+     (list julia-colortypes
+           julia-imagemagick
+           julia-referencetests
+           julia-stablerngs))
+    (home-page "https://github.com/JuliaPlots/UnicodePlots.jl")
+    (synopsis "Unicode-based scientific plotting for working in the terminal")
+    (description "Advanced Unicode plotting library designed for use in Julia's REPL.")
+    (license license:expat)))
+
+(define-public julia-lazymodules
+  (package
+    (name "julia-lazymodules")
+    (version "0.3.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/johnnychen94/LazyModules.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "11xz0aw5w338pka9jf3r7mfhgm98fnqzsky5ig9z7b996z0m7lpk"))))
+    (build-system julia-build-system)
+    (native-inputs
+     (list julia-colors
+           julia-offsetarrays))
+    (home-page "https://github.com/johnnychen94/LazyModules.jl")
+    (synopsis "Lazily load Julia modules")
+    (description "This package provides package developers an alternative
+option to delay package loading until used. If some dependency is not used,
+then users don't need to pay for its latency.")
+    (license license:expat)))
+
+(define-public julia-marchingcubes
+  (package
+    (name "julia-marchingcubes")
+    (version "0.1.8")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGeometry/MarchingCubes.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "14k47lz33j0fiashykf2a8ayiv482k5jkgw0iircw55mdkdrnxc3"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))    ; Maybe later
+    (propagated-inputs
+     (list julia-precompiletools
+           julia-staticarrays))
+    #;
+    (native-inputs
+     (list julia-benchmarktools
+           julia-geometrybasics
+           julia-meshes
+           julia-plyio))
+    (home-page "https://github.com/JuliaGeometry/MarchingCubes.jl")
+    (synopsis "Efficient Implementation of Marching Cubes' Cases with Topological Guarantees")
+    (description "Julia port of Efficient Implementation of Marching Cubes' Cases with Topological Guarantees.")
+    (license license:expat)))
+
+(define-public julia-snoopprecompile
+  (package
+    (name "julia-snoopprecompile")
+    (version "1.0.3")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/timholy/SnoopCompile.jl")
+               (commit "v2.10.0")))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "14nnqknswjzlk786x4r7xc7898nmfk7ijfchrc09i81qi2d0mmcn"))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+       #:tests? #f      ; Most tests fail in the build environment.
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "SnoopPrecompile"))))))
+    (propagated-inputs
+     (list julia-preferences))
+    (home-page "https://timholy.github.io/SnoopCompile.jl/dev/")
+    (synopsis "Effectively precompile code needed by your package")
+    (description "SnoopPrecompile is a small dependency used to effectively
+precompile code needed by your package, particularly on Julia 1.8 and higher.")
+    (license license:expat)))
+
+(define-public julia-snoopcompile
+  (package
+    (name "julia-snoopcompile")
+    (version "1.7.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/timholy/SnoopCompile.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1xy0y5s7q980fl0kygvjbmn74i3sjpzbizsgvis70gd2fibz80h7"))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'adjust-test-suite
+             (lambda _
+               ;; This module fails to load its dependencies in the 'check phase.
+               (substitute* "test/runtests.jl"
+                 ((".*snoopi\\.jl.*") ""))
+               (substitute* "test/snoopi.jl"
+                 (("testset \"snoopi\" begin")
+                  "testset \"snoopi\" begin return")))))))
+    (propagated-inputs
+     (list julia-snoopcompileanalysis
+           julia-snoopcompilebot
+           julia-snoopcompilecore))
+    (native-inputs
+     (list
+       ;julia-jld
+       ;julia-matlang
+       ))
+    (home-page "https://timholy.github.io/SnoopCompile.jl/dev/")
+    (synopsis "Making packages work faster with more extensive precompilation")
+    (description "SnoopCompile observes the Julia compiler, causing it to
+record the functions and argument types it's compiling.  From these lists of
+methods, you can generate lists of @code{precompile} directives that may reduce
+the latency between loading packages.")
+    (license license:expat)))
+
+(define-public julia-snoopcompileanalysis
+  (package/inherit julia-snoopcompile
+    (name "julia-snoopcompileanalysis")
+    (arguments
+     (list
+       #:tests? #f      ; No test folder
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "SnoopCompileAnalysis"))))))
+    (propagated-inputs
+     (list julia-cthulhu
+           julia-orderedcollections))
+    (native-inputs '())
+    ))
+
+(define-public julia-snoopcompilebot
+  (package/inherit julia-snoopcompile
+    (name "julia-snoopcompilebot")
+    (arguments
+     (list
+       #:tests? #f      ; Tests to be run in SnoopCompile.jl
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "SnoopCompileBot"))))))
+    (propagated-inputs
+     (list julia-filepathsbase
+           julia-snoopcompileanalysis
+           julia-snoopcompilecore
+           julia-yaml))
+    (native-inputs '())
+    ))
+
+(define-public julia-snoopcompilecore
+  (package/inherit julia-snoopcompile
+    (name "julia-snoopcompilecore")
+    (arguments
+     (list
+       #:tests? #f      ; No test folder
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "SnoopCompileCore"))))))
+    (propagated-inputs '())
+    (native-inputs '())
+    ))
+
+(define-public julia-cthulhu
+  (package
+    (name "julia-cthulhu")
+    (version "1.6.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaDebug/Cthulhu.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1ziax1378kvyzikm4cigg4mq44r085zczqa0mkcbw5g36gcma6qi"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f))        ; Skip for now
+    (propagated-inputs
+     (list julia-codetracking
+           julia-foldingtrees))
+    (native-inputs
+     (list julia-staticarrays))
+    (home-page "https://github.com/JuliaDebug/Cthulhu.jl")
+    (synopsis "Slow descent into madness")
+    (description "Cthulhu can help you debug type inference issues by
+recursively showing the @code{code_typed} output until you find the exact point
+where inference gave up, messed up, or did something unexpected.  Using the
+Cthulhu interface you can debug type inference problems faster.")
+    (license license:expat)))
+
+(define-public julia-codetracking
+  (package
+    (name "julia-codetracking")
+    (version "1.3.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/timholy/CodeTracking.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0j6mclc7y1vpib5chj3hkabz9zbmdl76jgcr7314f5kbrdqjybbi"))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'adjust-test-suite
+             (lambda _
+               (substitute* "test/runtests.jl"
+                 (("test pkgfiles\\(\"Color")
+                  "test_skip pkgfiles\(\"Color")))))))
+    (home-page "https://github.com/timholy/CodeTracking.jl")
+    (synopsis "It's editing-time, do you know where your methods are?")
+    (description "CodeTracking can be thought of as an extension of Julia's
+InteractiveUtils library. It provides an interface for obtaining:
+@enumerate
+@item the strings and expressions of method definitions
+@item the method signatures at a specific file & line number
+@item location information for \"dynamic\" code that might have moved since it
+was first loaded
+@item a list of files that comprise a particular package.@end enumerate")
+    (license license:expat)))
+
+(define-public julia-foldingtrees
+  (package
+    (name "julia-foldingtrees")
+    (version "1.2.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaCollections/FoldingTrees.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1q3w44z1h9j22ykdwwgl8qdm9621m0qqwz4wd2rs2aj0921pdmm4"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list julia-abstracttrees))
+    (home-page "https://github.com/JuliaCollections/FoldingTrees.jl")
+    (synopsis "Dynamic tree structure with control over the accessibility of node children")
+    (description "FoldingTrees implements a dynamic tree structure in which
+some nodes may be \"folded,\" i.e., marked to avoid descent among that node's
+children.  It also supports interactive text menus based on folding trees.")
+    (license license:expat)))
+
+(define-public julia-jlfzf
+  (package
+    (name "julia-jlfzf")
+    (version "0.1.2")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/Moelf/JLFzf.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0fvcx80lzj0xc4imb9h0iybj8s0cazjc1wn9h8xncih9aln25is4"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f))        ; no tests
+    (propagated-inputs
+     (list julia-fzf-jll
+           julia-pipe))
+    (home-page "https://github.com/Moelf/JLFzf.jl")
+    (synopsis "Julia bind to fzf fuzzy finder")
+    (description "Julia bind to fzf fuzzy finder.")
+    (license license:expat)))
+
+(define-public julia-pipe
+  (package
+    (name "julia-pipe")
+    (version "1.3.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/oxinabox/Pipe.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "01anm76nfmcajcbr2piji0rknisf5wwhimfndwaadkqkcjv7k4xn"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/oxinabox/Pipe.jl")
+    (synopsis "Enhancement to Julia piping syntax")
+    (description "This package provides an enhancement to Julia piping syntax.")
+    (license license:expat)))
+
+(define-public julia-fzf-jll
+  (package
+    (name "julia-fzf-jll")
+    (version "0.35.1+0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/juliabinarywrappers/fzf_jll.jl")
+               (commit (string-append "fzf-v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0psl1lsvl6sza69g7qh8ha2ir89fibzid4ka3wzmjgh0r4yjfnw0"))))
+    (build-system julia-build-system)
+    (arguments
+     '(#:tests? #f ; no runtests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'link-depot 'override-binary-path
+           (lambda* (#:key inputs #:allow-other-keys)
+             (map
+               (lambda (wrapper)
+                 (substitute* wrapper
+                   (("generate_wrapper_header.*")
+                   (string-append
+                    "generate_wrapper_header(\"fzf\", \""
+                    (assoc-ref inputs "fzf") "\")\n"))))
+               ;; There's a Julia file for each platform, override them all
+               (find-files "src/wrappers/" "\\.jl$")))))))
+    (inputs
+     (list (@ (gnu packages terminals) fzf)))
+    (propagated-inputs
+     (list julia-jllwrappers))
+    (home-page "https://github.com/JuliaBinaryWrappers/fzf_jll.jl")
+    (synopsis "Fzf library wrappers")
+    (description "This package provides a wrapper for fzf.")
+    (license license:expat)))
+
+(define-public julia-unicodefun
+  (package
+    (name "julia-unicodefun")
+    (version "0.4.1")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/SimonDanisch/UnicodeFun.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "11hch4zpi8qby8pcqfvxnx88y45lxan4ind9kj2d0pgw614zkpg0"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/SimonDanisch/UnicodeFun.jl")
+    (synopsis "Transform text into unicode symbols")
+    (description "This package offers a unicode transformation library.")
+    (license license:expat)))
+
+(define-public julia-unzip
+  (package
+    (name "julia-unzip")
+    (version "0.2.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/bramtayl/Unzip.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0i4rkvyd8br024s0sgs3crpi6za2f51m42whkx0jd22wiwg675vb"))))
+    (build-system julia-build-system)
+    (native-inputs
+     (list julia-documenter))
+    (home-page "https://github.com/bramtayl/Unzip.jl")
+    (synopsis "")
+    (description "")
+    (license license:expat)))
+
+;; Versions after 0.3.11 need a newer version of julia-http
+(define-public julia-plutosliderserver
+  (package
+    (name "julia-plutosliderserver")
+    (version "0.3.11")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaPluto/PlutoSliderServer.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1aqc836glwqqs1pd9173sbjwjns3zv197xqdqlkp2xgrkjiw2yzg"))))
+    (build-system julia-build-system)
+    (arguments
+     `(#:tests? #f      ; Tests require network access
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'adjust-source
+           (lambda _
+             (setenv "GITHUB_ACTIONS" "false")
+             ;; Rip out betterfilewatching, it depends on a rust package.
+             (substitute* "src/PlutoSliderServer.jl"
+               ((".*watch_folder.*") ""))
+             ;; Remove GitHubActions
+             (substitute* "src/PlutoSliderServer.jl"
+               ((".*GitHubActions.*") "")))))))
+    (propagated-inputs
+     (list julia-abstractplutodingetjes
+           ;julia-betterfilewatching    ; should be disabled?
+           julia-configurations
+           julia-fromfile
+           julia-git
+           ;julia-githubactions         ; can be disabled
+           julia-http
+           julia-json
+           julia-pluto
+           julia-terminalloggers))
+    (home-page "https://github.com/JuliaPluto/PlutoSliderServer.jl")
+    (synopsis "Web server to run parts of a Pluto.jl notebook")
+    (description "This package provides a web server to run just the
+@code{@@bind} parts of a @code{Pluto.jl} notebook.")
+    (license license:unlicense)))
+
 ;; TODO: unbundle javascript calls to cdn.jsdelivr.net
+;; The '-src' commit needs some nodejs packages to build the frontend.
 (define-public julia-pluto
   (package
     (name "julia-pluto")
@@ -432,15 +1337,20 @@ densities and objects associated with a density in Julia.")
         (method git-fetch)
         (uri (git-reference
                (url "https://github.com/fonsp/Pluto.jl")
-               (commit (string-append "v" version "-src"))))
+               ;(commit (string-append "v" version "-src"))))
+               (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0h9sz4mpf3a4k0f5fblbb6j07wdhrnarxajrn0wz6zsq6w30x6yj"))))
+         ;(base32 "0h9sz4mpf3a4k0f5fblbb6j07wdhrnarxajrn0wz6zsq6w30x6yj"))))
+         (base32 "1qml5id3fi4r6n7hrqvfjwdvp3zp8xfckir3mw7vwswmkc56jzpq"))))
     (build-system julia-build-system)
     (arguments
      `(#:tests? #f      ; Test suite tries to download the package registry.
-       #:phases
-       (modify-phases %standard-phases
+       ;#:phases
+       #;(modify-phases %standard-phases
+         #;(add-before 'check 'pre-check
+           (lambda _
+             (setenv "PLUTO_TEST_ONLY_COMPILETIMES" "true")))
          (add-after 'link-depot 'dont-check-for-upgrades
            (lambda _
              (substitute* "frontend/components/welcome/Welcome.js"
@@ -560,6 +1470,245 @@ native to Julia.  Use it with the @code{@@bind} macro in Pluto.")
     (native-inputs
      (list julia-bufferedstreams
            julia-json))))
+
+(define-public julia-http-1.0
+  (package
+    (inherit julia-http)
+    (name "julia-http")
+    (version "1.0.5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/JuliaWeb/HTTP.jl")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "15bqf0gv4qz3990cv1s2nj9mjqaka1pkhzymgwc19wxqvacwvwqr"))))
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-before 'install 'disable-network-tests
+            (lambda _
+              (substitute* "test/runtests.jl"
+                (("\"async.jl") "# \"async.jl")
+                (("\"client.jl") "# \"client.jl")
+                (("\"websockets") "# \"websockets")
+                (("\"server") "# \"server"))
+              (substitute* "test/multipart.jl"
+                (("@testset \"Setting of Content-Type.*" all)
+                 (string-append all "return\n"))
+                (("@testset \"Deprecation of .*" all)
+                 (string-append all "return\n")))
+              (substitute* "test/messages.jl"
+                (("@testset.*Read methods.*" all)
+                 (string-append all "return\n"))
+                (("@testset.*Body - .*" all)
+                 (string-append all "return\n"))
+                (("@testset.*Write to file.*" all)
+                 (string-append all "return\n")))
+              (substitute* "test/cookies.jl"
+                (("@testset.*Set-Cookie casing.*" all)
+                 (string-append all "return\n")))
+)))))
+    (propagated-inputs
+     (list julia-codeczlib
+           julia-inifile
+           julia-loggingextras
+           julia-mbedtls
+           julia-simplebufferstream
+           julia-uris))
+    ;; required for tests
+    (native-inputs
+     (list julia-bufferedstreams
+           julia-json))))
+
+;; TODO: Unbundle fonts, more?
+(define-public julia-makie
+  (package
+    (name "julia-makie")
+    (version "0.17.13")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/MakieOrg/Makie.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0s9rkfmshl3nz82zkgia6fxmfhz4v26ixam6ybqw8swlshdfijrd"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list ;julia-animations
+           ;julia-colorbrewer
+           julia-colorschemes
+           julia-colortypes
+           julia-colors
+           julia-contour
+           julia-distributions
+           julia-docstringextensions
+           julia-ffmpeg
+           julia-fileio
+           julia-fixedpointnumbers
+           julia-formatting
+           julia-freetype
+           julia-freetypeabstraction
+           julia-geometrybasics
+           ;julia-gridlayout
+           ;julia-imageio
+           julia-intervalsets
+           ;julia-isoband
+           ;julia-kerneldensity
+           julia-latexstrings
+           julia-makiecore
+           ;julia-match
+           ;julia-mathtexengine
+           julia-observables
+           julia-offsetarrays
+           ;julia-packing
+           julia-plotutils
+           ;julia-polygonops
+           julia-relocatablefolders
+           julia-showoff
+           ;julia-signeddistancefields
+           julia-statsbase
+           julia-statsfuns
+           julia-structarrays
+           julia-unicodefun))
+    (home-page "https://docs.makie.org/stable")
+    (synopsis "Interactive data visualizations and plotting in Julia")
+    (description "Makie is a data visualization ecosystem for the Julia
+programming language.")
+    (license license:expat)))
+
+(define-public julia-makiecore
+  (package/inherit julia-makie
+    (name "julia-makiecore")
+    (version "0.4.0")       ; Same source, different version
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "MakieCore"))))))
+    (propagated-inputs
+     (list julia-observables))
+    (synopsis "Backend core for Makie")))
+
+(define-public julia-cairomakie
+  (package/inherit julia-makie
+    (name "julia-cairomakie")
+    (version "0.8.13")      ; Same source, different version
+    (arguments
+     (list
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               (chdir "CairoMakie"))))))
+    (propagated-inputs
+     (list ;julia-cairo
+           julia-colors
+           ;julia-fftw
+           julia-fileio
+           julia-freetype
+           julia-geometrybasics
+           julia-makie))
+    (synopsis "Cairo Backend for Makie")))
+
+(define-public julia-freetype
+  (package
+    (name "julia-freetype")
+    (version "4.1.0")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGraphics/FreeType.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "08kf1x1c7gvllds1ryv6zwy9ai85p50a509ndlcjrkiw31i612m8"))))
+    (build-system julia-build-system)
+    (propagated-inputs
+     (list julia-cenum
+           julia-freetype2-jll))
+    (home-page "https://github.com/JuliaGraphics/FreeType.jl")
+    (synopsis "FreeType 2 bindings for Julia")
+    (description "This package provides FreeType bindings for Julia.")
+    (license license:zlib)))
+
+(define-public julia-freetypeabstraction
+  (package
+    (name "julia-freetypeabstraction")
+    (version "0.9.9")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGraphics/FreeTypeAbstraction.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "0zqpwysvxjqh5lmsz7lysgyid7xnis23rr0xzn3fwxlncka7dbyl"))
+        (snippet
+         #~(begin
+             (use-modules (guix build utils))
+             ;; Also find fonts in Guix environments.
+             (substitute* "src/findfonts.jl"
+               (("\"/usr/share/fonts\"," all)
+                (string-append all "\n            "
+                               "\"/run/current-system/profile/share/fonts\","
+                               "\n            "
+                               "joinpath(get(ENV, \"GUIX_ENVIRONMENT\", homedir()),"
+                               "\"share/fonts\"),"
+                               "\n            "
+                               "joinpath(get(ENV, \"GUIX_PROFILE\", homedir()),"
+                               "\"share/fonts\"),") ))))))
+    (build-system julia-build-system)
+    (arguments
+     (list
+       #:tests? #f          ; Can't skip the one test as needed
+       #:phases
+       #~(modify-phases %standard-phases
+           (add-before 'check 'skip-findfont-test
+             (lambda _
+               (substitute* "test/runtests.jl"
+                 ;; Can't make this find font-dejavu
+                 (("@test findfont\\(font") "@test_skip findfont(font")))))))
+    (propagated-inputs
+     (list julia-colorvectorspace
+           julia-colors
+           julia-freetype
+           julia-geometrybasics))
+    (home-page "https://github.com/JuliaGraphics/FreeTypeAbstraction.jl")
+    (synopsis "Julian abstraction layer over FreeType.jl")
+    (description
+     "This package provides an abstraction layer over the FreeType Julia module.")
+    (license license:expat)))
+
+;; ready to upstream
+(define-public julia-observables
+  (package
+    (name "julia-observables")
+    (version "0.5.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/JuliaGizmos/Observables.jl")
+               (commit (string-append "v" version))))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1l0rk60nrwwgcifqs72x76z9dv1kq6rvcbhy63kp27yqfsx6c20s"))))
+    (build-system julia-build-system)
+    (home-page "https://github.com/JuliaGizmos/Observables.jl")
+    (synopsis "Observable ref")
+    (description "This package provides the @code{Observable}s type in Julia,
+which are like @code{Ref}s but you can listen to changes.")
+    (license license:expat)))
 
 (define-public julia-simplebufferstream
   (package
@@ -1494,7 +2643,7 @@ that still support Julia versions older than 1.6.")
        ("julia-fileio" ,julia-fileio)
        ;("julia-imagefiltering" ,julia-imagefiltering)
        ("julia-imagemagick" ,julia-imagemagick)
-       ;("julia-quartzimageio" ,julia-quartzimageio)
+       ;("julia-quartzimageio" ,julia-quartzimageio)    ; for macOS
        ("julia-requires" ,julia-requires)))
     ;(native-inputs
     ; `(;("julia-gtk" ,julia-gtk)

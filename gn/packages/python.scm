@@ -3,6 +3,7 @@
   #:use-module (gnu packages)
   #:use-module (gnu packages check)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages databases)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages ghostscript)
   #:use-module (gnu packages icu4c)
@@ -32,8 +33,10 @@
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix hg-download)
   #:use-module (guix gexp)
   #:use-module (guix utils)
+  #:use-module (guix build-system pyproject)
   #:use-module (guix build-system python)
   #:use-module (srfi srfi-1))
 
@@ -861,50 +864,6 @@ spreadsheets without the need for COM objects.")
     (synopsis "Extensions to the standard Python datetime module")
     (description "Extensions to the standard Python datetime module")
     (license license:bsd-3)))
-
-(define-public python-arvados-python-client
-  (package
-    (name "python-arvados-python-client")
-    (version "2.5.0")
-    (source
-      (origin
-        (method url-fetch)
-        (uri (pypi-uri "arvados-python-client" version))
-        (sha256
-         (base32 "1j08aykj0v2z2bqwr5nfnbjgc1yzdnfdafcnxbf2jbwqh8kx7zc9"))
-        (modules '((guix build utils)))
-        (snippet
-         '(begin
-            (substitute* "setup.py"
-              ;; Don't set a maximum version of pycurl.
-              (("(pycurl >=([[:digit:]]+\\.?)+),.*" _ pycurl)
-               (string-append pycurl "',\n")))))))
-    (build-system python-build-system)
-    (arguments
-     `(#:tests? #f))    ; tests not included?
-    (propagated-inputs
-     (list python-ciso8601
-           python-future
-           python-google-api-client
-           python-google-api-core-1
-           python-google-auth-1
-           python-httplib2
-           python-protobuf
-           python-pycurl
-           python-pyparsing-2.4.7       ; < 3
-           python-ruamel.yaml
-           python-ws4py))
-    (native-inputs
-     (list python-mock
-           python-pbr-1.6.0
-           python-pyyaml))
-    (home-page "https://arvados.org")
-    (synopsis "Arvados client library")
-    (description "This package provides the arvados module, an API client for
-Arvados.  It also includes higher-level functions to help you write Crunch
-scripts, and command-line tools to store and retrieve data in the Keep storage
-server.")
-    (license license:asl2.0)))
 
 (define-public python-pyshex
   (package
@@ -1815,6 +1774,30 @@ file format spec.")
       (license:fsf-free (string-append "https://web.archive.org/web/20190211105114/"
                                        "http://www.repoze.org/LICENSE.txt")))))
 
+;; Note: This package is only needed for rdflib < 6.0; supersede when
+;; the above are removed.
+(define-public python-rdflib-jsonld
+  (package
+    (name "python-rdflib-jsonld")
+    (version "0.6.2")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (pypi-uri "rdflib-jsonld" version))
+        (sha256
+         (base32
+          "0qrshlqzv5g5bign7kjja3xf7hyk7xgayr3yd0qlqda1kl0x6z0h"))))
+    (build-system python-build-system)
+    (native-inputs
+     (list python-nose))
+    (propagated-inputs
+     (list python-rdflib))
+    (home-page "https://github.com/RDFLib/rdflib-jsonld")
+    (synopsis "rdflib extension adding JSON-LD parser and serializer")
+    (description "This package provides an rdflib extension adding JSON-LD
+parser and serializer.")
+    (license license:bsd-3)))
+
 (define-public python-rdflib-shim
   (package
     (name "python-rdflib-shim")
@@ -1878,3 +1861,97 @@ complete wrapping of the HDF5 API, while the high-level component supports
 access to HDF5 files, datasets and groups using established Python and NumPy
 concepts.")
     (license license:bsd-3)))
+
+(define-public python-typing-extensions-4.10
+  (package
+    (inherit python-typing-extensions)
+    (version "4.10.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "typing_extensions" version))
+              (sha256
+               (base32
+                "1jxkj4pni8pdyrn79sq441lsp40xzw363n0qvfc6zfcgkv4dgaxh"))))))
+
+(define-public python-addict
+  (package
+    (name "python-addict")
+    (version "2.4.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "addict" version))
+              (sha256
+               (base32
+                "1574sicy5ydx9pvva3lbx8qp56z9jbdwbj26aqgjhyh61q723cmk"))))
+    (build-system pyproject-build-system)
+    (home-page "https://github.com/mewwts/addict")
+    (synopsis "Python dictionary with attribute accessible values")
+    (description "@code{python-addict} provides dictionaries whose items can
+be get and set using both attribute and item syntax.")
+    (license license:expat)))
+
+(define-public python-enlighten
+  (package
+    (name "python-enlighten")
+    (version "1.12.4")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "enlighten" version))
+              (sha256
+               (base32
+                "0psvglhi0c7d7pdk9rfb8scnv3xbq2fz78619x2mxvz094mxkwvm"))))
+    (build-system pyproject-build-system)
+    (propagated-inputs
+     (list python-blessed python-prefixed))
+    (home-page "https://github.com/Rockhopper-Technologies/enlighten")
+    (synopsis "Console progress bar library")
+    (description "@code{python-enlighten} is a console progress bar library
+for Python.  The main advantage of Enlighten is that it allows writing to
+stdout and stderr without any redirection or additional code---just print or
+log as you normally would.  Enlighten also includes experimental support for
+Jupyter Notebooks.")
+    (license license:mpl2.0)))
+
+(define-public python-pypubsub
+  (package
+    (name "python-pypubsub")
+    (version "4.0.3")
+    ;; There is no source tarball on PyPI.
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/schollii/pypubsub")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "02j74w28wzmdvxkk8i561ywjgizjifq3hgcl080yj0rvkd3wivlb"))))
+    (build-system python-build-system)
+    (home-page "https://github.com/schollii/pypubsub")
+    (synopsis "Python publish-subscribe library")
+    (description "@code{python-pypubsub} provides a pure Python
+publish-subscribe API to facilitate event-based or message-based architecture
+in a single-process application.  It is centered on the notion of a topic;
+senders publish messages of a given topic, and listeners subscribe to messages
+of a given topic, all inside the same process.  The package also supports a
+variety of advanced features that facilitate debugging and maintaining topics
+and messages in larger desktop or server-based applications.")
+    (license license:bsd-2)))
+
+(define-public python-prefixed
+  (package
+    (name "python-prefixed")
+    (version "0.7.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "prefixed" version))
+              (sha256
+               (base32
+                "1sdvxwy4kvcxvnq1nx70j1ccx5ga6wdb478vqd5azf1fc1gd2m0b"))))
+    (build-system pyproject-build-system)
+    (home-page "https://github.com/Rockhopper-Technologies/prefixed")
+    (synopsis "Prefixed alternative numeric library")
+    (description "@code{python-prefixed} provides an alternative
+implementation of the built-in float which supports formatted output with
+SI (decimal) and IEC (binary) prefixes.")
+    (license license:mpl2.0)))

@@ -13,7 +13,6 @@
   #:use-module (gn packages fpga)
   #:use-module (gnu packages cpp)
   #:use-module (gnu packages virtualization)
-  #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix gexp)
   #:use-module (guix git-download)

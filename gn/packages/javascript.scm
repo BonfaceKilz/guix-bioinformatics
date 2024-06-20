@@ -433,6 +433,7 @@ tables with minimal effort.")
     (description "Scroller is a virtual rendering plug-in for DataTables which allows large datasets to be drawn on screen very quickly. Virtual rendering means is that only the visible portion of the table is drawn, while the scrolling container gives the visual impression that the whole table is visible, allowing excellent browser performance.")
     (license license:expat)))
 
+
 (define-public javascript-xterm
   (package
     (name "javascript-xterm")
@@ -445,7 +446,7 @@ tables with minimal effort.")
        (file-name (string-append "xterm.min" version ".js"))
        (sha256
         (base32
-         "18smra546ws5fhnfdhj9m6yhvfjqdwx44jyb19q3az780ifwj2lz"))))
+         "1ipk8l837pinl9151qcb39hfrjy5d7zzyf19nsfhv4wgavy8fcar"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -458,7 +459,7 @@ tables with minimal effort.")
                 (source (assoc-ref %build-inputs "source")))
            (mkdir-p targetdir)
            (copy-file source (string-append targetdir "/xterm.min.js"))))))
-    (native-inputs `(("source" ,source)))
+    (propagated-inputs `(("source" ,source)))
     (home-page "https://xtermjs.org/")
     (synopsis "Javascript library that allows apps to bring fully-featured terminals in browsers.")
     (description
@@ -805,6 +806,41 @@ without tying yourself to a proprietary framework, combining powerful
 visualization components and a data-driven approach to DOM manipulation.")
     (license license:bsd-3)))
 
+(define-public javascript-d3panels
+  (package
+    (name "javascript-d3panels")
+    (version "1.8.4")
+    (source
+      (origin
+        (method git-fetch)
+        (uri (git-reference
+               (url "https://github.com/kbroman/d3panels.git")
+               (commit version)))
+        (file-name (git-file-name name version))
+        (sha256
+         (base32 "1pmv24x4k0iy2mbibwwk8f85c6mljyqj2qwn03sq3pg93r16a0b5"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/d3panels"))
+                (source (assoc-ref %build-inputs "source")))
+           (install-file (string-append source "/d3panels.js") targetdir)
+           (install-file (string-append source "/d3panels.min.js") targetdir)
+           (install-file (string-append source "/d3panels.css") targetdir)
+           (install-file (string-append source "/d3panels.min.css") targetdir)
+           (install-file (string-append source "/README.md") targetdir)
+           (install-file (string-append source "/NEWS.md") targetdir)
+           (install-file (string-append source "/LICENSE.md") targetdir)
+           ))))
+    (home-page "https://kbroman.org/d3panels")
+    (synopsis "d3panels for QTL mapping")
+    (description "This is a set of D3-based graphic panels, to be combined into larger multi-panel charts. They were developed for the R/qtlcharts package.")
+    (license license:expat)))
+
 (define-public javascript-jquery
   (package
    (inherit web-jquery)
@@ -857,6 +893,46 @@ visualization components and a data-driven approach to DOM manipulation.")
            (install-file "d3.js" targetdir)
            (install-file "d3.min.js" targetdir)
            (install-file "LICENSE" (string-append out "/share/doc/d3js-" ,version))))))))
+
+(define-public javascript-d3js-7
+  (package
+    (name "javascript-d3js-7")
+    (version "7.9.0")
+    (source
+      (origin
+       (method url-fetch)
+       ;; note that D3 no longer provides a prebuilt JS file - except through CDS
+       (uri (string-append "https://files.genenetwork.org/software/d3.v" version ".min.js.gz"))
+       (sha256
+        (base32 "0k7g40zb65s12z1zchvimj5xibkrqff5sylbrhcwmwpcplpigid7"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (module-name "d3js-7")
+                (gzip (string-append (assoc-ref %build-inputs "gzip")
+                                      "/bin/gzip"))
+                (targetdir (string-append out "/share/genenetwork2/javascript/" module-name))
+                (jsname (string-append "d3.v" "7.9.0" ".min.js"))
+                (gzname (string-append jsname ".gz"))
+                (source (assoc-ref %build-inputs "source")))
+           (mkdir-p targetdir)
+           (copy-file (pk source) (pk (string-append targetdir "/" gzname)))
+           (invoke gzip "-fd" (string-append targetdir "/" gzname))))))
+    (native-inputs
+     `(("source" ,source)
+       ("gzip" ,gzip)))
+    (home-page "https://d3js.org/")
+    (synopsis "JavaScript library for visualizing data")
+    (description "D3.js is a JavaScript library for manipulating documents based
+on data.  D3 helps you bring data to life using HTML, SVG, and CSS.  D3's
+emphasis on web standards gives you the full capabilities of modern browsers
+without tying yourself to a proprietary framework, combining powerful
+visualization components and a data-driven approach to DOM manipulation.")
+    (license license:bsd-3)))
 
 (define-public javascript-d3js-multi
   (package
@@ -1319,32 +1395,37 @@ a sample function, allowing for more complex calculations.")
     (arguments `(#:javascript-files '("dist/jstat.js")))
     (build-system minify-build-system)))
 
-(define-public javascript-ckeditor ; version 4
+(define-public javascript-ckeditor	; version 4
   (package
     (name "javascript-ckeditor")
-    (version "4.13.0") ; Sept. 26, 2019
+    (version "4.13.0")			; Sept. 26, 2019
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "https://cdn.ckeditor.com/" version
-                           "/standard/ckeditor.js"))
-       (file-name (string-append "ckeditor-" version ".js"))
+       (uri (string-append "http://download.cksource.com/CKEditor/CKEditor/CKEditor%20" version
+			   "/ckeditor_4.13.0_standard.zip"))
        (sha256
-        (base32
-         "0cvf1qdva5h2dh8y10c9v7dxrd82siswxx7h6cq0mf46ssjdygd0"))))
+	(base32
+	 "1n2xynmbr2v4wm2g2vqcqd16n93phsbq4sqrnljzb7wzjq9svl36"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
        #:builder
        (begin
-         (use-modules (guix build utils))
-         (let* ((out (assoc-ref %outputs "out"))
-                (targetdir
-                  (string-append out "/share/genenetwork2/javascript/ckeditor"))
-                (source (assoc-ref %build-inputs "source")))
-           (mkdir-p targetdir)
-           (copy-file source (string-append targetdir "/ckeditor.js"))))))
-    (native-inputs `(("source" ,source)))
+	 (use-modules (guix build utils))
+	 (let* ((out (assoc-ref %outputs "out"))
+		(name "ckeditor")
+		(unzip (string-append (assoc-ref %build-inputs "unzip")
+				      "/bin/unzip"))
+		(targetdir
+		 (string-append (string-append out "/share/genenetwork2/javascript/" name)))
+		(source (assoc-ref %build-inputs "source")))
+	   (mkdir-p targetdir)
+	   (invoke unzip source)
+	   (copy-recursively "ckeditor" targetdir)))))
+    (native-inputs
+     `(("source" ,source)
+       ("unzip" ,unzip)))
     (home-page "https://ckeditor.com/")
     (synopsis "Smart WYSIWYG HTML editor")
     (description
@@ -1358,8 +1439,8 @@ browser compatibility, including legacy browsers.
 @item Long-term support (LTS) until 2023.
 @end enumerate")
     (license (list license:gpl2+
-                   license:lgpl2.1+
-                   license:mpl1.1)))) ; Any of these three
+		   license:lgpl2.1+
+		   license:mpl1.1)))) ; Any of these three
 
 (define-public javascript-parsley
   (package
@@ -1849,7 +1930,7 @@ Popper will automatically put the tooltip in the right place near the button.")
 (define-public javascript-font-awesome
   (package
     (name "javascript-font-awesome")
-    (version "5.15.2")
+    (version "v4.7.0")
     (source
      (origin
        (method git-fetch)
@@ -1858,7 +1939,7 @@ Popper will automatically put the tooltip in the right place near the button.")
              (commit version)))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1jin0qlf5lv4l9gj8qc1pp34mxyvyj6gma4qnjqiah1bzcfn635l"))))
+        (base32 "0w30y26jp8nvxa3iiw7ayl6rkza1rz62msl9xw3srvxya1c77grc"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -1868,16 +1949,232 @@ Popper will automatically put the tooltip in the right place near the button.")
          (let* ((out (assoc-ref %outputs "out"))
                 (targetdir (string-append out "/share/genenetwork2/javascript/fontawesome"))
                 (source (assoc-ref %build-inputs "source"))
-		(js-dir (string-append source "/js"))
                 (css-dir (string-append source "/css"))
-                (fonts-dir (string-append source "/webfonts")))
+                (fonts-dir (string-append source "/fonts")))
            (copy-recursively css-dir (string-append targetdir "/css"))
-	   (copy-recursively js-dir (string-append targetdir "/js"))
            (copy-recursively fonts-dir
-                             (string-append targetdir "/webfonts"))))))
+                             (string-append targetdir "/fonts"))))))
     (native-inputs `(("source" ,source)))
     (home-page "https://fontawesome.com/")
     (synopsis "Font that contains a rich iconset")
     (description "Font Awesome is a full suite of pictographic icons for easy scalable
 vector graphics.")
     (license license:silofl1.1)))
+
+
+(define-public javascript-htmx
+  (package
+    (name "javascript-htmx")
+    (version "1.9.5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+	     (url "https://github.com/bigskysoftware/htmx")
+	     (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+	(base32
+	 "14m9wan8sp5lzblfzbi1hln621p7ld3npajxrhq1a19zm5bcrz3y"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+	 (use-modules (guix build utils))
+	 (let* ((source (assoc-ref %build-inputs "source"))
+		(out (assoc-ref %outputs "out"))
+		(targetdir (string-append out "/share/genenetwork2/javascript")))
+	   (mkdir-p targetdir)
+	   (copy-file (string-append source "/dist/htmx.min.js")
+		      (string-append targetdir "/htmx.min.js"))))))
+    (home-page "https://htmx.org/")
+    (synopsis "High Power Tools for HTML")
+    (description
+     "htmx allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes, so you can build modern user interfaces with the simplicity and power of hypertext")
+    (license license:expat)))
+
+(define-public javascript-marked
+  (package
+   (name "javascript-marked")
+   (version "9.1.5")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdnjs.cloudflare.com/ajax/libs/marked/" version
+			 "/marked.min.js"))
+     (file-name "marked.min.js")
+     (sha256
+      (base32
+       "1f4hw8yjdm99hgw0bq62099d3kv23awsm8r7969m7lv84n2wid8y"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/marked"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/marked.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://marked.js.org/")
+   (synopsis "A markdown parser and compiler. Built for speed.")
+   (description
+    "A low-level markdown compiler for parsing markdown without caching or blocking for long periods of time.")
+   (license license:expat)))
+
+(define-public javascript-marked-highlight
+  (package
+   (name "javascript-marked-highlight")
+   (version "2.0.6")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/marked-highlight@" version "/lib/index.umd.min.js"))
+     (sha256
+      (base32
+       "087qcy77fm3r7dl6w0mxsqygmdpimrmksw78r4wkkkjdx9x9dshf"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/marked"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/marked-highlight.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://github.com/markedjs/marked-highlight")
+   (synopsis "Highlight code blocks.")
+   (description
+    "Add code highlighting to marked.")
+   (license license:expat)))
+
+(define-public javascript-ace
+  (package
+   (name "javascript-ace")
+   (version "1.31.1")
+   (source
+    (origin
+     (method git-fetch)
+     (uri (git-reference
+	   (url "https://github.com/ajaxorg/ace-builds.git")
+	   (commit (string-append "v" version))))
+     (file-name (git-file-name name version))
+     (sha256
+      (base32 "08rfyrjfjjgb42x4if5qqfyvv8ag2qmf6vsbs7qrcnzgrac66m35"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir (string-append out "/share/genenetwork2/javascript/ace"))
+	       (source (assoc-ref %build-inputs "source"))
+	       (dist (string-append source "/src-min-noconflict")))
+	  (copy-recursively dist targetdir)))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://github.com/ajaxorg/ace-builds")
+   (synopsis "Ace is a code editor written in JavaScript.")
+   (description
+    "Ace is a code editor written in JavaScript. ")
+   (license license:expat)))
+
+(define-public javascript-uikit
+  (package
+   (name "javascript-uikit")
+   (version "3.7.4")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://github.com/uikit/uikit/releases/download/v"
+			 version "/uikit" "-" version ".zip"))
+     (sha256
+      (base32 "1qhhz3iki1nbyffg6qa7x2937708hjr9gf6mkn4v4cdl9j0mgyv0"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (unzip (string-append (assoc-ref %build-inputs "unzip")
+				     "/bin/unzip"))
+	       (targetdir (string-append out "/share/genenetwork2/javascript/uikit"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (invoke unzip source)
+	  (copy-recursively "." targetdir)))))
+   (native-inputs
+    `(("source" ,source)
+      ("unzip" ,unzip)))
+   (home-page "https://getuikit.com/")
+   (synopsis "UIkit is a lightweight and modular front-end framework
+for developing fast and powerful web interfaces.")
+   (description "UIkit is a lightweight and modular front-end framework
+for developing fast and powerful web interfaces.")
+   (license license:bsd-3)))
+
+(define-public javascript-linkify
+  (package
+   (name "javascript-linkify")
+   (version "4.1.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/linkifyjs@" version "/dist/linkify.min.js"))
+     (sha256
+      (base32
+       "1cy1z4gin0qx3a04fw2biszz1sgns0zc1zbr6sbkr2dicgqxjpf3"))))
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/linkify"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/linkify.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (home-page "https://linkify.js.org")
+   (synopsis "Find URLs and email addresses in plain text")
+   (description
+    "JavaScript plugin for finding links in plain-text and converting them to HTML <a> tags")
+   (license license:expat)))
+
+(define-public javascript-linkify-html
+  (package
+   (inherit javascript-linkify)
+   (name "javascript-linkify-html")
+   (version "4.1.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (string-append "https://cdn.jsdelivr.net/npm/linkify-html@" version "/dist/linkify-html.min.js"))
+     (sha256
+      (base32
+       "1s3l4wnyws9c9qjgp9ivl88inhyy28cjrhqjayb6hm1hzkasgj2j"))))
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder
+      (begin
+	(use-modules (guix build utils))
+	(let* ((out (assoc-ref %outputs "out"))
+	       (targetdir
+		(string-append out "/share/genenetwork2/javascript/linkify"))
+	       (source (assoc-ref %build-inputs "source")))
+	  (mkdir-p targetdir)
+	  (copy-file source (string-append targetdir "/linkify-html.min.js"))))))
+   (native-inputs `(("source" ,source)))
+   (description
+    "JavaScript plugin for finding links in plain-text and highlightinging links within strings that contain HTML markup.")
+   (license license:expat)))

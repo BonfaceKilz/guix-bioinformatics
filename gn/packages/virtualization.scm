@@ -21,7 +21,7 @@
 (define-public gem5
   (package
     (name "gem5")
-    (version "21.2.1.0")
+    (version "22.1.0.0")
     (source
       (origin
         (method git-fetch)
@@ -30,7 +30,7 @@
                (commit (string-append "v" version))))
         (file-name (git-file-name name version))
         (sha256
-         (base32 "0wyns8cfkigzw3m21331m8ydc7akm8l2lp0kci4pq8jyzsanmjm3"))
+         (base32 "1kcdn8rawzhf88lcb2app8m1r1px4ba041kyl7xigslix7qs05k3"))
         (snippet
           #~(begin
               (use-modules (guix build utils))
@@ -38,6 +38,7 @@
               (substitute* "src/base/date.cc"
                 (("__DATE__") "\"1970-01-01\"")
                 (("__TIME__") "\"00:00:00\""))
+              ;; Remove vendored pybind11.
               (substitute* "ext/sst/Makefile"
                 (("-I../../ext/pybind11/include/")
                  "${shell pybind11-config --includes}"))
