@@ -398,7 +398,7 @@ if __name__ == '__main__':
        ("jquery" ,web-jquery)
        ("js-filesaver" ,js-filesaver-1.3.2)
        ("js-popper" ,js-popper-1.12.9)))
-    (home-page "http://genecut.org")
+    (home-page "http://genecup.org")
     (synopsis "Using PubMed to find out how a gene contributes to addiction")
     (description "GeneCup automatically extracts information from PubMed and
 @url{https://www.ebi.ac.uk/gwas/, @acronym{NHGRI-EBI GWAS, European
