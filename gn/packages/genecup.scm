@@ -1,4 +1,4 @@
-(define-module (gn packages ratspub)
+(define-module (gn packages genecup)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix git)
   #:use-module (guix utils)
