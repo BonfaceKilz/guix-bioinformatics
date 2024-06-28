@@ -112,7 +112,7 @@
       ((#:tests? _ #f) #f)))))
 
 (define-public genenetwork3
-  (let ((commit "6bb4a5f05c1a2c96b7da1780ae4a1d70c7cc4afb")
+  (let ((commit "9f27bdc3ca41e09a090093bc36f48851fcc4fc42")
         (revision "5"))
     (package
       (name "genenetwork3")
@@ -126,7 +126,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "13nvi2gwwb0shra0d9rsfhppa9ky4bhgh1zgb34790ax0g9lwa97"))))
+           "10j5afdfi258s1icakrid9fanp4rrpf1scxdqik31hbvyk7qdvfy"))))
       (inputs
        (list python-click))
       (native-inputs
@@ -185,7 +185,7 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "b9e04ad79e0039edba25d58f8bc03e4d2a17583b")
+  (let ((commit "deb8d7241f1ca05865fababc2799ead9a684f8be")
         (revision "4"))
     (package
       (name "genenetwork2")
@@ -198,7 +198,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "1ri56g5hl2n0q7cz15sbvjmrr5pmsrp274frkvvcgr9ddxjlzd9p"))))
+                  "1hvxn88jc9r4h88kgna6jahs66cpkc39vq10qcqcnwa09ghyban1"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
@@ -473,12 +473,12 @@
      (origin
        (method git-fetch)
        (uri (git-reference
-            (url "https://github.com/genenetwork/gn-auth.git")
-            (commit "cd6eebd85d32feb289ccecd1aee45fb40b03d77f")))
+            (url "https://git.genenetwork.org/gn-auth")
+            (commit "c8658a764cf30605c6e5a1361dcd09ddd422e371")))
        (hash
        (content-hash
         (base32
-         "06slj3z110mbc46qncdvyi29y85zkqxl76n89dxjp5wjfqxw0nsl")))))
+         "1hc95p0nif1r973f61qixm1dxahnczsj9iy9r3d26jn8xv1lfz53")))))
     (build-system python-build-system)
     (arguments
      (list
