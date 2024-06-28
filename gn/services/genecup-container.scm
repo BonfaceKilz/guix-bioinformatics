@@ -1,7 +1,6 @@
 (define-module (gn services genecup-container))
 
 (use-modules (gnu)
-             (gn packages ratspub)
              (guix download)
              (guix modules)
              (guix packages)
