@@ -108,14 +108,14 @@ genome-wide association studies (GWAS).")
 (define-public gemma-wrapper
   (package
     (name "gemma-wrapper")
-    (version "0.99.6")
+    (version "0.99.7")
     (source
      (origin
        (method url-fetch)
        (uri (rubygems-uri "bio-gemma-wrapper" version))
        (sha256
         (base32
-         "0v006ym8j9p4khnxasf0xp7a7q8345625z0s1m3215p5mjp1g3p3"))))
+         "1286k0xrg3j2kzv0hlnc2z1h29vvdhsm3ap7vh1yh1q51h3mkkj4"))))
     (build-system ruby-build-system)
     (inputs `(
       ("gemma-gn2" ,gemma-gn2)
