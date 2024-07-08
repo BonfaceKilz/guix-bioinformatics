@@ -1584,3 +1584,26 @@ from C are supported as well as some other extensions from Ruby.")
     (synopsis "the mighty option parser used by yargs")
     (description "the mighty option parser used by yargs.")
     (license license:isc)))
+
+
+(define-public node-resumablejs
+  (let ((commit "b7580789f4d19bb180c08389538e0733f0f811d8"))
+    (package
+      (name "node-resumablejs")
+      (version (string-append "1.1.0-" (string-take commit 7)))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/23/resumable.js.git")
+               (commit commit)))
+         (file-name (git-file-name name version ))
+         (sha256
+          (base32
+           "0d0883jmsr2ydchx10y9a2vcijix7g65k1243s5ryl3i3jacm1bm"))))
+      (build-system node-build-system)
+      (arguments '(#:tests? #f))
+      (home-page "https://github.com/23/resumable.js/")
+      (synopsis "JavaScript library providing multiple simultaneous, stable and resumable uploads via the HTML5 File API")
+      (description "A JavaScript library providing multiple simultaneous, stable and resumable uploads via the HTML5 File API.")
+      (license license:expat))))

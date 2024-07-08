@@ -51,6 +51,7 @@
   #:use-module (gn packages crates-io)
   #:use-module (gn packages gemma)
   #:use-module (gn packages javascript)
+  #:use-module (gn packages node)
   #:use-module (gn packages python)
   #:use-module (gn packages statistics)
   #:use-module (gn packages web)
@@ -456,7 +457,8 @@
             python-jsonpickle
             python-mysqlclient
             javascript-jquery
-            javascript-bootstrap))
+            javascript-bootstrap
+            node-resumablejs))
      (synopsis "GeneNetwork Quality Control Application")
      (description
       "gn-uploader is a service allowing upload of new data into GeneNetwork,
