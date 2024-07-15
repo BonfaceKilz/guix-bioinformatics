@@ -468,50 +468,52 @@
      (license license:agpl3+))))
 
 (define-public gn-auth
-  (package
-    (name "gn-auth")
-    (version "1.0.1")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-            (url "https://git.genenetwork.org/gn-auth")
-            (commit "c8658a764cf30605c6e5a1361dcd09ddd422e371")))
-       (hash
-       (content-hash
-        (base32
-         "1hc95p0nif1r973f61qixm1dxahnczsj9iy9r3d26jn8xv1lfz53")))))
-    (build-system python-build-system)
-    (arguments
-     (list
-      #:phases
-      #~(modify-phases %standard-phases
-         (replace 'check
-           (lambda* (#:key tests? #:allow-other-keys)
-             (when tests?
-              (invoke "pytest" "-k" "unit_test")))))))
-    (native-inputs
-     (list python-hypothesis
-           python-mypy
-           python-mypy-extensions
-           python-pylint
-           python-pytest
-           python-pytest-mock))
-    (propagated-inputs
-     (list gunicorn
-           python-argon2-cffi
-           python-authlib
-           python-email-validator
-           python-flask
-           python-flask-cors
-           python-mysqlclient
-           python-pymonad
-           python-redis
-           yoyo-migrations))
-    (home-page "https://github.com/genenetwork/gn-auth")
-    (synopsis "Authentication and Authorisation server for GeneNetwork services")
-    (description "Authentication and Authorisation server for GeneNetwork services.")
-    (license license:agpl3+)))
+  (let ((commit "587cbf1c555a0c953e89bbb384f8dda5406e5c20")
+        (revision "01"))
+    (package
+      (name "gn-auth")
+      (version (git-version "1.0.1" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://git.genenetwork.org/gn-auth")
+               (commit commit)))
+         (hash
+          (content-hash
+           (base32
+            "11aiwpwxhmysgzkv1xzv7p0kzm5rnaaz2v7v6hgma0f85l7c4xam")))))
+      (build-system python-build-system)
+      (arguments
+       (list
+        #:phases
+        #~(modify-phases %standard-phases
+            (replace 'check
+              (lambda* (#:key tests? #:allow-other-keys)
+                (when tests?
+                  (invoke "pytest" "-k" "unit_test")))))))
+      (native-inputs
+       (list python-hypothesis
+             python-mypy
+             python-mypy-extensions
+             python-pylint
+             python-pytest
+             python-pytest-mock))
+      (propagated-inputs
+       (list gunicorn
+             python-argon2-cffi
+             python-authlib
+             python-email-validator
+             python-flask
+             python-flask-cors
+             python-mysqlclient
+             python-pymonad
+             python-redis
+             yoyo-migrations))
+      (home-page "https://github.com/genenetwork/gn-auth")
+      (synopsis "Authentication and Authorisation server for GeneNetwork services")
+      (description "Authentication and Authorisation server for GeneNetwork services.")
+      (license license:agpl3+))))
 
 ;; ./pre-inst-env guix download http://files.genenetwork.org/raw_database/db_webqtl_s.zip
 ;; 0sscjh0wml2lx0mb43vf4chg9gpbfi7abpjxb34n3kyny9ll557x
