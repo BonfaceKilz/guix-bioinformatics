@@ -186,7 +186,7 @@
       (license license:agpl3+))))
 
 (define-public genenetwork2
-  (let ((commit "deb8d7241f1ca05865fababc2799ead9a684f8be")
+  (let ((commit "6c3e8a6e6bb4a586b12543da4baafbe4daa20cf4")
         (revision "4"))
     (package
       (name "genenetwork2")
@@ -199,7 +199,7 @@
                 (file-name (string-append name "-" version))
                 (sha256
                  (base32
-                  "1hvxn88jc9r4h88kgna6jahs66cpkc39vq10qcqcnwa09ghyban1"))))
+                  "1z7i2rrlzkcmsqlqhnr7fz3c30lkyyyr9snr3saw6zvfqdi1axby"))))
       (native-inputs
        (list graphviz))
       (propagated-inputs
@@ -468,7 +468,7 @@
      (license license:agpl3+))))
 
 (define-public gn-auth
-  (let ((commit "587cbf1c555a0c953e89bbb384f8dda5406e5c20")
+  (let ((commit "2e6f8a5d6bde0bd8fdfb9217b352ea2914ba592f")
         (revision "01"))
     (package
       (name "gn-auth")
@@ -482,7 +482,7 @@
          (hash
           (content-hash
            (base32
-            "11aiwpwxhmysgzkv1xzv7p0kzm5rnaaz2v7v6hgma0f85l7c4xam")))))
+            "1vlnsqi1hb7zfpis8ynkqpb3zcb1l31ss69kn5fxjlc62zxy2qfn")))))
       (build-system python-build-system)
       (arguments
        (list
