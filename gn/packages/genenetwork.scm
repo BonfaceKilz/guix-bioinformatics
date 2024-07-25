@@ -454,6 +454,7 @@
             python-redis
             python-flask
             python-pyyaml
+            python-authlib
             python-jsonpickle
             python-mysqlclient
             javascript-jquery
