@@ -455,6 +455,7 @@
             python-flask
             python-pyyaml
             python-authlib
+            python-pymonad
             python-jsonpickle
             python-mysqlclient
             javascript-jquery
