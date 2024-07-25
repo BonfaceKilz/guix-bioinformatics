@@ -458,6 +458,7 @@
             python-pymonad
             python-jsonpickle
             python-mysqlclient
+            python-flask-session
             javascript-jquery
             javascript-bootstrap
             node-resumablejs))
