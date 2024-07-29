@@ -263,7 +263,7 @@ concepts and a list of keywords for each concept.")
     (version "HEAD-of-master-branch")
     (source
       (git-checkout
-        (url "https://github.com/hakangunturkun/GeneCup")
+        (url "https://git.genenetwork.org/genecup")
         (branch "master")))))
 
 (define-public genecup-with-tensorflow-native
