@@ -155,6 +155,11 @@ if __name__ == '__main__':
            (lambda _
              (substitute* "server.py"
                (("4200") "4204"))))
+         ;; TODO: This should be disabled in the source.
+         (add-after 'unpack 'disable-debug-mode
+           (lambda _
+             (substitute* "server.py"
+               (("debug=True") "debug=False"))))
          (add-after 'unpack 'make-files-writable
            (lambda _
              (for-each make-file-writable (find-files "."))))
