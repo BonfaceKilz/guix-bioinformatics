@@ -7,7 +7,9 @@
   #:use-module (guix git-download)
   #:use-module (guix build-system python)
   #:use-module (gnu packages admin)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages bioinformatics)
+  #:use-module (gnu packages compression)
   #:use-module (gnu packages javascript)
   #:use-module (gnu packages machine-learning)
   #:use-module (gnu packages python)
@@ -179,6 +181,10 @@ if __name__ == '__main__':
                  (("https.*1.12.9/umd/popper.min.js.*\\\">") "/static/popper.min.js\">"))
                (substitute* "ratspub.py"
                  (("hostname") (string-append inetutils "/bin/hostname"))))))
+         (add-after 'unpack 'extract-pubmed-archive
+           (lambda _
+             (invoke "gzip" "-d" "minipubmed.tgz")
+             (invoke "tar" "xvf" "minipubmed.tar")))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
@@ -230,6 +236,8 @@ if __name__ == '__main__':
     (inputs
      `(("edirect" ,edirect)
        ("inetutils" ,inetutils)
+       ("gzip" ,gzip)
+       ("tar" ,tar)
        ("python-bcrypt" ,python-bcrypt)
        ("python-flask-sqlalchemy" ,python-flask-sqlalchemy)
        ("python-keras" ,python-keras-no-tests)
