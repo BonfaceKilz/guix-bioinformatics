@@ -9,7 +9,6 @@
 
 (use-modules (gnu)
              (guix records)
-             (guix packages)
              (ice-9 match))
 (use-service-modules shepherd)
 (use-package-modules cran)
@@ -38,8 +37,7 @@
                  #$(string-append "/run/current-system/profile/bin/" binary))
                ;#:log-file #$(string-append "/var/log/" binary ".log") ; kills shepherd
                #:environment-variables
-               (list "R_LIBS_USER=/run/current-system/profile/site-library/")
-               #:log-file #$(string-append "/var/log/rshiny-" (package-name package) ".log")))
+               (list "R_LIBS_USER=/run/current-system/profile/site-library/")))
          ;; Now lets try it with fork+exec
          ;; Outcome: shepherd says failed, runs in the background.
          ;(start
