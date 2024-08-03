@@ -1,9 +1,4 @@
 (define-module (gn services rshiny)
-  #:use-module (gnu)
-  #:use-module (gnu packages cran)
-  #:use-module (gnu services shepherd)
-  #:use-module (guix records)
-  #:use-module (ice-9 match)
   #:export (<rshiny-configuration>
             rshiny-configuration
             rshiny-configuration?
@@ -11,6 +6,13 @@
             rshiny-configuration-binary
             rshiny-shepherd-service
             rshiny-service-type))
+
+(use-modules (gnu)
+             (guix records)
+             (guix packages)
+             (ice-9 match))
+(use-service-modules shepherd)
+(use-package-modules cran)
 
 (define-record-type* <rshiny-configuration>
   rshiny-configuration
