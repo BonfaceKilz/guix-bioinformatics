@@ -471,7 +471,7 @@
      (license license:agpl3+))))
 
 (define-public gn-auth
-  (let ((commit "97363a7c94e6fd5098119c5d6b1fd34fdf82b161")
+  (let ((commit "12edc160df0ead9ac1ae4e62a44d49582e063021")
         (revision "01"))
     (package
       (name "gn-auth")
@@ -485,7 +485,7 @@
          (hash
           (content-hash
            (base32
-            "01716qr3nbmcwcwmwfsgqyzmfkp6mnvcxna5rhfrmgyjwpdc2wnn")))))
+            "11kixqv3rwfaad43bcqyh085gb0jfcpvzrlx66grkk73cqydgyzl")))))
       (build-system python-build-system)
       (arguments
        (list
