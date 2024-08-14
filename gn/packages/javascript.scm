@@ -2177,3 +2177,33 @@ for developing fast and powerful web interfaces.")
    (description
     "JavaScript plugin for finding links in plain-text and highlightinging links within strings that contain HTML markup.")
    (license license:expat)))
+
+(define-public javascript-diff2html
+  (package
+    (name "javascript-diff2html")
+    (version "3.4.48")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/diff2html@" version
+                           "/bundles/js/diff2html.min.js"))
+       (sha256
+        (base32 "02sqk3i5l1viw2dq2c2z4ja9mgsn9cks9l4ln1fsw4y91fw1m6n5"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let* ((source (assoc-ref %build-inputs "source"))
+                          (out (assoc-ref %outputs "out"))
+                          (targetdir (string-append out
+                                      "/share/genenetwork2/javascript/diff2html")))
+                     (mkdir-p targetdir)
+                     (copy-file source
+                                (string-append targetdir "/diff2html.min.js"))))))
+    (native-inputs `(("source" ,source)))
+    (home-page "https://diff2html.xyz/")
+    (synopsis "Diff parser and pretty html generator.")
+    (description
+     "diff2html generates pretty HTML diffs from git diff or unified diff output.")
+    (license license:expat)))
