@@ -2232,3 +2232,32 @@ for developing fast and powerful web interfaces.")
                      (copy-file source
                                 (string-append targetdir "/diff2html.min.css"))))))
     (native-inputs `(("source" ,source)))))
+
+(define-public javascript-diff
+  (package
+    (name "javascript-diff")
+    (version "5.1.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/diff@" version
+                           "/dist/diff.min.js"))
+       (sha256
+        (base32 "0zvbllgfyq8x3hjkygc9fd0gqqkbvz6qa02mcilvs6djfj9vsa9s"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let* ((source (assoc-ref %build-inputs "source"))
+                          (out (assoc-ref %outputs "out"))
+                          (targetdir (string-append out
+                                      "/share/genenetwork2/javascript/jsdiff")))
+                     (mkdir-p targetdir)
+                     (copy-file source
+                                (string-append targetdir "/diff.min.js"))))))
+    (native-inputs `(("source" ,source)))
+    (home-page "https://github.com/kpdecker/jsdiff#readme")
+    (synopsis "A JavaScript text differencing implementation. ")
+    (description "A JavaScript text differencing implementation.")
+    (license license:bsd-3)))
