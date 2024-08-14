@@ -2261,3 +2261,34 @@ for developing fast and powerful web interfaces.")
     (synopsis "A JavaScript text differencing implementation. ")
     (description "A JavaScript text differencing implementation.")
     (license license:bsd-3)))
+
+(define-public javascript-highlight
+  (package
+    (name "javascript-highlight")
+    (version "11.10.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/" version
+             "/highlight.min.js"))
+       (sha256
+        (base32 "0cpdabxn5hbij3ci5gb769mi0qmmxvgqxi6d1x2ay1y4j2pgj7j7"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let* ((out (assoc-ref %outputs "out"))
+                          (targetdir (string-append out
+                                      "/share/genenetwork2/javascript/highlight"))
+                          (source (assoc-ref %build-inputs "source")))
+                     (mkdir-p targetdir)
+                     (copy-file source
+                                (string-append targetdir "/highlight.min.js"))))))
+    (native-inputs `(("source" ,source)))
+    (home-page "https://highlightjs.org/")
+    (synopsis "Highlight.js is a syntax highlighter written in JavaScript.")
+    (description
+     "JavaScript syntax highlighter with language auto-detection and zero dependencies.")
+    (license license:bsd-3)))
