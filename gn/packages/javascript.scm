@@ -2207,3 +2207,28 @@ for developing fast and powerful web interfaces.")
     (description
      "diff2html generates pretty HTML diffs from git diff or unified diff output.")
     (license license:expat)))
+
+(define-public javascript-diff2html-ui
+  (package
+    (inherit javascript-diff2html)
+    (name "javascript-diff2html-ui")
+    (version "3.4.48")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.jsdelivr.net/npm/diff2html@" version
+                           "/bundles/css/diff2html.min.css"))
+       (sha256
+        (base32 "0y05qm8si1nd5l9q67il36p6q1xkbffrzlp7q6pli9sraghlmh10"))))
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let* ((out (assoc-ref %outputs "out"))
+                          (targetdir (string-append out
+                                      "/share/genenetwork2/javascript/diff2html"))
+                          (source (assoc-ref %build-inputs "source")))
+                     (mkdir-p targetdir)
+                     (copy-file source
+                                (string-append targetdir "/diff2html.min.css"))))))
+    (native-inputs `(("source" ,source)))))
