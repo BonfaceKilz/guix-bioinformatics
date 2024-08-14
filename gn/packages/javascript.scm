@@ -2292,3 +2292,30 @@ for developing fast and powerful web interfaces.")
     (description
      "JavaScript syntax highlighter with language auto-detection and zero dependencies.")
     (license license:bsd-3)))
+
+(define-public javascript-highlight-ui
+  (package
+    (inherit javascript-highlight)
+    (name "javascript-highlight-ui")
+    (version "11.10.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/" version
+             "/styles/default.min.css"))
+       (sha256
+        (base32 "1ky70fgj8ixlr9h01w4g3fyj6yl8khqyfchmqibc71hxjb00mppv"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let* ((out (assoc-ref %outputs "out"))
+                          (targetdir (string-append out
+                                      "/share/genenetwork2/javascript/highlight"))
+                          (source (assoc-ref %build-inputs "source")))
+                     (mkdir-p targetdir)
+                     (copy-file source
+                                (string-append targetdir "/default.min.css"))))))
+    (native-inputs `(("source" ,source)))))
