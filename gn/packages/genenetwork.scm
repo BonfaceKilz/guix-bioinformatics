@@ -212,6 +212,7 @@
              gn-rust-correlation
              grep
              gunicorn
+	     javascript-ace
              javascript-bootstrap
              javascript-chroma
              javascript-ckeditor
@@ -231,8 +232,13 @@
              javascript-datatables-col-resize
              javascript-datatables-plugins
              javascript-datatables-scroller
+	     javascript-diff
+	     javascript-diff2html
+	     javascript-diff2html-ui
              javascript-font-awesome
              javascript-htmx
+	     javascript-highlight
+	     javascript-highlight-ui
              javascript-jquery
              javascript-jquery-cookie
              javascript-jquery-ui
@@ -240,6 +246,8 @@
              javascript-jszip
              javascript-linkify
              javascript-linkify-html
+	     javascript-marked
+	     javascript-marked-highlight
              javascript-nouislider
              javascript-nvd3
              javascript-plotly
