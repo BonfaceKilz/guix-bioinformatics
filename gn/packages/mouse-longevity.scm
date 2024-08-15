@@ -43,7 +43,7 @@
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
-                      (url "https://github.com/Dashbrook/Mouse_Longevity_app/")
+                      (url "https://git.genenetwork.org/mouse-longevity-app/")
                       (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
