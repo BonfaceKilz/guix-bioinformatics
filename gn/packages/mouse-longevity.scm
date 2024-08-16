@@ -35,8 +35,8 @@
   #:use-module ((gnu packages web) #:select (nginx)))
 
 (define-public mouse-longevity-app
-  (let ((commit "7f8198195d68341242132911f15971c137797e61")
-        (revision "0"))
+  (let ((commit "d798fc1fe6a7b0e6b0c1b58008885236d5144427")
+        (revision "1"))
     (package
       (name "mouse-longevity-app")
       (version (git-version "0.0.0" revision commit))
@@ -47,7 +47,7 @@
                       (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32 "1wvda7h737dyrz1zv796666v0rndalfd8gxl3964x6qgcsgprcsf"))))
+                 (base32 "0mlkqx6ahxqy4jyld5cla5szwm8xdm10d9px825q6j01zlxlh9zv"))))
       (build-system trivial-build-system)
       (arguments
        (list #:modules '((guix build utils))
@@ -74,6 +74,8 @@ runApp(launch.browser=0, port=3979)~%\n"
              r-ggplot2
              r-dplyr
              r-plotly
+             r-shinydashboard
+             r-shinydashboardplus
              r-shinyjs
              r-shiny))
       (home-page "https://github.com/Dashbrook/Mouse_Longevity_app/")
