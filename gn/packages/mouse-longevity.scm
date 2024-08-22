@@ -35,8 +35,8 @@
   #:use-module ((gnu packages web) #:select (nginx)))
 
 (define-public mouse-longevity-app
-  (let ((commit "d798fc1fe6a7b0e6b0c1b58008885236d5144427")
-        (revision "1"))
+  (let ((commit "8a7fdd353e1babcdc3c0453bdfba2aa0dead7c3f")
+        (revision "2"))
     (package
       (name "mouse-longevity-app")
       (version (git-version "0.0.0" revision commit))
@@ -47,7 +47,7 @@
                       (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
-                 (base32 "0mlkqx6ahxqy4jyld5cla5szwm8xdm10d9px825q6j01zlxlh9zv"))))
+                 (base32 "1bmiq9xmsq8wgxv3nqg3r2j1kwy2m6pw8agapj31agbyw81agyna"))))
       (build-system trivial-build-system)
       (arguments
        (list #:modules '((guix build utils))
