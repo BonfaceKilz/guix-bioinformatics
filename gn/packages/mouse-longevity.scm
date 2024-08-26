@@ -75,7 +75,8 @@ runApp(launch.browser=0, port=3979)~%\n"
              r-dplyr
              r-plotly
              r-shinydashboard
-             r-shinydashboardplus
+             ;; TODO: https://ci.genenetwork.org/jobs/genenetwork3/581
+             ;; r-shinydashboardplus
              r-shinyjs
              r-shiny))
       (home-page "https://github.com/Dashbrook/Mouse_Longevity_app/")
