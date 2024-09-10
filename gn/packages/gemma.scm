@@ -19,6 +19,12 @@
   #:use-module (gnu packages parallel)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages web)
+  #:use-module (gnu packages vim)
+  #:use-module (gnu packages time)
+  #:use-module (gnu packages less)
+  #:use-module (gnu packages libffi)
+  #:use-module (gnu packages databases)
+  #:use-module (gnu packages python-science)
   #:use-module (gn packages shell)
   #:use-module (srfi srfi-1))
 
@@ -122,7 +128,17 @@ genome-wide association studies (GWAS).")
       ("parallel" ,parallel) ;; gnu parallel
       ))
     (propagated-inputs `(
-      ("coreutils" ,coreutils))) ;; gemma-wrapper uses 'cat'
+      ("coreutils" ,coreutils) ;; gemma-wrapper uses 'cat'
+      ("binutils" ,binutils)
+      ("which" ,which)
+      ("vim" ,vim)
+      ("less" ,less)
+      ("xz" ,xz)
+      ("tar" ,tar)
+      ("python-lmdb" ,python-lmdb)
+      ("python-cffi" ,python-cffi)
+      ("time" ,time)
+      ("python-pandas" ,python-pandas)))
     (arguments
      `(#:tests? #f  ;; from release 0.99.7 tests should run
        #:phases
