@@ -512,6 +512,7 @@
              python-pytest-mock))
       (propagated-inputs
        (list gunicorn
+             python-blinker
              python-argon2-cffi
              python-authlib
              python-email-validator
