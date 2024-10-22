@@ -1601,7 +1601,7 @@ runApp(launch.browser=0, port=4208)~%\n"
 (define-public seqwish
   (package
     (name "seqwish")
-    (version "0.7.9")
+    (version "0.7.11")
     (source (origin
              (method git-fetch)
              (uri (git-reference
@@ -1610,7 +1610,7 @@ runApp(launch.browser=0, port=4208)~%\n"
                    (recursive? #t)))
              (file-name (git-file-name name version))
              (sha256
-              (base32 "0xnv40kjlb610bk67n4xdqz5dfsjhrqld5bxzblji57k6bb4n66x"))
+              (base32 "18wsrvqf0nsfk29v3ggdq2r4q15d4n4sq8v228qq1jsybbjlkgsa"))
              (patches (search-patches "seqwish-paryfor-riscv.diff"
                                       "seqwish-shared-library.diff"))
              (snippet
