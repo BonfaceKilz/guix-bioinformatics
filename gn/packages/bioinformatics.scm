@@ -1810,14 +1810,14 @@ dictionaries to record a queryable version of the graph.")
 (define-public smoothxg
   (package
     (name "smoothxg")
-    (version "0.7.2")
+    (version "0.8.0")
     (source (origin
              (method url-fetch)
              (uri (string-append "https://github.com/pangenome/smoothxg"
                                  "/releases/download/v" version
                                  "/smoothxg-v" version ".tar.gz"))
              (sha256
-              (base32 "1px8b5aaa23z85i7ximdamk2jj7wk5hb7bpbrgxsvkxc69zlwy38"))
+              (base32 "1gl4dskj81hlma7wsjrwwg77hgzk7dc9iaqqnf2wzrf2f4ll1cdj"))
              (snippet
               #~(begin
                   (use-modules (guix build utils))
@@ -1855,7 +1855,8 @@ dictionaries to record a queryable version of the graph.")
                (with-directory-excursion
                  (string-append "../smoothxg-v" #$version "/deps/abPOA")
                  (substitute* "Makefile"
-                   (("-march=native") ""))
+                   (("-march=native") "")
+                   (("-march=armv8-a\\+simd") ""))
                  (apply invoke "make" "libabpoa" make-flags)))))))
     (inputs
      (list jemalloc
