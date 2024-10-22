@@ -3637,7 +3637,7 @@ let before_space s =
          #:findlib ocaml4.07-findlib))
        (inputs
         (list (list zlib "static")
-              gsl-static
+              (list gsl "static")
               (package-with-ocaml4.07 ocaml-ounit)
               (package-with-ocaml4.07 ocaml-batteries)
               (package-with-ocaml4.07 camlzip)

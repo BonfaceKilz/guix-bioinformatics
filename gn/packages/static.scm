@@ -64,7 +64,7 @@
                    (string-append all " atomic pthread")))))))))
     (inputs
      (list atomic-queue
-           gsl-static
+           (list gsl "static")
            htslib-minimal
            jemalloc
            (list zlib "static")
