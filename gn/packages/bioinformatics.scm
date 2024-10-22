@@ -2141,7 +2141,7 @@ suitable for long reads, but works also well with short reads.")
 (define-public odgi
   (package
     (name "odgi")
-    (version "0.8.3")
+    (version "0.9.0")
     (outputs '("out" "static"))
     (source (origin
               (method url-fetch)
@@ -2149,7 +2149,7 @@ suitable for long reads, but works also well with short reads.")
                                   "/download/v" version
                                   "/odgi-v" version ".tar.gz"))
               (sha256
-               (base32 "1gw1xdb945z25rar6pba6kq5xdx8l7fkhxjyrvc1z1brva53p9hk"))
+               (base32 "0brg0sz45v1wv4ld3p4jwiab10nyp2f691zfwpiva6g6f71q3cbk"))
               (snippet
                #~(begin
                    (use-modules (guix build utils))
