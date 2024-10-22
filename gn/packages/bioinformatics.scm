@@ -3550,36 +3550,37 @@ protein alignments and syntenic genomic alignments.")
 
 (define-public pplacer
   (let ((commit "807f6f3"))
-   (build-with-ocaml4.07
-    (package
-      (name "pplacer")
-      ;; The commit should be updated with each version change.
-      (version "1.1.alpha19")
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://github.com/matsen/pplacer")
-               (commit (string-append "v" version))))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 "11ppbbbx20p2g9wj3ff64dhnarb12q79v7qh4rk0gj6lkbz4n7cn"))))
-      (build-system ocaml-build-system)
-      (arguments
-       `(#:modules ((guix build ocaml-build-system)
-                    (guix build utils)
-                    (ice-9 ftw))
+    (build-with-ocaml4.07
+     (package
+       (name "pplacer")
+       ;; The commit should be updated with each version change.
+       (version "1.1.alpha19")
+       (source
+        (origin
+          (method git-fetch)
+          (uri (git-reference
+                (url "https://github.com/matsen/pplacer")
+                (commit (string-append "v" version))))
+          (file-name (git-file-name name version))
+          (sha256
+           (base32 "11ppbbbx20p2g9wj3ff64dhnarb12q79v7qh4rk0gj6lkbz4n7cn"))))
+       (build-system ocaml-build-system)
+       (arguments
+        (list
+         #:modules '((guix build ocaml-build-system)
+                     (guix build utils)
+                     (ice-9 ftw))
          #:phases
-         (modify-phases %standard-phases
-           (delete 'configure)
-           (add-after 'unpack 'fix-build-with-latest-ocaml
-             (lambda _
-               (substitute* "myocamlbuild.ml"
-                 (("dep \\[\"c_pam\"\\]" m)
-                  (string-append "flag [\"ocaml\"; \"compile\"] (A \"-unsafe-string\");\n"
-                                 m))
-                 (("let run_and_read" m)
-                  (string-append "
+         #~(modify-phases %standard-phases
+             (delete 'configure)
+             (add-after 'unpack 'fix-build-with-latest-ocaml
+               (lambda _
+                 (substitute* "myocamlbuild.ml"
+                   (("dep \\[\"c_pam\"\\]" m)
+                    (string-append "flag [\"ocaml\"; \"compile\"] (A \"-unsafe-string\");\n"
+                                   m))
+                   (("let run_and_read" m)
+                    (string-append "
 let split s ch =
   let x = ref [] in
   let rec go s =
@@ -3595,76 +3596,72 @@ let before_space s =
   with Not_found -> s
 
 " m))
-                 (("run_and_read \"ocamlfind list \\| cut -d' ' -f1\"" m)
-                  (string-append "List.map before_space (split_nl & " m ")"))
-                 (("    blank_sep_strings &") "")
-                 (("      Lexing.from_string &") ""))
-               #t))
-           (add-after 'unpack 'replace-bundled-cddlib
-             (lambda* (#:key inputs #:allow-other-keys)
-               (let* ((cddlib-src (assoc-ref inputs "cddlib-src"))
-                      (local-dir "cddlib_guix"))
-                 (mkdir local-dir)
-                 (with-directory-excursion local-dir
-                   (invoke "tar" "xvf" cddlib-src))
-                 (let ((cddlib-src-folder
-                        (string-append local-dir "/"
-                                       (list-ref (scandir local-dir) 2)
-                                       "/lib-src")))
-                   (for-each make-file-writable (find-files "cdd_src" ".*"))
-                   (for-each
-                    (lambda (file)
-                      (copy-file file
-                                 (string-append "cdd_src/" (basename file))))
-                    (find-files cddlib-src-folder ".*[ch]$")))
-                 #t)))
-           (add-after 'unpack 'fix-makefile
-             (lambda _
-               ;; Remove system calls to 'git'.
-               (substitute* "Makefile"
-                 (("^DESCRIPT:=pplacer-.*")
-                  (string-append
-                   "DESCRIPT:=pplacer-$(shell uname)-v" ,version "\n")))
-               (substitute* "myocamlbuild.ml"
-                 (("git describe --tags --long .*\\\" with")
-                  (string-append
-                   "echo -n v" ,version "-" ,commit "\" with")))
-               #t))
-           (replace 'install
-             (lambda* (#:key outputs #:allow-other-keys)
-               (let* ((out (assoc-ref outputs "out"))
-                      (bin (string-append out "/bin")))
-                 (copy-recursively "bin" bin))
-               #t)))
-       #:ocaml ,ocaml-4.07
-       #:findlib ,ocaml4.07-findlib))
-      (inputs
-       `(("zlib" ,zlib "static")
-         ("gsl" ,gsl-static)
-         ("ocaml-ounit" ,(package-with-ocaml4.07 ocaml-ounit))
-         ("ocaml-batteries" ,(package-with-ocaml4.07 ocaml-batteries))
-         ("ocaml-camlzip" ,(package-with-ocaml4.07 camlzip))
-         ("ocaml-csv" ,(package-with-ocaml4.07 ocaml-csv))
-         ("ocaml-sqlite3" ,(package-with-ocaml4.07 ocaml-sqlite3))
-         ("ocaml-xmlm" ,(package-with-ocaml4.07 ocaml-xmlm))
-         ("ocaml-mcl" ,(package-with-ocaml4.07 ocaml-mcl))
-         ("ocaml-gsl" ,ocaml4.07-gsl-1)
-         ("sqlite:static" ,sqlite "static")))
-      (native-inputs
-       `(("cddlib-src" ,(package-source cddlib))
-         ("ocamlbuild" ,(package-with-ocaml4.07 ocamlbuild))
-         ("pkg-config" ,pkg-config)))
-      (propagated-inputs
-       (list pplacer-scripts))
-      (synopsis "Phylogenetic placement of biological sequences")
-      (description
-       "Pplacer places query sequences on a fixed reference phylogenetic tree
+                   (("run_and_read \"ocamlfind list \\| cut -d' ' -f1\"" m)
+                    (string-append "List.map before_space (split_nl & " m ")"))
+                   (("    blank_sep_strings &") "")
+                   (("      Lexing.from_string &") ""))))
+             (add-after 'unpack 'replace-bundled-cddlib
+               (lambda* (#:key inputs #:allow-other-keys)
+                 (let* ((cddlib-src (assoc-ref inputs "cddlib-src"))
+                        (local-dir "cddlib_guix"))
+                   (mkdir local-dir)
+                   (with-directory-excursion local-dir
+                     (invoke "tar" "xvf" cddlib-src))
+                   (let ((cddlib-src-folder
+                          (string-append local-dir "/"
+                                         (list-ref (scandir local-dir) 2)
+                                         "/lib-src")))
+                     (for-each make-file-writable (find-files "cdd_src" ".*"))
+                     (for-each
+                      (lambda (file)
+                        (copy-file file
+                                   (string-append "cdd_src/" (basename file))))
+                      (find-files cddlib-src-folder ".*[ch]$"))))))
+             (add-after 'unpack 'fix-makefile
+               (lambda _
+                 ;; Remove system calls to 'git'.
+                 (substitute* "Makefile"
+                   (("^DESCRIPT:=pplacer-.*")
+                    (string-append
+                     "DESCRIPT:=pplacer-$(shell uname)-v" ,version "\n")))
+                 (substitute* "myocamlbuild.ml"
+                   (("git describe --tags --long .*\\\" with")
+                    (string-append
+                     "echo -n v" ,version "-" ,commit "\" with")))))
+             (replace 'install
+               (lambda* (#:key outputs #:allow-other-keys)
+                 (let* ((out (assoc-ref outputs "out"))
+                        (bin (string-append out "/bin")))
+                   (copy-recursively "bin" bin)))))
+         #:ocaml ocaml-4.07
+         #:findlib ocaml4.07-findlib))
+       (inputs
+        (list (list zlib "static")
+              gsl-static
+              (package-with-ocaml4.07 ocaml-ounit)
+              (package-with-ocaml4.07 ocaml-batteries)
+              (package-with-ocaml4.07 camlzip)
+              (package-with-ocaml4.07 ocaml-csv)
+              (package-with-ocaml4.07 ocaml-sqlite3)
+              (package-with-ocaml4.07 ocaml-xmlm)
+              (package-with-ocaml4.07 ocaml-mcl)
+              ocaml4.07-gsl-1
+              (list sqlite "static")))
+       (native-inputs
+        (list (package-source cddlib)
+              (package-with-ocaml4.07 ocamlbuild)
+              pkg-config))
+       (propagated-inputs
+        (list pplacer-scripts))
+       (synopsis "Phylogenetic placement of biological sequences")
+       (description
+        "Pplacer places query sequences on a fixed reference phylogenetic tree
 to maximize phylogenetic likelihood or posterior probability according to a
 reference alignment.  Pplacer is designed to be fast, to give useful
 information about uncertainty, and to offer advanced visualization and
 downstream analysis.")
-      (home-page "https://matsen.fhcrc.org/pplacer/")
-      (license license:gpl3)))))
+       (home-page "https://matsen.fhcrc.org/pplacer/")
+       (license license:gpl3)))))
 
 (define-public python2-biopython
   (python2-package python-biopython))
