@@ -1939,17 +1939,17 @@ The path-guided stochastic gradient descent based 1D sort implemented in
                      (install-file header (string-append out "/include")))
                    (find-files "src" "\\.h(pp)?$"))))))))
     (native-inputs
-     `(("pkg-config" ,pkg-config)
-       ("sparsehash" ,sparsehash)))
+     (list pkg-config
+           sparsehash))
     (inputs
-     `(("boost" ,boost)
-       ("concurrentqueue" ,concurrentqueue)
-       ("jemalloc" ,jemalloc)
-       ("libdivsufsort" ,libdivsufsort)
-       ("mummer" ,mummer)
-       ("protobuf" ,protobuf)
-       ("sdsl-lite" ,sdsl-lite)
-       ("zlib" ,zlib)))
+     (list boost
+           concurrentqueue
+           jemalloc
+           libdivsufsort
+           mummer
+           protobuf
+           sdsl-lite
+           zlib))
     (home-page "https://github.com/maickrau/GraphAligner")
     (synopsis "Seed-and-extend program for aligning  genome graphs")
     (description "Seed-and-extend program for aligning long error-prone reads to
