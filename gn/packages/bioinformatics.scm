@@ -1898,14 +1898,14 @@ The path-guided stochastic gradient descent based 1D sort implemented in
 (define-public graphaligner
   (package
     (name "graphaligner")
-    (version "1.0.14")
+    (version "1.0.19")
     (source (origin
       (method url-fetch)
       (uri (string-append "https://github.com/maickrau/GraphAligner/files/"
-                          "7813545/GraphAligner.tar.gz"))
+                          "14037134/GraphAligner.tar.gz"))
       (file-name (string-append name "-" version ".tar.gz"))
       (sha256
-       (base32 "1y4vwp03fl2ck6bnyn0sc97vgvdb8i0yfzjk5mv5gk0bc7a4f0n1"))))
+       (base32 "1z1rxvl2pmiqbh670phkx7vma36w90ylp27wyadlbzf32pa2cpdn"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -1939,7 +1939,8 @@ The path-guided stochastic gradient descent based 1D sort implemented in
                      (install-file header (string-append out "/include")))
                    (find-files "src" "\\.h(pp)?$"))))))))
     (native-inputs
-     (list pkg-config
+     (list (list jemalloc "bin")
+           pkg-config
            sparsehash))
     (inputs
      (list boost
