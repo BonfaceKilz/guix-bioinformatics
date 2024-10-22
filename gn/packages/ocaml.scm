@@ -40,9 +40,9 @@
                  "0nzp43hp8pbjqkrxnwp5lgjrabxayf61h18fjaydi0s5faq6f3xh"))))
      (build-system ocaml-build-system)
      (inputs
-      `(("gsl" ,gsl-static)))
+      (list gsl-static))
      (native-inputs
-      `(("ocamlbuild" ,ocamlbuild)))
+      (list ocamlbuild))
      (arguments '())
      (propagated-inputs '()))))
 
