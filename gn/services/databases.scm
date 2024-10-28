@@ -42,7 +42,11 @@
   (http-server-ip virtuoso-configuration-http-server-ip
                   (default "localhost"))
   (http-server-port virtuoso-configuration-http-server-port
-                    (default 8890)))
+                    (default 8890))
+  (checkpoint-interval virtuoso-configuration-checkpoint-interval
+                       (default "60"))
+  (scheduler-interval virtuoso-configuration-scheduler-interval
+                      (default "10")))
 
 (define (virtuoso-activation config)
   (with-imported-modules '((guix build utils))
