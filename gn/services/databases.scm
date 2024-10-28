@@ -46,7 +46,16 @@
   (checkpoint-interval virtuoso-configuration-checkpoint-interval
                        (default "60"))
   (scheduler-interval virtuoso-configuration-scheduler-interval
-                      (default "10")))
+                      (default "10"))
+  ;; Database settings
+  (database-file virtuoso-configuration-database-file
+                 (default "/var/lib/virtuoso/virtuoso.db"))
+  (lock-file virtuoso-configuration-lock-file
+                 (default "/var/lib/virtuoso/virtuoso.lck"))
+  (transaction-file virtuoso-configuration-transaction-file
+                    (default "/var/lib/virtuoso/virtuoso.trx"))
+  (syslog virtuoso-configuration-syslog
+          (default "0")))
 
 (define (virtuoso-activation config)
   (with-imported-modules '((guix build utils))
@@ -70,6 +79,7 @@
          (comment "Virtuoso user")
          (home-directory "/var/lib/virtuoso")
          (shell (file-append shadow "/sbin/nologin")))))
+
 
 (define (virtuoso-shepherd-service config)
   (shepherd-service
@@ -104,7 +114,13 @@
                               (format port "[HTTPServer]~%")
                               (format port "ServerPort = ~a:~a~%"
                                       #$(virtuoso-configuration-http-server-ip config)
-                                      #$(virtuoso-configuration-http-server-port config)))))))
+                                      #$(virtuoso-configuration-http-server-port config)))
+                            (format port
+                                    "[Database]~%DatabaseFile = ~a~%LockFile = ~a~%TransactionFile = ~a~%Syslog = ~a~%"
+                                    #$(virtuoso-configuration-database-file config)
+                                    #$(virtuoso-configuration-lock-file config)
+                                    #$(virtuoso-configuration-transaction-file config)
+                                    #$(virtuoso-configuration-syslog config))))))
              #:directory #$(virtuoso-configuration-state-directory config)
              #:user "virtuoso"
              #:group "virtuoso"
