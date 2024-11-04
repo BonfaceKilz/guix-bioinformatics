@@ -138,6 +138,7 @@
       (propagated-inputs
        (list csvdiff
              diffutils
+             nss-certs
              gemma-wrapper
              gn-rust-correlation
              python-argon2-cffi
@@ -205,6 +206,7 @@
       (propagated-inputs
        (list genenetwork3
              coreutils
+             nss-certs
              gemma
              gemma-wrapper
              git
@@ -459,6 +461,7 @@
             python-hypothesis))
      (propagated-inputs
       (list gunicorn
+            nss-certs
             python-redis
             python-flask
             python-pyyaml
@@ -512,6 +515,7 @@
              python-pytest-mock))
       (propagated-inputs
        (list gunicorn
+             nss-certs
              python-blinker
              python-argon2-cffi
              python-authlib
